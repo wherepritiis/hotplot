@@ -432,23 +432,23 @@ def run_resume_plot(temp_settings):
 
 @app.route('/home', methods=['POST'])
 def home():
-    """Move carriage to home corner (0, 0). Only valid when plot is paused. Does not disconnect or clear paused state."""
-    global paused_svg
+    """Move carriage to home corner (0, 0). Only valid when plot is paused. Clears paused state so Play button shows again."""
+    global paused_svg, paused_plot_settings
     
     if paused_svg is None:
         return jsonify({"success": False, "error": "Return Home is only available when a plot is paused"}), 400
     
     try:
-        # Use res_home mode: move carriage to home, preserve pause state so user can resume later
+        # Use res_home mode: move carriage to home corner
         home_instance = axidraw.AxiDraw()
         home_instance.plot_setup(paused_svg)
         home_instance.options.mode = "res_home"
-        # Run with output=True to get updated SVG (reflects "at home") for correct resume later
-        output_svg = home_instance.plot_run(True)
+        home_instance.plot_run()
         home_instance.disconnect()
         
-        # Update paused_svg so resume still works after return home
-        paused_svg = output_svg
+        # Clear paused state so UI shows Play button again (no resume option)
+        paused_svg = None
+        paused_plot_settings = None
         
         return jsonify({"success": True, "message": "Returned to home corner (0, 0)"})
         
