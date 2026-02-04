@@ -19,15 +19,21 @@ plot_instance = None
 plot_thread = None
 # Paused SVG (for resume functionality)
 paused_svg = None
+# Plot settings for resume (layer, speeds, pen heights)
+paused_plot_settings = None
 # Flag to track if plot is active (for signal handler)
 plot_active = False
 
 
 def get_state():
-    """Get current connection state."""
-    if axidraw_instance is None:
-        return {"connected": False}
-    return {"connected": True}
+    """Get current connection state and plot state."""
+    state = {
+        "connected": axidraw_instance is not None,
+        "plotting": plot_thread is not None and plot_thread.is_alive(),
+        "paused": paused_svg is not None,
+        "plot_active": plot_active
+    }
+    return state
 
 
 
@@ -139,7 +145,7 @@ def cmd():
 
 def run_plot(svg, layer, pen_pos_up, pen_pos_down, speed_penup, speed_pendown):
     """Run plot in a background thread."""
-    global axidraw_instance, plot_instance, paused_svg, plot_thread, plot_active
+    global axidraw_instance, plot_instance, paused_svg, paused_plot_settings, plot_thread, plot_active
     
     try:
         # Disconnect any existing interactive session
@@ -150,8 +156,9 @@ def run_plot(svg, layer, pen_pos_up, pen_pos_down, speed_penup, speed_pendown):
                 print(f"Warning: Error disconnecting interactive session: {e}")
             axidraw_instance = None
         
-        # Clear any previous paused SVG
+        # Clear any previous paused SVG and settings
         paused_svg = None
+        paused_plot_settings = None
         
         # Create new AxiDraw instance for plotting
         plot_instance = axidraw.AxiDraw()
@@ -182,12 +189,29 @@ def run_plot(svg, layer, pen_pos_up, pen_pos_down, speed_penup, speed_pendown):
         if error_code == 102:  # Paused by button
             print("Plot paused by button press")
             paused_svg = output_svg
+            # Store plot settings for resume
+            paused_plot_settings = {
+                "layer": layer,
+                "pen_pos_up": pen_pos_up,
+                "pen_pos_down": pen_pos_down,
+                "speed_penup": speed_penup,
+                "speed_pendown": speed_pendown
+            }
         elif error_code == 103:  # Paused by keyboard interrupt
             print("Plot paused by keyboard interrupt")
             paused_svg = output_svg
+            # Store plot settings for resume
+            paused_plot_settings = {
+                "layer": layer,
+                "pen_pos_up": pen_pos_up,
+                "pen_pos_down": pen_pos_down,
+                "speed_penup": speed_penup,
+                "speed_pendown": speed_pendown
+            }
         elif error_code == 0:  # Completed normally
             print("Plot completed successfully")
             paused_svg = None
+            paused_plot_settings = None
         
         # Clean up plot instance
         try:
@@ -206,6 +230,7 @@ def run_plot(svg, layer, pen_pos_up, pen_pos_down, speed_penup, speed_pendown):
                 pass
             plot_instance = None
         paused_svg = None
+        paused_plot_settings = None
     finally:
         plot_active = False
         plot_thread = None
@@ -252,67 +277,19 @@ def plot():
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@app.route('/stop', methods=['POST'])
-def stop():
-    """Stop current plot operation by disconnecting (which interrupts plot_run())."""
-    global plot_instance, plot_thread
+@app.route('/resume', methods=['POST'])
+def resume():
+    """Resume a paused plot using res_plot mode."""
+    global axidraw_instance, plot_instance, plot_thread, paused_svg, paused_plot_settings, plot_active
     
-    if plot_instance is None and (plot_thread is None or not plot_thread.is_alive()):
-        return jsonify({"success": False, "error": "No plot operation in progress"}), 400
+    if paused_svg is None:
+        return jsonify({"success": False, "error": "No paused plot to resume"}), 400
     
-    try:
-        # Disconnect the plot instance - this will interrupt plot_run()
-        # pyaxidraw's keyboard_pause mechanism should handle this gracefully
-        if plot_instance is not None:
-            try:
-                plot_instance.disconnect()
-                print("Disconnected plot instance to stop plot")
-            except Exception as e:
-                print(f"Warning: Error disconnecting during stop: {e}")
-            plot_instance = None
-        
-        plot_thread = None
-        return jsonify({"success": True, "message": "Plot stopped successfully"})
-    except Exception as e:
-        print(f"Error stopping plot: {e}")
-        plot_instance = None
-        plot_thread = None
-        return jsonify({"success": False, "error": str(e)}), 500
-
-
-@app.route('/home', methods=['POST'])
-def home():
-    """Return plotter to home position using res_home mode if plot was paused, otherwise use interactive mode."""
-    global axidraw_instance, plot_instance, paused_svg, plot_thread
+    # Check if a plot is already in progress
+    if plot_thread is not None and plot_thread.is_alive():
+        return jsonify({"success": False, "error": "Plot operation already in progress"}), 400
     
     try:
-        # If there's a paused plot, use res_home mode
-        if paused_svg is not None:
-            # Disconnect any existing instances
-            if axidraw_instance is not None:
-                try:
-                    axidraw_instance.disconnect()
-                except Exception as e:
-                    print(f"Warning: Error disconnecting interactive session: {e}")
-                axidraw_instance = None
-            
-            if plot_instance is not None:
-                try:
-                    plot_instance.disconnect()
-                except Exception as e:
-                    print(f"Warning: Error disconnecting plot session: {e}")
-                plot_instance = None
-            
-            # Use res_home mode with paused SVG
-            home_instance = axidraw.AxiDraw()
-            home_instance.plot_setup(paused_svg)
-            home_instance.options.mode = "res_home"
-            home_instance.plot_run()
-            home_instance.disconnect()
-            
-            return jsonify({"success": True, "message": "Returned to home position (from paused plot)"})
-        
-        # Otherwise, use interactive mode
         # Disconnect any existing instances
         if axidraw_instance is not None:
             try:
@@ -328,20 +305,152 @@ def home():
                 print(f"Warning: Error disconnecting plot session: {e}")
             plot_instance = None
         
+        # Get stored settings or use defaults (before clearing)
+        settings = paused_plot_settings or {}
+        layer = settings.get("layer")
+        pen_pos_up = settings.get("pen_pos_up", 70)
+        pen_pos_down = settings.get("pen_pos_down", 40)
+        speed_penup = settings.get("speed_penup", 75)
+        speed_pendown = settings.get("speed_pendown", 25)
+        
+        # Store paused state temporarily (will be passed to thread)
+        temp_paused_svg = paused_svg
+        temp_paused_settings = paused_plot_settings
+        
+        # Clear paused state (plot is now resuming)
+        paused_svg = None
+        paused_plot_settings = None
+        
+        # Create new AxiDraw instance for resuming
+        plot_instance = axidraw.AxiDraw()
+        
+        # Setup plot with paused SVG
+        plot_instance.plot_setup(temp_paused_svg)
+        
+        # Set resume mode
+        plot_instance.options.mode = "res_plot"
+        
+        # Restore plot settings
+        if layer is not None:
+            plot_instance.options.layer = int(layer)
+        plot_instance.options.pen_pos_up = pen_pos_up
+        plot_instance.options.pen_pos_down = pen_pos_down
+        plot_instance.options.speed_penup = speed_penup
+        plot_instance.options.speed_pendown = speed_pendown
+        
+        # Mark plot as active and start resume
+        plot_active = True
+        
+        # Execute resume plot in background thread
+        plot_thread = threading.Thread(
+            target=run_resume_plot,
+            args=(temp_paused_settings,),
+            daemon=True
+        )
+        plot_thread.start()
+        
+        return jsonify({"success": True, "message": "Plot resumed successfully"})
+        
+    except Exception as e:
+        print(f"Error resuming plot: {e}")
+        plot_instance = None
         plot_thread = None
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+def run_resume_plot(temp_settings):
+    """Run resumed plot in a background thread."""
+    global plot_instance, paused_svg, paused_plot_settings, plot_thread, plot_active
+    
+    try:
+        # Execute plot with output=True to capture paused SVG if interrupted again
+        output_svg = plot_instance.plot_run(True)
         
-        # Create new interactive instance for home command
+        # Get settings from temp_settings or plot_instance options
+        if temp_settings:
+            layer = temp_settings.get("layer")
+            pen_pos_up = temp_settings.get("pen_pos_up", 70)
+            pen_pos_down = temp_settings.get("pen_pos_down", 40)
+            speed_penup = temp_settings.get("speed_penup", 75)
+            speed_pendown = temp_settings.get("speed_pendown", 25)
+        else:
+            layer = plot_instance.options.layer if plot_instance.options.mode == "layers" else None
+            pen_pos_up = plot_instance.options.pen_pos_up
+            pen_pos_down = plot_instance.options.pen_pos_down
+            speed_penup = plot_instance.options.speed_penup
+            speed_pendown = plot_instance.options.speed_pendown
+        
+        # Check error code to see if plot was paused again
+        error_code = plot_instance.errors.code
+        if error_code == 102:  # Paused by button
+            print("Plot paused by button press")
+            paused_svg = output_svg
+            paused_plot_settings = {
+                "layer": layer,
+                "pen_pos_up": pen_pos_up,
+                "pen_pos_down": pen_pos_down,
+                "speed_penup": speed_penup,
+                "speed_pendown": speed_pendown
+            }
+        elif error_code == 103:  # Paused by keyboard interrupt
+            print("Plot paused by keyboard interrupt")
+            paused_svg = output_svg
+            paused_plot_settings = {
+                "layer": layer,
+                "pen_pos_up": pen_pos_up,
+                "pen_pos_down": pen_pos_down,
+                "speed_penup": speed_penup,
+                "speed_pendown": speed_pendown
+            }
+        elif error_code == 0:  # Completed normally
+            print("Plot completed successfully")
+            paused_svg = None
+            paused_plot_settings = None
+        
+        # Clean up plot instance
+        try:
+            plot_instance.disconnect()
+        except Exception as e:
+            print(f"Warning: Error disconnecting after plot: {e}")
+        plot_instance = None
+        
+    except Exception as e:
+        print(f"Error in resume plot thread: {e}")
+        # Clean up plot instance on error
+        if plot_instance is not None:
+            try:
+                plot_instance.disconnect()
+            except:
+                pass
+            plot_instance = None
+        paused_svg = None
+        paused_plot_settings = None
+    finally:
+        plot_active = False
+        plot_thread = None
+
+
+@app.route('/home', methods=['POST'])
+def home():
+    """Move carriage to home corner (0, 0). Only valid when plot is paused. Does not disconnect or clear paused state."""
+    global paused_svg
+    
+    if paused_svg is None:
+        return jsonify({"success": False, "error": "Return Home is only available when a plot is paused"}), 400
+    
+    try:
+        # Use res_home mode: move carriage to home, preserve pause state so user can resume later
         home_instance = axidraw.AxiDraw()
-        home_instance.interactive()
-        home_instance.connect()
-        
-        # Move to home position
-        home_instance.moveto(0, 0)
-        
-        # Disconnect
+        home_instance.plot_setup(paused_svg)
+        home_instance.options.mode = "res_home"
+        # Run with output=True to get updated SVG (reflects "at home") for correct resume later
+        output_svg = home_instance.plot_run(True)
         home_instance.disconnect()
         
-        return jsonify({"success": True, "message": "Returned to home position"})
+        # Update paused_svg so resume still works after return home
+        paused_svg = output_svg
+        
+        return jsonify({"success": True, "message": "Returned to home corner (0, 0)"})
         
     except Exception as e:
         print(f"Error returning to home: {e}")

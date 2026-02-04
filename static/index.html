@@ -183,12 +183,12 @@
             color: white;
         }
         
-        .btn-stop {
-            background-color: #ff9800;
+        .btn-resume {
+            background-color: #2196f3;
             color: white;
         }
         
-        .btn-home {
+        .btn-return-home {
             background-color: #9c27b0;
             color: white;
         }
@@ -255,9 +255,9 @@
         </div>
         
         <div class="button-group">
-            <button class="btn-plot" id="plotBtn" onclick="plot()">Plot</button>
-            <button class="btn-stop" id="stopBtn" onclick="stopPlot()">Stop</button>
-            <button class="btn-home" id="homeBtn" onclick="goHome()">Home</button>
+            <button class="btn-plot" id="plotBtn" onclick="plot()">Play</button>
+            <button class="btn-resume" id="resumeBtn" onclick="resumePlot()" style="display: none;">Resume</button>
+            <button class="btn-return-home" id="returnHomeBtn" onclick="returnHome()" style="display: none;">Return Home</button>
         </div>
     </div>
     
@@ -286,6 +286,9 @@
             const connectBtn = document.getElementById('connectBtn');
             const disconnectBtn = document.getElementById('disconnectBtn');
             const sendBtn = document.getElementById('sendBtn');
+            const plotBtn = document.getElementById('plotBtn');
+            const resumeBtn = document.getElementById('resumeBtn');
+            const returnHomeBtn = document.getElementById('returnHomeBtn');
             
             if (connected) {
                 statusIndicator.className = 'status-indicator connected';
@@ -299,6 +302,33 @@
                 connectBtn.disabled = false;
                 disconnectBtn.disabled = true;
                 sendBtn.disabled = true;
+            }
+            
+            // Update plot button states
+            const plotting = state.plotting || false;
+            const paused = state.paused || false;
+            
+            // Play button: visible when not plotting and not paused
+            if (!plotting && !paused) {
+                plotBtn.style.display = 'inline-block';
+                plotBtn.disabled = false;
+            } else {
+                plotBtn.style.display = 'inline-block';
+                plotBtn.disabled = true;
+            }
+            
+            // Resume button: visible only when paused
+            if (paused) {
+                resumeBtn.style.display = 'inline-block';
+            } else {
+                resumeBtn.style.display = 'none';
+            }
+            
+            // Return Home button: visible only when paused (after physical pause button)
+            if (paused) {
+                returnHomeBtn.style.display = 'inline-block';
+            } else {
+                returnHomeBtn.style.display = 'none';
             }
             
             if (state.error) {
@@ -454,10 +484,10 @@
             }
         }
         
-        async function stopPlot() {
+        async function resumePlot() {
             try {
-                log('Stopping plot...', 'info');
-                const response = await fetch('/stop', {
+                log('Resuming plot...', 'info');
+                const response = await fetch('/resume', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -466,20 +496,20 @@
                 const result = await response.json();
                 
                 if (result.success) {
-                    log(result.message || 'Stopped successfully', 'success');
+                    log(result.message || 'Plot resumed successfully', 'success');
                 } else {
-                    log(`Stop failed: ${result.error}`, 'error');
+                    log(`Resume failed: ${result.error}`, 'error');
                 }
                 
                 await checkState();
             } catch (error) {
-                log(`Error stopping: ${error.message}`, 'error');
+                log(`Error resuming plot: ${error.message}`, 'error');
             }
         }
         
-        async function goHome() {
+        async function returnHome() {
             try {
-                log('Returning to home...', 'info');
+                log('Returning to home corner...', 'info');
                 const response = await fetch('/home', {
                     method: 'POST',
                     headers: {
@@ -491,20 +521,20 @@
                 if (result.success) {
                     log(result.message || 'Returned to home successfully', 'success');
                 } else {
-                    log(`Home failed: ${result.error}`, 'error');
+                    log(`Return home failed: ${result.error}`, 'error');
                 }
                 
                 await checkState();
             } catch (error) {
-                log(`Error going home: ${error.message}`, 'error');
+                log(`Error returning home: ${error.message}`, 'error');
             }
         }
         
         // Check state on page load
         checkState();
         
-        // Poll state every 2 seconds
-        setInterval(checkState, 2000);
+        // Poll state every 1 second (more frequent to catch pause state changes)
+        setInterval(checkState, 1000);
     </script>
 </body>
 </html>
