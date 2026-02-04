@@ -188,16 +188,22 @@ hotplot/
 
 ### Current Status
 
-**Iteration 1** is complete:
+**Iteration 1** ✅ Complete:
 - ✅ Flask server with basic endpoints
 - ✅ Connect/disconnect functionality
 - ✅ Command execution interface
 - ✅ Web UI for testing
 
+**Iteration 2** ✅ Complete:
+- ✅ Plot endpoint with SVG support
+- ✅ Stop and Home endpoints
+- ✅ Plot UI with SVG input, layer selection, offset, and settings
+- ✅ SVG offset wrapping implementation
+- ✅ Layer plotting support
+
 ### Future Iterations
 
 See `PLAN.md` for details on upcoming features:
-- Iteration 2: Plotting + Plot UI
 - Iteration 3: Editor + Preview + SVG Export UI
 - Iteration 4: Layer Workflow UI
 - Iteration 5: Interactive Mode Polishing

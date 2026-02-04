@@ -141,6 +141,57 @@
             color: #666;
             margin-top: 5px;
         }
+        
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            min-height: 150px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn-plot {
+            background-color: #4caf50;
+            color: white;
+        }
+        
+        .btn-stop {
+            background-color: #ff9800;
+            color: white;
+        }
+        
+        .btn-home {
+            background-color: #9c27b0;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -166,6 +217,47 @@
         </div>
         <div class="command-hint">
             Supported commands: moveto x y, lineto x y, penup, pendown, home
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Plot</h2>
+        <div class="form-group">
+            <label for="svgInput">SVG Content</label>
+            <textarea id="svgInput" placeholder="Paste SVG content here..."></textarea>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="layerInput">Layer Number (optional)</label>
+                <input type="number" id="layerInput" placeholder="Leave empty for all layers">
+            </div>
+            <div class="form-group">
+                <label for="penUp">Pen Up Height</label>
+                <input type="number" id="penUp" value="70" min="0" max="100">
+            </div>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="penDown">Pen Down Height</label>
+                <input type="number" id="penDown" value="40" min="0" max="100">
+            </div>
+            <div class="form-group">
+                <label for="speedUp">Speed Up (%)</label>
+                <input type="number" id="speedUp" value="75" min="1" max="110">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="speedDown">Speed Down (%)</label>
+            <input type="number" id="speedDown" value="25" min="1" max="110">
+        </div>
+        
+        <div class="button-group">
+            <button class="btn-plot" id="plotBtn" onclick="plot()">Plot</button>
+            <button class="btn-stop" id="stopBtn" onclick="stopPlot()">Stop</button>
+            <button class="btn-home" id="homeBtn" onclick="goHome()">Home</button>
         </div>
     </div>
     
@@ -308,6 +400,103 @@
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
                 sendCommand();
+            }
+        }
+        
+        async function plot() {
+            const svgInput = document.getElementById('svgInput');
+            const svg = svgInput.value.trim();
+            
+            if (!svg) {
+                log('Please paste SVG content', 'error');
+                return;
+            }
+            
+            const layerInput = document.getElementById('layerInput');
+            const penUp = parseInt(document.getElementById('penUp').value) || 70;
+            const penDown = parseInt(document.getElementById('penDown').value) || 40;
+            const speedUp = parseInt(document.getElementById('speedUp').value) || 75;
+            const speedDown = parseInt(document.getElementById('speedDown').value) || 25;
+            
+            const payload = {
+                svg: svg,
+                settings: {
+                    pen_up: penUp,
+                    pen_down: penDown,
+                    speed_up: speedUp,
+                    speed_down: speedDown
+                }
+            };
+            
+            const layer = layerInput.value.trim();
+            if (layer) {
+                payload.layer = parseInt(layer);
+            }
+            
+            try {
+                log('Starting plot...', 'info');
+                const response = await fetch('/plot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    log(result.message || 'Plot completed successfully', 'success');
+                } else {
+                    log(`Plot failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                log(`Error plotting: ${error.message}`, 'error');
+            }
+        }
+        
+        async function stopPlot() {
+            try {
+                log('Stopping plot...', 'info');
+                const response = await fetch('/stop', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    log(result.message || 'Stopped successfully', 'success');
+                } else {
+                    log(`Stop failed: ${result.error}`, 'error');
+                }
+                
+                await checkState();
+            } catch (error) {
+                log(`Error stopping: ${error.message}`, 'error');
+            }
+        }
+        
+        async function goHome() {
+            try {
+                log('Returning to home...', 'info');
+                const response = await fetch('/home', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    log(result.message || 'Returned to home successfully', 'success');
+                } else {
+                    log(`Home failed: ${result.error}`, 'error');
+                }
+                
+                await checkState();
+            } catch (error) {
+                log(`Error going home: ${error.message}`, 'error');
             }
         }
         

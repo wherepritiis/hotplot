@@ -14,9 +14,9 @@ We will implement a simple single-page “Control Panel” UI early and expand i
 
 **Python 3.14 is required.** All Python commands must use `python3.14` explicitly to ensure the correct version is used.
 
-### Installing PyAXIDraw
+### Installing pyaxidraw
 
-PyAXIDraw is **not available via pip or npm**. It must be installed manually:
+pyaxidraw (version 3.9.6) is **not available via pip or npm**. It must be installed manually:
 
 1. Download the AxiDraw API zip file from: https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip
    - Or visit the [AxiDraw Python API documentation](https://axidraw.com/doc/py_api) for the latest download link and installation instructions.
@@ -32,6 +32,13 @@ Alternatively, you can install directly from the URL:
 python3.14 -m pip install https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip
 ```
 
+**pyaxidraw Requirements**:
+- Python 3.7 or newer (we use 3.14)
+- Pyserial 3.5 or newer
+- The package includes `pyaxidraw.axidraw.AxiDraw` class and related modules
+
+**Documentation**: Reference documentation is available in `docs/pyaxidraw/documentation/axidraw_python.html` (included in downloaded package).
+
 ### Installing Other Dependencies
 
 Install Flask and other pip-installable dependencies:
@@ -39,11 +46,22 @@ Install Flask and other pip-installable dependencies:
 python3.14 -m pip install -r requirements.txt
 ```
 
+### Frontend Dependencies
+
+The frontend requires:
+- **p5.js** - Creative coding library (version 1.4.2 through 1.11.11 compatible)
+- **p5.plotSvg** - SVG export library for p5.js (version 0.1.8)
+  - Available via CDN: https://cdn.jsdelivr.net/npm/p5.plotsvg@latest/lib/p5.plotSvg.js
+  - Or download from: https://raw.githubusercontent.com/golanlevin/p5.plotSvg/refs/heads/main/lib/p5.plotSvg.js
+- **CodeMirror** (for Iteration 3+) - Code editor component
+
+**p5.plotSvg Documentation**: Reference documentation is available in `docs/plotsvg/documentation.md`.
+
 **Important**: Always use `python3.14` (not `python`, `python3`, or `python3.13`) for all commands to ensure version consistency.
 
 ---
 
-## Iteration 1 — Minimal Server + Basic Control Panel UI
+## Iteration 1 — Minimal Server + Basic Control Panel UI ✅ COMPLETE
 
 ### Goals
 - Flask server runs locally using Python 3.14.
@@ -81,7 +99,7 @@ Open `/` in a browser and verify connect/disconnect and a command works.
 
 ---
 
-## Iteration 2 — Plotting + Plot UI
+## Iteration 2 — Plotting + Plot UI ✅ COMPLETE
 
 ### Goals
 - Plot an SVG from the browser.
@@ -95,9 +113,17 @@ Add endpoints:
 - `POST /home`
 
 Implement:
-- SVG translate offset wrapper
-- Basic settings: pen up/down, speed up/down
-- Layer plotting via AxiDraw options: `mode="layers"` and `layer=N`
+- SVG translate offset wrapper (wrap SVG in `<g transform="translate(x,y)">`)
+- Basic settings: pen up/down heights (`pen_pos_up`, `pen_pos_down`), speeds (`speed_penup`, `speed_pendown`)
+- Layer plotting via pyaxidraw options:
+  - `ad.options.mode = "layers"` - Enable layer mode
+  - `ad.options.layer = N` - Select layer number (1-1000, matches layers whose names begin with N)
+- Plot workflow:
+  1. Create new AxiDraw instance
+  2. Call `plot_setup(svg_string)` with offset-wrapped SVG
+  3. Set options (mode, layer, speeds, pen heights)
+  4. Call `plot_run()` to execute plot
+  5. Disconnect instance
 
 ### Frontend (Required)
 Add a Plot section on `/`:
@@ -110,6 +136,8 @@ Add a Plot section on `/`:
 
 ### Review Point
 Open `/`, paste a known-good SVG, plot it, and test Stop/Home.
+
+**Status**: All features implemented and tested. The plot endpoint handles SVG offset wrapping via transform groups, layer selection, and plotter settings (pen up/down heights, speeds). The UI includes all required inputs and buttons. The backend properly manages AxiDraw instance lifecycle (disconnects interactive session before plotting, creates new instance for plot operations).
 
 ---
 
