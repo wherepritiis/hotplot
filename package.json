@@ -1,0 +1,15 @@
+{
+  "name": "hotplot",
+  "version": "1.0.0",
+  "description": "AxiDraw Plotter Web Control Tool",
+  "private": true,
+  "dependencies": {
+    "p5": "1.11.11",
+    "p5.plotsvg": "0.1.8",
+    "codemirror": "5.65.20"
+  },
+  "scripts": {
+    "install-deps": "npm install && npm run copy-deps",
+    "copy-deps": "mkdir -p static/vendor/codemirror/mode/javascript && cp node_modules/p5/lib/p5.js static/vendor/ && cp node_modules/p5.plotsvg/lib/p5.plotSvg.js static/vendor/ && cp node_modules/codemirror/lib/codemirror.js static/vendor/codemirror/ && cp node_modules/codemirror/lib/codemirror.css static/vendor/codemirror/ && cp node_modules/codemirror/mode/javascript/javascript.js static/vendor/codemirror/mode/javascript/"
+  }
+}

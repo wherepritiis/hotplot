@@ -48,12 +48,18 @@ python3.14 -m pip install -r requirements.txt
 
 ### Frontend Dependencies
 
-The frontend requires:
-- **p5.js** - Creative coding library (version 1.4.2 through 1.11.11 compatible)
+The frontend requires JavaScript packages installed via npm:
+- **p5.js** - Creative coding library (version 1.11.11)
 - **p5.plotSvg** - SVG export library for p5.js (version 0.1.8)
-  - Available via CDN: https://cdn.jsdelivr.net/npm/p5.plotsvg@latest/lib/p5.plotSvg.js
-  - Or download from: https://raw.githubusercontent.com/golanlevin/p5.plotSvg/refs/heads/main/lib/p5.plotSvg.js
-- **CodeMirror** (for Iteration 3+) - Code editor component
+- **CodeMirror** - Code editor component (version 5.65.20)
+
+Installation:
+```bash
+npm install
+npm run copy-deps
+```
+
+This will install the packages and copy the necessary files to `static/vendor/` for Flask to serve.
 
 **p5.plotSvg Documentation**: Reference documentation is available in `docs/plotsvg/documentation.md`.
 
@@ -146,7 +152,8 @@ Open `/`, paste a known-good SVG, plot it, and test Stop/Home.
 ### Goals
 - Write p5.js code in the browser.
 - Preview on a canvas.
-- Generate SVG using p5.plotSvg and view it.
+- Plot directly from the preview canvas (SVG generated automatically).
+- Export SVG as a convenience feature for saving/downloading.
 
 ### Backend
 No major changes required (keep Iteration 2 endpoints).
@@ -156,15 +163,20 @@ Enhance `/` with:
 - Code editor (CodeMirror)
 - Preview area (iframe running p5 sketch)
 - Buttons:
-  - Run Preview
-  - Export SVG (captures via beginRecordSvg/endRecordSvg)
-- Exported SVG shown in a textarea (and downloadable)
+  - Run Preview - executes code and shows visual preview
+  - Plot - generates SVG from preview canvas using p5.plotSvg and sends directly to `/plot` endpoint
+  - Export SVG - convenience feature to save/download SVG file (captures via beginRecordSvg/endRecordSvg)
+- Exported SVG shown in a textarea (read-only, for viewing/downloading only)
 
-Also:
-- “Use Exported SVG” button to load it into the Plot section
+
+**Key Workflow**:
+1. User writes p5.js code in editor
+2. Clicks "Run Preview" to see visual preview
+3. Clicks "Plot" button - SVG is generated from preview canvas and sent directly to backend for plotting
+4. (Optional) User can click "Export SVG" to save/download the SVG file
 
 ### Review Point
-Open `/`, write code, preview, export SVG, then plot without copy/paste.
+Open `/`, write code, preview, and plot directly without needing to export SVG first.
 
 ---
 

@@ -272,11 +272,18 @@ Physical plotter pause button is used.
 
 - Code editor (CodeMirror) for writing p5.js sketches
 - Canvas preview (p5.js) for visual preview
-- SVG export functionality using p5.plotSvg:
+- Direct plotting from preview canvas - SVG is generated automatically when Plot button is clicked
+- SVG export functionality using p5.plotSvg (convenience feature for saving/downloading):
   - `beginRecordSvg(p5Instance, filename)` - Start recording
   - `endRecordSvg()` - End recording and return SVG string
   - `pauseRecordSvg(bPause)` - Pause/unpause recording
 - Layer workflow UI helpers
+
+**Iteration 3 Workflow**:
+1. User writes p5.js code in CodeMirror editor
+2. Clicks "Run Preview" to execute code and see visual preview in iframe
+3. Clicks "Plot" button - SVG is generated from preview canvas using p5.plotSvg and sent directly to `/plot` endpoint
+4. (Optional) User can click "Export SVG" to save/download the SVG file for later use
 
 ### p5.plotSvg API Reference
 
