@@ -11,6 +11,10 @@
     />
     <!-- CodeMirror CSS -->
     <link rel="stylesheet" href="/static/vendor/codemirror/codemirror.css" />
+    <!-- CodeMirror Isotope Theme -->
+    <link rel="stylesheet" href="/static/vendor/codemirror/theme/isotope.css" />
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/static/styles.css" />
     <!-- AlpineJS Data Component - Define before Alpine loads -->
     <script>
       // Define Alpine component data function
@@ -187,15 +191,12 @@
   </head>
   <body
     x-data="appData"
-    class="sans-serif w-100 center pa3 bg-light-gray"
-    style="max-width: 1920px"
+    class="sans-serif w-100 center pa3"
   >
+    <div class="app-container">
     <!-- Alert Notifications -->
-    <div
-      class="fixed top-0 left-0 right-0 pa3"
-      style="z-index: 10000; pointer-events: none;"
-    >
-      <div class="center" style="max-width: 1920px;">
+    <div class="alert-container">
+      <div class="alert-container-inner">
         <template x-for="alert in alerts" :key="alert.id">
           <div
             x-show="alerts.length > 0"
@@ -206,20 +207,17 @@
             x-transition:leave-start="opacity-100 transform translate-y-0"
             x-transition:leave-end="opacity-0 transform translate-y-[-10px]"
             :class="{
-              'bg-red white': alert.type === 'error',
-              'bg-green white': alert.type === 'success',
-              'bg-blue white': alert.type === 'info',
-              'bg-yellow black': alert.type === 'warning'
+              'alert-error': alert.type === 'error',
+              'alert-success': alert.type === 'success',
+              'alert-info': alert.type === 'info',
+              'alert-warning': alert.type === 'warning'
             }"
-            class="br3 pa3 mb2 shadow-4 flex items-center justify-between"
-            style="pointer-events: auto; min-width: 300px; max-width: 600px;"
+            class="alert"
           >
             <span x-text="alert.message" class="flex-auto pr2"></span>
             <button
               @click="dismissAlert(alert.id)"
-              :class="alert.type === 'warning' ? 'bg-transparent black' : 'bg-transparent white'"
-              class="bn pointer f4"
-              style="line-height: 1;"
+              class="alert-dismiss"
               title="Dismiss"
             >
               ×
@@ -230,48 +228,59 @@
     </div>
 
     <!-- Header -->
-    <header
-      class="bg-white br3 pa3 mb3 shadow-2 flex items-center justify-between"
-    >
-      <!-- Mode Tabs (Left) -->
-      <div class="flex">
-        <button
-          @click="switchMode('plot')"
-          :class="currentMode === 'plot' ? 'bg-black white' : 'bg-white black'"
-          class="pa2 br2 bn pointer mr2"
-        >
-          Plot Mode
-        </button>
-        <button
-          @click="switchMode('interactive')"
-          :class="currentMode === 'interactive' ? 'bg-black white' : 'bg-white black'"
-          class="pa2 br2 bn pointer ba"
-        >
-          Interactive Mode
-        </button>
+    <header class="app-header">
+      <!-- Logo (Left) -->
+      <div class="app-logo">
+        <span class="logo-text">Hotplot</span>
+      </div>
+
+      <!-- Mode Toggle Group (Center) -->
+      <div class="mode-toggle-group">
+        <div class="mode-toggle-container">
+          <div 
+            class="mode-toggle-slider"
+            :style="currentMode === 'plot' ? 'transform: translateX(0%)' : 'transform: translateX(100%)'"
+          ></div>
+          <button
+            @click="switchMode('plot')"
+            :class="currentMode === 'plot' ? 'mode-toggle-btn-active' : 'mode-toggle-btn-inactive'"
+            class="mode-toggle-btn"
+          >
+            Plot mode
+          </button>
+          <button
+            @click="switchMode('interactive')"
+            :class="currentMode === 'interactive' ? 'mode-toggle-btn-active' : 'mode-toggle-btn-inactive'"
+            class="mode-toggle-btn"
+          >
+            Interactive mode
+          </button>
+        </div>
       </div>
 
       <!-- Connection Controls (Right) -->
       <div class="flex items-center">
-        <span class="mr2 f6">Connect</span>
-        <label class="pointer">
-          <input
-            type="checkbox"
-            :checked="connected"
-            @change="connected ? disconnect() : connect()"
-            class="mr2"
-          />
-        </label>
-        <span class="mr2 f6">Status</span>
+        <div class="flex items-center mr3">
+          <span class="mr2 f6 toggle-label" x-text="connected ? 'Disconnect' : 'Connect'"></span>
+          <label class="toggle-switch">
+            <input
+              type="checkbox"
+              :checked="connected"
+              @change="connected ? disconnect() : connect()"
+            />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <span class="mr2 f6 text-muted">Status</span>
         <div
-          :class="connected ? 'bg-green' : 'bg-red'"
-          class="w2 h2 br-100 mr3"
+          :class="connected ? 'status-indicator-connected' : 'status-indicator-disconnected'"
+          class="status-indicator mr3"
           id="statusIndicator"
         ></div>
-        <span class="mr3">|</span>
+        <span class="divider">|</span>
         <button
           @click="toggleLogPanel()"
-          class="bg-white black pa2 br2 bn pointer ba"
+          class="btn btn-icon"
         >
           Log
         </button>
@@ -283,114 +292,158 @@
       <div class="flex">
         <!-- Left Column: Editor + Plot Settings + Buttons -->
         <div class="w-50 pr2">
-          <div class="bg-white br3 pa4 mb3 shadow-2">
-            <h2 class="f3 fw5 black mb3">Editor</h2>
-            <div class="mb3">
-              <textarea
-                id="codeEditor"
-                class="w-100 pa2 ba br2"
-                style="min-height: 400px"
-              ></textarea>
-            </div>
-            <div class="mb3">
-              <button
-                class="bg-blue white pa2 br2 bn pointer"
-                id="runPreviewBtn"
-                onclick="runPreview()"
-              >
-                Run Preview
-              </button>
-            </div>
+          <!-- Perspective Box Code Editor -->
+          <div class="perspective-box-container mb3">
+              <div class="perspective-box">
+                <!-- Box Faces -->
+                <div class="box-face box-face-front"></div>
+                <div class="box-face box-face-top"></div>
+                <div class="box-face box-face-left"></div>
+                
+                <!-- Content -->
+                <div class="box-content">
+                  <!-- CodeMirror Editor -->
+                  <div class="box-editor-container">
+                    <textarea id="codeEditor" class="box-editor-textarea">function setup() {
+  createCanvas(780, 560); // 8.125" x 5.83" at 96 dpi
+  background(255);
+  noFill();
+}
 
-            <div class="mb3">
-              <label for="layerInput" class="f6 fw5 black mb2 db"
+function draw() {
+  square(50, 100, 40);
+}</textarea>
+                  </div>
+                </div>
+                
+                <!-- Circular Element -->
+                <div class="circle-container">
+                  <div class="circle-element" onclick="runPreview()">
+                    <span class="circle-text">preview</span>
+                  </div>
+                  <!-- Curved Text Around Circle -->
+                  <div class="curved-text">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <!-- Paths concentric with purple circle -->
+                        <!-- Purple circle center is at (100, 100) in this coordinate system -->
+                        <!-- Circle radius is 60px, text path radius is 85px for spacing -->
+                        <!-- p5.js: from 1 o'clock to 5 o'clock -->
+                        <path id="circle-path-p5js" d="M 100,15 A 85,85 0 0,1 185,100" fill="none"/>
+                        <!-- sketch: from 5 o'clock to 11 o'clock (with gap at top) -->
+                        <path id="circle-path-sketch" d="M 185,100 A 85,85 0 0,1 15,100" fill="none"/>
+                      </defs>
+                      <text font-size="18" fill="#A601F4" letter-spacing="0.15em">
+                        <textPath href="#circle-path-p5js" startOffset="0%">
+                          p 5 . j s
+                        </textPath>
+                      </text>
+                      <text font-size="18" fill="#A601F4" letter-spacing="0.15em">
+                        <textPath href="#circle-path-sketch" startOffset="0%">
+                          s k e t c h
+                        </textPath>
+                      </text>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+          <div class="panel">
+
+            <div class="panel-section">
+              <label for="layerInput" class="input-label"
                 >Layer Number (optional)</label
               >
               <input
                 type="number"
                 id="layerInput"
                 placeholder="Leave empty for all layers"
-                class="w-100 pa2 ba br2"
+                class="input-field"
               />
             </div>
 
             <!-- Plot Settings Grid (2x2) -->
-            <div class="flex mb2">
-              <div class="w-50 pr1">
-                <label for="penUp" class="f6 fw5 black mb2 db"
-                  >Pen Up Height</label
-                >
-                <input
-                  type="number"
-                  id="penUp"
-                  value="70"
-                  min="0"
-                  max="100"
-                  class="w-100 pa2 ba br2"
-                />
-              </div>
-              <div class="w-50 pl1">
-                <label for="penDown" class="f6 fw5 black mb2 db"
-                  >Pen Down Height</label
-                >
-                <input
-                  type="number"
-                  id="penDown"
-                  value="40"
-                  min="0"
-                  max="100"
-                  class="w-100 pa2 ba br2"
-                />
+            <div class="panel-section">
+              <div class="input-grid">
+                <div class="input-grid-item">
+                  <label for="penUp" class="input-label"
+                    >Pen Up Height</label
+                  >
+                  <input
+                    type="number"
+                    id="penUp"
+                    value="70"
+                    min="0"
+                    max="100"
+                    class="input-field"
+                  />
+                </div>
+                <div class="input-grid-item">
+                  <label for="penDown" class="input-label"
+                    >Pen Down Height</label
+                  >
+                  <input
+                    type="number"
+                    id="penDown"
+                    value="40"
+                    min="0"
+                    max="100"
+                    class="input-field"
+                  />
+                </div>
               </div>
             </div>
 
-            <div class="flex mb3">
-              <div class="w-50 pr1">
-                <label for="speedUp" class="f6 fw5 black mb2 db"
-                  >Speed Up (%)</label
-                >
-                <input
-                  type="number"
-                  id="speedUp"
-                  value="75"
-                  min="1"
-                  max="110"
-                  class="w-100 pa2 ba br2"
-                />
-              </div>
-              <div class="w-50 pl1">
-                <label for="speedDown" class="f6 fw5 black mb2 db"
-                  >Speed Down (%)</label
-                >
-                <input
-                  type="number"
-                  id="speedDown"
-                  value="25"
-                  min="1"
-                  max="110"
-                  class="w-100 pa2 ba br2"
-                />
+            <div class="panel-section">
+              <div class="input-grid">
+                <div class="input-grid-item">
+                  <label for="speedUp" class="input-label"
+                    >Speed Up (%)</label
+                  >
+                  <input
+                    type="number"
+                    id="speedUp"
+                    value="75"
+                    min="1"
+                    max="110"
+                    class="input-field"
+                  />
+                </div>
+                <div class="input-grid-item">
+                  <label for="speedDown" class="input-label"
+                    >Speed Down (%)</label
+                  >
+                  <input
+                    type="number"
+                    id="speedDown"
+                    value="25"
+                    min="1"
+                    max="110"
+                    class="input-field"
+                  />
+                </div>
               </div>
             </div>
 
             <!-- Plot Buttons -->
-            <div class="flex">
+            <div class="panel-section">
               <button
-                class="bg-green white pa2 br2 bn pointer mr2"
+                class="btn btn-success mr2"
                 id="plotBtn"
                 onclick="plotFromEditorOrSvg()"
               >
                 Plot
               </button>
               <button
-                class="bg-blue white pa2 br2 bn pointer dn mr2"
+                class="btn btn-primary mr2 hidden"
                 id="resumeBtn"
                 onclick="resumePlot()"
               >
                 Resume
               </button>
               <button
-                class="bg-purple white pa2 br2 bn pointer dn"
+                class="btn btn-primary hidden"
                 id="returnHomeBtn"
                 onclick="returnHome()"
               >
@@ -402,63 +455,60 @@
 
         <!-- Right Column: Preview + SVG Text Area -->
         <div class="w-50 pl2">
-          <div class="bg-white br3 pa4 mb3 shadow-2">
-            <!-- Preview Section -->
-            <div class="flex items-center justify-between mb2">
-              <h2 class="f3 fw5 black">Preview</h2>
-              <div class="flex">
-                <button
-                  @click="copySvg()"
-                  class="bg-white black pa2 br2 bn pointer ba mr2"
-                  title="Copy SVG"
-                >
-                  Copy
-                </button>
-                <button
-                  onclick="exportSvg()"
-                  class="bg-white black pa2 br2 bn pointer ba"
-                  title="Export SVG"
-                >
-                  Export
-                </button>
-              </div>
-            </div>
-            <div
-              class="w-100 ba br2 bg-near-white overflow-hidden mb3"
-              id="previewContainer"
-              style="height: 400px"
-            >
-              <div class="flex items-center justify-center h-100 gray">
-                Click "Run Preview" to see your sketch
-              </div>
-            </div>
-
-            <!-- SVG Text Area -->
-            <div>
-              <label for="svgInput" class="f6 fw5 black mb2 db"
-                >SVG Text Area</label
+          <!-- Preview Section -->
+          <div class="flex items-center justify-between mb2">
+            <h2 class="panel-title">Preview</h2>
+            <div class="flex">
+              <button
+                @click="copySvg()"
+                class="btn btn-icon mr2"
+                title="Copy SVG"
               >
-              <textarea
-                id="svgInput"
-                placeholder="Paste SVG content here..."
-                class="w-100 pa2 ba br2"
-                style="min-height: 200px"
-              ></textarea>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                </svg>
+              </button>
+              <button
+                onclick="exportSvg()"
+                class="btn btn-icon"
+                title="Export SVG"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2v13"/>
+                  <path d="m16 6-4-4-4 4"/>
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                </svg>
+              </button>
             </div>
+          </div>
+          <div class="preview-container mb3" id="previewContainer">
+            <div class="text-muted">
+              Click the preview circle to see your sketch
+            </div>
+          </div>
+
+          <!-- SVG Text Area -->
+          <div>
+            <label for="svgInput" class="input-label">SVG Text Area</label>
+            <textarea
+              id="svgInput"
+              placeholder="Paste SVG content here..."
+              class="input-field input-field-textarea"
+            ></textarea>
           </div>
         </div>
       </div>
 
       <!-- Exported SVG Container (hidden by default) -->
-      <div class="bg-white br3 pa4 mb3 shadow-2 dn" id="exportedSvgContainer">
-        <label for="exportedSvg" class="f6 fw5 black mb2 db"
+      <div class="panel hidden" id="exportedSvgContainer">
+        <label for="exportedSvg" class="input-label"
           >Exported SVG</label
         >
         <textarea
           id="exportedSvg"
           readonly
-          class="w-100 pa2 ba br2"
-          style="min-height: 200px"
+          class="input-field input-field-textarea"
         ></textarea>
       </div>
     </div>
@@ -468,28 +518,28 @@
       <div class="flex">
         <!-- Command Reference (Left) -->
         <div class="w-50 pr2">
-          <div class="bg-white br3 pa4 mb3 shadow-2">
-            <h2 class="f3 fw5 black mb3">Command Reference</h2>
-            <div class="overflow-auto" style="max-height: 600px">
-              <div class="mb3">
-                <div class="f6 fw6 black mb1">moveto x y</div>
-                <div class="f6 gray">Absolute pen-up move to (x, y)</div>
+          <div class="panel">
+            <h2 class="panel-title">Command Reference</h2>
+            <div class="command-reference">
+              <div class="command-item">
+                <div class="command-name">moveto x y</div>
+                <div class="command-description">Absolute pen-up move to (x, y)</div>
               </div>
-              <div class="mb3">
-                <div class="f6 fw6 black mb1">lineto x y</div>
-                <div class="f6 gray">Absolute pen-down move to (x, y)</div>
+              <div class="command-item">
+                <div class="command-name">lineto x y</div>
+                <div class="command-description">Absolute pen-down move to (x, y)</div>
               </div>
-              <div class="mb3">
-                <div class="f6 fw6 black mb1">penup</div>
-                <div class="f6 gray">Raise pen</div>
+              <div class="command-item">
+                <div class="command-name">penup</div>
+                <div class="command-description">Raise pen</div>
               </div>
-              <div class="mb3">
-                <div class="f6 fw6 black mb1">pendown</div>
-                <div class="f6 gray">Lower pen</div>
+              <div class="command-item">
+                <div class="command-name">pendown</div>
+                <div class="command-description">Lower pen</div>
               </div>
-              <div class="mb3">
-                <div class="f6 fw6 black mb1">home</div>
-                <div class="f6 gray">Move to home position (0, 0)</div>
+              <div class="command-item">
+                <div class="command-name">home</div>
+                <div class="command-description">Move to home position (0, 0)</div>
               </div>
             </div>
           </div>
@@ -497,40 +547,39 @@
 
         <!-- REPL (Right) -->
         <div class="w-50 pl2">
-          <div class="bg-white br3 pa4 mb3 shadow-2">
-            <h2 class="f3 fw5 black mb3">REPL</h2>
-            <div class="flex mb3">
-              <input
-                type="text"
-                id="commandInput"
-                placeholder="e.g., moveto 1 1"
-                @keydown.enter="sendCommand()"
-                class="flex-auto pa2 ba br2 mr2"
-              />
-              <button
-                class="bg-blue white pa2 br2 bn pointer"
-                id="sendBtn"
-                @click="sendCommand()"
-                :disabled="!connected"
-              >
-                Send
-              </button>
-            </div>
-            <div
-              class="bg-near-white ba br2 pa3 overflow-auto"
-              style="min-height: 400px; max-height: 500px"
-            >
-              <template x-for="entry in commandHistory" :key="entry.timestamp">
-                <div class="mb2">
-                  <div class="f6 black mb1">
-                    <span class="fw6">&gt; </span
-                    ><span x-text="entry.command"></span>
+          <div class="panel">
+            <h2 class="panel-title">REPL</h2>
+            <div class="panel-section">
+              <div class="repl-input-container">
+                <input
+                  type="text"
+                  id="commandInput"
+                  placeholder="e.g., moveto 1 1"
+                  @keydown.enter="sendCommand()"
+                  class="input-field repl-input"
+                />
+                <button
+                  class="btn btn-primary"
+                  id="sendBtn"
+                  @click="sendCommand()"
+                  :disabled="!connected"
+                >
+                  Send
+                </button>
+              </div>
+              <div class="repl-container">
+                <template x-for="entry in commandHistory" :key="entry.timestamp">
+                  <div class="repl-entry">
+                    <div class="repl-command">
+                      <span class="repl-command-prompt">&gt;</span>
+                      <span x-text="entry.command"></span>
+                    </div>
+                    <div class="repl-response" x-text="entry.response"></div>
                   </div>
-                  <div class="f6 gray ml3" x-text="entry.response"></div>
+                </template>
+                <div x-show="commandHistory.length === 0" class="repl-history-empty">
+                  No commands yet. Enter a command above.
                 </div>
-              </template>
-              <div x-show="commandHistory.length === 0" class="gray f6">
-                No commands yet. Enter a command above.
               </div>
             </div>
           </div>
@@ -547,15 +596,14 @@
       x-transition:leave="transition ease-in duration-300"
       x-transition:leave-start="translate-x-0"
       x-transition:leave-end="translate-x-full"
-      class="fixed top-0 right-0 h-100 w5 bg-white shadow-4 flex flex-column"
-      style="max-width: 400px; z-index: 9999"
+      class="log-panel"
     >
       <!-- Panel Header -->
-      <div class="flex items-center justify-between pa3 bb b--gray">
-        <h2 class="f3 fw5 black ma0">Log</h2>
+      <div class="log-panel-header">
+        <h2 class="log-panel-title">Log</h2>
         <button
           @click="toggleLogPanel()"
-          class="bg-white black pa2 br2 bn pointer ba"
+          class="log-panel-close"
           title="Close"
         >
           ✕
@@ -565,8 +613,7 @@
       <!-- Log Content Area -->
       <div
         id="logArea"
-        class="flex-auto pa3 overflow-auto bg-near-white"
-        style="min-height: 0"
+        class="log-panel-content"
       >
         <!-- Log entries will be inserted here -->
       </div>
@@ -582,8 +629,7 @@
       x-transition:leave="transition ease-in duration-300"
       x-transition:leave-start="opacity-100"
       x-transition:leave-end="opacity-0"
-      class="fixed top-0 left-0 right-0 bottom-0 bg-black"
-      style="opacity: 0.5; z-index: 9998"
+      class="log-backdrop"
     ></div>
 
     <script>
@@ -596,15 +642,7 @@
         if (!logArea) return;
         const timestamp = new Date().toLocaleTimeString();
         const entry = document.createElement("div");
-        entry.className = "mb2";
-        // Apply Tachyons color classes based on type
-        if (type === "success") {
-          entry.className += " green";
-        } else if (type === "error") {
-          entry.className += " red";
-        } else {
-          entry.className += " blue";
-        }
+        entry.className = `log-entry ${type}`;
         entry.textContent = `[${timestamp}] ${message}`;
         logArea.appendChild(entry);
         logArea.scrollTop = logArea.scrollHeight;
@@ -650,16 +688,16 @@
 
           // Resume button: visible only when paused
           if (paused) {
-            resumeBtn.classList.remove("dn");
+            resumeBtn.classList.remove("hidden");
           } else {
-            resumeBtn.classList.add("dn");
+            resumeBtn.classList.add("hidden");
           }
 
           // Return Home button: visible only when paused (after physical pause button)
           if (paused) {
-            returnHomeBtn.classList.remove("dn");
+            returnHomeBtn.classList.remove("hidden");
           } else {
-            returnHomeBtn.classList.add("dn");
+            returnHomeBtn.classList.add("hidden");
           }
         }
 
@@ -991,19 +1029,22 @@ function draw() {
           jsModeScript.src =
             "/static/vendor/codemirror/mode/javascript/javascript.js";
           jsModeScript.onload = function () {
-            codeEditor = CodeMirror.fromTextArea(
-              document.getElementById("codeEditor"),
-              {
-                lineNumbers: true,
-                mode: "javascript",
-                theme: "default",
-                indentUnit: 2,
-                lineWrapping: true,
-              }
-            );
-            codeEditor.setValue(defaultCode);
-            // Apply Tachyons border styling to CodeMirror
-            codeEditor.getWrapperElement().classList.add("ba", "br2");
+            const textarea = document.getElementById("codeEditor");
+            // Ensure textarea has the value before CodeMirror reads it
+            if (textarea.value !== defaultCode) {
+              textarea.value = defaultCode;
+            }
+            codeEditor = CodeMirror.fromTextArea(textarea, {
+              lineNumbers: true,
+              mode: "javascript",
+              theme: "isotope",
+              indentUnit: 2,
+              lineWrapping: true,
+            });
+            // Set value immediately after creation
+            setTimeout(() => {
+              codeEditor.setValue(defaultCode);
+            }, 0);
           };
           document.head.appendChild(jsModeScript);
         };
@@ -1208,5 +1249,6 @@ function draw() {
         log("SVG downloaded", "success");
       }
     </script>
+    </div>
   </body>
 </html>
