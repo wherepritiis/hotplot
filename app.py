@@ -61,7 +61,13 @@ def connect():
     try:
         axidraw_instance = axidraw.AxiDraw()
         axidraw_instance.interactive()
-        axidraw_instance.connect()
+        connect_result = axidraw_instance.connect()
+        
+        # Check if connect() returned False (device not found)
+        if connect_result is False:
+            axidraw_instance = None
+            return jsonify({"success": False, "error": "Failed to connect: No AxiDraw device found"}), 500
+        
         return jsonify({"success": True, "message": "Connected to AxiDraw"})
     except Exception as e:
         print(f"Error connecting to AxiDraw: {e}")
