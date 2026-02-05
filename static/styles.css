@@ -182,34 +182,49 @@ body {
   overflow: visible;
 }
 
-.circle-element {
+.circle-trail {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: #FFFF00;
+  border: 2px solid rgba(255, 255, 0, 0.5);
+  background: transparent;
+  pointer-events: none;
+}
+.circle-trail--1 { border-color: rgba(255, 255, 0, 0.25); }
+.circle-trail--2 { border-color: rgba(255, 255, 0, 0.45); }
+
+.circle-element {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: transparent;
+  border: 2px solid #FFFF00;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 0 0 rgba(255, 255, 0, 0);
   cursor: pointer;
 }
 
 .circle-element:hover {
-  background: #FFFF66;
-  transform: scale(1.05);
+  border-color: #FFFF66;
+  box-shadow: 0 0 40px rgba(255, 255, 0, 0.8), 0 0 80px rgba(255, 255, 0, 0.4);
 }
 
 .circle-element:active {
-  transform: scale(0.95);
+  border-color: #FFEE00;
 }
 
 .circle-text {
   font-size: 18px;
   font-weight: 500;
-  color: #000000;
+  color: #FFFF00;
   font-style: italic;
-  text-transform: lowercase;
 }
 
 /* Curved Text Around Circle */
@@ -221,6 +236,7 @@ body {
   left: -40px;
   pointer-events: none;
   overflow: visible;
+  transform-origin: 100px 100px;
 }
 
 .curved-text svg {
@@ -239,7 +255,6 @@ body {
 
 .perspective-box-container:hover .circle-element {
   box-shadow: 0 0 40px rgba(255, 255, 0, 0.8), 0 0 80px rgba(255, 255, 0, 0.4);
-  transform: scale(1.05);
 }
 
 .perspective-box-container:hover .curved-text text {
@@ -264,27 +279,98 @@ body {
 /* ============================================
    LOGO
    ============================================ */
+/* Brand: Hotplot with O as connect toggle, second O as status */
+.brand-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 0;
+}
+.brand-letter {
+  font-size: 24px;
+  font-weight: 700;
+  color: #A601F4;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+.brand-letter--h { color: #A601F4; }
+.brand-rest { color: #C033FF; }
+.logo-toggle-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0.15em 0 0.15em;
+  margin-right: 0.25em;
+}
+.logo-toggle {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.logo-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.logo-toggle .logo-toggle-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(166, 1, 244, 0.6);
+  background: transparent;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.logo-toggle .logo-toggle-knob {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  left: 5px;
+  top: 50%;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.7);
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+.logo-toggle input:checked + .logo-toggle-track {
+  border-color: #A601F4;
+  background: rgba(166, 1, 244, 0.15);
+}
+.logo-toggle input:checked + .logo-toggle-track .logo-toggle-knob {
+  transform: translateX(10px);
+  background: #FFFF00;
+}
+.logo-toggle input:focus-visible + .logo-toggle-track {
+  box-shadow: 0 0 0 2px rgba(166, 1, 244, 0.4);
+}
+.brand-status-o {
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  font-size: 24px;
+  line-height: 0;
+  box-sizing: border-box;
+  margin: 0.08em 0.12em 0 0.12em;
+  flex-shrink: 0;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+.brand-status-o.brand-status--connected {
+  background-color: #33ff00;
+  box-shadow: 0 0 8px rgba(51, 255, 0, 0.5);
+}
+.brand-status-o.brand-status--disconnected {
+  background-color: #ff3333;
+  box-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
+}
+
 .app-logo {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-}
-
-.logo-text {
-  font-size: 24px;
-  font-weight: 700;
-  color: #A601F4;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  background: linear-gradient(135deg, #A601F4 0%, #C033FF 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  transition: all 0.3s ease;
-}
-
-.app-logo:hover .logo-text {
-  filter: brightness(1.2);
 }
 
 /* ============================================
@@ -310,23 +396,62 @@ body {
   min-width: 320px;
 }
 
-.mode-toggle-slider {
+.mode-toggle-slider,
+.mode-toggle-slider-trail {
   position: absolute;
   top: 4px;
   left: 4px;
   width: calc(50% - 4px);
   height: calc(100% - 8px);
-  background: rgba(166, 1, 244, 0.3);
-  border: 1px solid #A601F4;
   border-radius: 12px;
   z-index: 1;
+  pointer-events: none;
+}
+.mode-toggle-slider {
+  background: transparent;
+  border: 1px solid #A601F4;
+}
+.mode-toggle-slider-trail {
+  background: transparent;
+  border: 1px solid rgba(166, 1, 244, 0.6);
+}
+.mode-toggle-slider-trail--1 {
+  border-color: rgba(166, 1, 244, 0.3);
+}
+
+.toggle-option {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+.toggle-trail {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  pointer-events: none;
+  z-index: 0;
+  transition: border-color 0.15s ease;
+}
+.toggle-trail.toggle-trail--visible {
+  border-color: rgba(166, 1, 244, 0.35);
+}
+.toggle-trail--1.toggle-trail--visible {
+  border-color: rgba(166, 1, 244, 0.2);
 }
 
 .mode-toggle-btn {
   position: relative;
   z-index: 2;
   padding: 10px 16px;
-  border: none;
+  border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
   font-size: 16px;
@@ -334,7 +459,7 @@ body {
   color: #888888;
   font-family: inherit;
   border-radius: 12px;
-  flex: 1 1 0;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -343,10 +468,14 @@ body {
   min-width: 0;
   box-sizing: border-box;
   margin: 0;
+  transition: border-color 0.15s ease;
+}
+.toggle-option.toggle-option--active:hover .mode-toggle-btn {
+  border-color: rgba(166, 1, 244, 0.7);
 }
 
 .mode-toggle-btn-active {
-  color: #e0e0e0;
+  color: #C033FF;
   font-weight: 600;
 }
 
@@ -584,7 +713,13 @@ body {
 .preview-container {
   width: 100%;
   height: 400px;
-  background: #000000;
+  background-color: #000000;
+  background-image: radial-gradient(
+    circle at center,
+    rgba(166, 1, 244, 0.25) 1px,
+    transparent 1px
+  );
+  background-size: 20px 20px;
   border: 1px solid rgba(166, 1, 244, 0.3);
   border-radius: 8px;
   overflow: hidden;

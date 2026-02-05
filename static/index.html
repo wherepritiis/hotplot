@@ -229,54 +229,68 @@
 
     <!-- Header -->
     <header class="app-header">
-      <!-- Logo (Left) -->
-      <div class="app-logo">
-        <span class="logo-text">Hotplot</span>
+      <!-- Logo: Hotplot with O as connect toggle, second O as status -->
+      <div class="app-logo brand-wrap" aria-label="Hotplot">
+        <span class="brand-letter brand-letter--h" aria-hidden="true">H</span>
+        <span class="logo-toggle-wrap">
+          <label class="logo-toggle" title="Connect">
+            <input
+              type="checkbox"
+              id="logoConnectToggle"
+              aria-label="Connect"
+              :checked="connected"
+              @change="connected ? disconnect() : connect()"
+            />
+            <span class="logo-toggle-track"><span class="logo-toggle-knob"></span></span>
+          </label>
+        </span>
+        <span class="brand-letter brand-rest" aria-hidden="true">tpl</span>
+        <span
+          class="brand-status-o"
+          :class="connected ? 'brand-status--connected' : 'brand-status--disconnected'"
+          id="brandStatusO"
+          aria-label="Connection status"
+        ></span>
+        <span class="brand-letter brand-rest" aria-hidden="true">t</span>
       </div>
 
       <!-- Mode Toggle Group (Center) -->
       <div class="mode-toggle-group">
-        <div class="mode-toggle-container">
-          <div 
-            class="mode-toggle-slider"
-            :style="currentMode === 'plot' ? 'transform: translateX(0%)' : 'transform: translateX(100%)'"
-          ></div>
-          <button
-            @click="switchMode('plot')"
-            :class="currentMode === 'plot' ? 'mode-toggle-btn-active' : 'mode-toggle-btn-inactive'"
-            class="mode-toggle-btn"
-          >
-            Plot mode
-          </button>
-          <button
-            @click="switchMode('interactive')"
-            :class="currentMode === 'interactive' ? 'mode-toggle-btn-active' : 'mode-toggle-btn-inactive'"
-            class="mode-toggle-btn"
-          >
-            Interactive mode
-          </button>
+        <div class="mode-toggle-container" id="toggleContainer">
+          <div class="mode-toggle-slider-trail mode-toggle-slider-trail--1" id="toggleSliderTrail1" aria-hidden="true"></div>
+          <div class="mode-toggle-slider-trail" id="toggleSliderTrail2" aria-hidden="true"></div>
+          <div class="mode-toggle-slider" id="toggleSlider" aria-hidden="true"></div>
+          <div class="toggle-option" id="toggleOptionPlot" :class="{ 'toggle-option--active': currentMode === 'plot' }">
+            <div class="toggle-trail toggle-trail--1" id="toggleTrailPlot1" aria-hidden="true"></div>
+            <div class="toggle-trail toggle-trail--2" id="toggleTrailPlot2" aria-hidden="true"></div>
+            <button
+              type="button"
+              @click="switchMode('plot')"
+              :class="currentMode === 'plot' ? 'mode-toggle-btn-active' : 'mode-toggle-btn-inactive'"
+              class="mode-toggle-btn"
+              id="btnPlot"
+            >
+              Plot mode
+            </button>
+          </div>
+          <div class="toggle-option" id="toggleOptionInteractive" :class="{ 'toggle-option--active': currentMode === 'interactive' }">
+            <div class="toggle-trail toggle-trail--1" id="toggleTrailInteractive1" aria-hidden="true"></div>
+            <div class="toggle-trail toggle-trail--2" id="toggleTrailInteractive2" aria-hidden="true"></div>
+            <button
+              type="button"
+              @click="switchMode('interactive')"
+              :class="currentMode === 'interactive' ? 'mode-toggle-btn-active' : 'mode-toggle-btn-inactive'"
+              class="mode-toggle-btn"
+              id="btnInteractive"
+            >
+              Interactive mode
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Connection Controls (Right) -->
+      <!-- Log (Right) -->
       <div class="flex items-center">
-        <div class="flex items-center mr3">
-          <span class="mr2 f6 toggle-label" x-text="connected ? 'Disconnect' : 'Connect'"></span>
-          <label class="toggle-switch">
-            <input
-              type="checkbox"
-              :checked="connected"
-              @change="connected ? disconnect() : connect()"
-            />
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        <span class="mr2 f6 text-muted">Status</span>
-        <div
-          :class="connected ? 'status-indicator-connected' : 'status-indicator-disconnected'"
-          class="status-indicator mr3"
-          id="statusIndicator"
-        ></div>
         <span class="divider">|</span>
         <button
           @click="toggleLogPanel()"
@@ -316,13 +330,15 @@ function draw() {
                   </div>
                 </div>
                 
-                <!-- Circular Element -->
-                <div class="circle-container">
-                  <div class="circle-element" onclick="runPreview()">
-                    <span class="circle-text">preview</span>
+                <!-- Circular Element (magnetic + trail) -->
+                <div class="circle-container" id="circleContainer">
+                  <div class="circle-trail circle-trail--1" id="previewTrail1" aria-hidden="true"></div>
+                  <div class="circle-trail circle-trail--2" id="previewTrail2" aria-hidden="true"></div>
+                  <div class="circle-element" id="circleElement" onclick="runPreview()">
+                    <span class="circle-text">Preview</span>
                   </div>
                   <!-- Curved Text Around Circle -->
-                  <div class="curved-text">
+                  <div class="curved-text" id="curvedText">
                     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                       <defs>
                         <!-- Paths concentric with purple circle -->
@@ -456,8 +472,7 @@ function draw() {
         <!-- Right Column: Preview + SVG Text Area -->
         <div class="w-50 pl2">
           <!-- Preview Section -->
-          <div class="flex items-center justify-between mb2">
-            <h2 class="panel-title">Preview</h2>
+          <div class="flex items-center justify-end mb2">
             <div class="flex">
               <button
                 @click="copySvg()"
@@ -1065,10 +1080,10 @@ function draw() {
         const previewContainer = document.getElementById("previewContainer");
 
         // Remove placeholder message if it exists
-        const placeholder = previewContainer.querySelector("div.flex");
+        const placeholder = previewContainer.querySelector("div.text-muted");
         if (
           placeholder &&
-          placeholder.textContent.includes('Click "Run Preview"')
+          placeholder.textContent.includes("preview circle")
         ) {
           previewContainer.removeChild(placeholder);
         }
@@ -1099,7 +1114,17 @@ function draw() {
           `script src="/static/vendor/p5.plotSvg.js"></` +
           `script>
     <style>
-        body { margin: 0; padding: 0; }
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: #ffffff;
+          background-image: radial-gradient(
+            circle at center,
+            rgba(166, 1, 244, 0.2) 1px,
+            transparent 1px
+          );
+          background-size: 20px 20px;
+        }
         canvas { display: block; }
     </style>
 </head>
@@ -1108,6 +1133,34 @@ function draw() {
           `script>
         p5.disableFriendlyErrors = true;
         ${code}
+    </` +
+          `script>
+    <` +
+          `script>
+        (function() {
+          function addGridOverlay() {
+            var overlay = document.createElement("div");
+            overlay.setAttribute("aria-hidden", "true");
+            overlay.style.cssText = "position:fixed;inset:0;z-index:9999;pointer-events:none;background-color:transparent;background-image:radial-gradient(circle at center, rgba(166,1,244,0.2) 1px, transparent 1px);background-size:20px 20px;";
+            document.body.appendChild(overlay);
+          }
+          function tryAddOverlay() {
+            if (document.querySelector("canvas")) {
+              addGridOverlay();
+              return true;
+            }
+            return false;
+          }
+          if (tryAddOverlay()) return;
+          var obs = new MutationObserver(function() {
+            if (tryAddOverlay()) obs.disconnect();
+          });
+          obs.observe(document.body, { childList: true, subtree: true });
+          setTimeout(function() {
+            obs.disconnect();
+            tryAddOverlay();
+          }, 2000);
+        })();
     </` +
           `script>
 </body>
@@ -1250,5 +1303,125 @@ function draw() {
       }
     </script>
     </div>
+
+    <!-- Preview circle: magnetic + trail + curved text rotation -->
+    <script>
+      (function () {
+        const getMousePos = (e) => ({ x: e.clientX, y: e.clientY });
+        const distance = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
+        const lerp = (a, b, n) => (1 - n) * a + n * b;
+        let mousepos = { x: 0, y: 0 };
+        window.addEventListener("mousemove", (ev) => { mousepos = getMousePos(ev); });
+        const container = document.getElementById("circleContainer");
+        const el = document.getElementById("circleElement");
+        const trail1 = document.getElementById("previewTrail1");
+        const trail2 = document.getElementById("previewTrail2");
+        const curvedEl = document.getElementById("curvedText");
+        if (!container || !el) return;
+        let rect = el.getBoundingClientRect();
+        let hoverCurved = false;
+        let curveAngle = { previous: 0, current: 0, amt: 0.03 };
+        container.addEventListener("mouseenter", () => { hoverCurved = true; });
+        container.addEventListener("mouseleave", () => { hoverCurved = false; });
+        const distanceToTrigger = () => rect.width * 1.5;
+        const rendered = {
+          tx: { previous: 0, current: 0, amt: 0.12 }, ty: { previous: 0, current: 0, amt: 0.12 },
+          t2x: { previous: 0, current: 0, amt: 0.07 }, t2y: { previous: 0, current: 0, amt: 0.07 },
+          t1x: { previous: 0, current: 0, amt: 0.04 }, t1y: { previous: 0, current: 0, amt: 0.04 },
+          tx2: { previous: 0, current: 0, amt: 0.06 }, ty2: { previous: 0, current: 0, amt: 0.06 }
+        };
+        function updateRect() { rect = el.getBoundingClientRect(); }
+        window.addEventListener("resize", updateRect);
+        function render() {
+          updateRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          const d = distance(mousepos.x, mousepos.y, centerX, centerY);
+          const trigger = distanceToTrigger();
+          let x = 0, y = 0;
+          if (d < trigger) {
+            x = (mousepos.x - centerX) * 0.3;
+            y = (mousepos.y - centerY) * 0.3;
+          }
+          rendered.tx.current = rendered.t2x.current = rendered.t1x.current = rendered.tx2.current = x;
+          rendered.ty.current = rendered.t2y.current = rendered.t1y.current = rendered.ty2.current = y;
+          curveAngle.current = hoverCurved ? 360 : 0;
+          curveAngle.previous = lerp(curveAngle.previous, curveAngle.current, curveAngle.amt);
+          for (const key of Object.keys(rendered)) {
+            const r = rendered[key];
+            r.previous = lerp(r.previous, r.current, r.amt);
+          }
+          trail1.style.transform = "translate3d(" + rendered.t1x.previous + "px," + rendered.t1y.previous + "px,0)";
+          trail2.style.transform = "translate3d(" + rendered.t2x.previous + "px," + rendered.t2y.previous + "px,0)";
+          el.style.transform = "translate3d(" + rendered.tx.previous + "px," + rendered.ty.previous + "px,0)";
+          curvedEl.style.transform = "translate3d(" + (rendered.tx2.previous * 0.5) + "px," + (rendered.ty2.previous * 0.5) + "px,0) rotate(" + curveAngle.previous + "deg)";
+          requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
+      })();
+    </script>
+
+    <!-- Mode toggle: trail on hover (active only) + slider trail -->
+    <script>
+      (function () {
+        const getMousePos = (e) => ({ x: e.clientX, y: e.clientY });
+        const distance = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
+        const lerp = (a, b, n) => (1 - n) * a + n * b;
+        let mousepos = { x: 0, y: 0 };
+        window.addEventListener("mousemove", (ev) => { mousepos = getMousePos(ev); });
+        const slider = document.getElementById("toggleSlider");
+        const sliderTrail1 = document.getElementById("toggleSliderTrail1");
+        const sliderTrail2 = document.getElementById("toggleSliderTrail2");
+        const optionPlot = document.getElementById("toggleOptionPlot");
+        const optionInteractive = document.getElementById("toggleOptionInteractive");
+        const trailPlot1 = document.getElementById("toggleTrailPlot1");
+        const trailPlot2 = document.getElementById("toggleTrailPlot2");
+        const trailInteractive1 = document.getElementById("toggleTrailInteractive1");
+        const trailInteractive2 = document.getElementById("toggleTrailInteractive2");
+        if (!slider || !optionPlot) return;
+        let hoveredOption = null;
+        optionPlot.addEventListener("mouseenter", () => { hoveredOption = "plot"; });
+        optionPlot.addEventListener("mouseleave", () => { hoveredOption = null; });
+        optionInteractive.addEventListener("mouseenter", () => { hoveredOption = "interactive"; });
+        optionInteractive.addEventListener("mouseleave", () => { hoveredOption = null; });
+        const strength = 0.3, triggerFactor = 1.5;
+        const plotRendered = { t1x: { previous: 0, current: 0, amt: 0.04 }, t1y: { previous: 0, current: 0, amt: 0.04 }, t2x: { previous: 0, current: 0, amt: 0.07 }, t2y: { previous: 0, current: 0, amt: 0.07 } };
+        const interactiveRendered = { t1x: { previous: 0, current: 0, amt: 0.04 }, t1y: { previous: 0, current: 0, amt: 0.04 }, t2x: { previous: 0, current: 0, amt: 0.07 }, t2y: { previous: 0, current: 0, amt: 0.07 } };
+        const sliderPos = { main: { previous: 0, current: 0, amt: 0.08 }, trail2: { previous: 0, current: 0, amt: 0.05 }, trail1: { previous: 0, current: 0, amt: 0.025 } };
+        function updateToggleTrails() {
+          var currentMode = (document.querySelector("#toggleOptionPlot.toggle-option--active") ? "plot" : "interactive");
+          var sliderTarget = currentMode === "plot" ? 0 : 1;
+          function runOption(option, trail1El, trail2El, state, isHovered) {
+            trail1El.classList.toggle("toggle-trail--visible", isHovered);
+            trail2El.classList.toggle("toggle-trail--visible", isHovered);
+            var x = 0, y = 0;
+            if (isHovered) {
+              var r = option.getBoundingClientRect();
+              var centerX = r.left + r.width / 2, centerY = r.top + r.height / 2;
+              var d = distance(mousepos.x, mousepos.y, centerX, centerY);
+              if (d < r.width * triggerFactor) {
+                x = (mousepos.x - centerX) * strength;
+                y = (mousepos.y - centerY) * strength;
+              }
+            }
+            state.t1x.current = state.t2x.current = x;
+            state.t1y.current = state.t2y.current = y;
+            for (var k in state) { var s = state[k]; s.previous = lerp(s.previous, s.current, s.amt); }
+            trail1El.style.transform = "translate3d(" + state.t1x.previous + "px," + state.t1y.previous + "px,0)";
+            trail2El.style.transform = "translate3d(" + state.t2x.previous + "px," + state.t2y.previous + "px,0)";
+          }
+          runOption(optionPlot, trailPlot1, trailPlot2, plotRendered, hoveredOption === "plot" && currentMode === "plot");
+          runOption(optionInteractive, trailInteractive1, trailInteractive2, interactiveRendered, hoveredOption === "interactive" && currentMode === "interactive");
+          sliderPos.main.current = sliderPos.trail2.current = sliderPos.trail1.current = sliderTarget;
+          for (var k of ["main", "trail2", "trail1"]) { var s = sliderPos[k]; s.previous = lerp(s.previous, s.current, s.amt); }
+          var tx = function (v) { return "translateX(" + (v * 100) + "%)"; };
+          sliderTrail1.style.transform = tx(sliderPos.trail1.previous);
+          sliderTrail2.style.transform = tx(sliderPos.trail2.previous);
+          slider.style.transform = tx(sliderPos.main.previous);
+          requestAnimationFrame(updateToggleTrails);
+        }
+        requestAnimationFrame(updateToggleTrails);
+      })();
+    </script>
   </body>
 </html>
