@@ -303,20 +303,16 @@
 
     <!-- Plot Mode Content -->
     <div x-show="currentMode === 'plot'">
-      <div class="flex">
-        <!-- Left Column: Editor + Plot Settings + Buttons -->
-        <div class="w-50 pr2">
-          <!-- Perspective Box Code Editor -->
-          <div class="perspective-box-container mb3">
+      <div class="plot-mode-layout">
+        <!-- Top row: Editor | Preview (same height) -->
+        <div class="plot-top-row flex">
+          <div class="plot-editor-col w-50 pr2">
+            <div class="perspective-box-container plot-editor-wrap mb3">
               <div class="perspective-box">
-                <!-- Box Faces -->
                 <div class="box-face box-face-front"></div>
                 <div class="box-face box-face-top"></div>
                 <div class="box-face box-face-left"></div>
-                
-                <!-- Content -->
                 <div class="box-content">
-                  <!-- CodeMirror Editor -->
                   <div class="box-editor-container">
                     <textarea id="codeEditor" class="box-editor-textarea">function setup() {
   createCanvas(780, 560); // 8.125" x 5.83" at 96 dpi
@@ -329,188 +325,100 @@ function draw() {
 }</textarea>
                   </div>
                 </div>
-                
-                <!-- Circular Element (magnetic + trail) -->
                 <div class="circle-container" id="circleContainer">
                   <div class="circle-trail circle-trail--1" id="previewTrail1" aria-hidden="true"></div>
                   <div class="circle-trail circle-trail--2" id="previewTrail2" aria-hidden="true"></div>
                   <div class="circle-element" id="circleElement" onclick="runPreview()">
                     <span class="circle-text">Preview</span>
                   </div>
-                  <!-- Curved Text Around Circle -->
                   <div class="curved-text" id="curvedText">
                     <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
                       <defs>
-                        <!-- Paths concentric with purple circle -->
-                        <!-- Purple circle center is at (100, 100) in this coordinate system -->
-                        <!-- Circle radius is 60px, text path radius is 85px for spacing -->
-                        <!-- p5.js: from 1 o'clock to 5 o'clock -->
                         <path id="circle-path-p5js" d="M 100,15 A 85,85 0 0,1 185,100" fill="none"/>
-                        <!-- sketch: from 5 o'clock to 11 o'clock (with gap at top) -->
                         <path id="circle-path-sketch" d="M 185,100 A 85,85 0 0,1 15,100" fill="none"/>
                       </defs>
                       <text font-size="18" fill="#A601F4" letter-spacing="0.15em">
-                        <textPath href="#circle-path-p5js" startOffset="0%">
-                          p 5 . j s
-                        </textPath>
+                        <textPath href="#circle-path-p5js" startOffset="0%">p 5 . j s</textPath>
                       </text>
                       <text font-size="18" fill="#A601F4" letter-spacing="0.15em">
-                        <textPath href="#circle-path-sketch" startOffset="0%">
-                          s k e t c h
-                        </textPath>
+                        <textPath href="#circle-path-sketch" startOffset="0%">s k e t c h</textPath>
                       </text>
                     </svg>
                   </div>
                 </div>
               </div>
             </div>
-          
-          <div class="panel">
-
-            <div class="panel-section">
-              <label for="layerInput" class="input-label"
-                >Layer Number (optional)</label
-              >
-              <input
-                type="number"
-                id="layerInput"
-                placeholder="Leave empty for all layers"
-                class="input-field"
-              />
-            </div>
-
-            <!-- Plot Settings Grid (2x2) -->
-            <div class="panel-section">
-              <div class="input-grid">
-                <div class="input-grid-item">
-                  <label for="penUp" class="input-label"
-                    >Pen Up Height</label
-                  >
-                  <input
-                    type="number"
-                    id="penUp"
-                    value="70"
-                    min="0"
-                    max="100"
-                    class="input-field"
-                  />
-                </div>
-                <div class="input-grid-item">
-                  <label for="penDown" class="input-label"
-                    >Pen Down Height</label
-                  >
-                  <input
-                    type="number"
-                    id="penDown"
-                    value="40"
-                    min="0"
-                    max="100"
-                    class="input-field"
-                  />
-                </div>
+          </div>
+          <div class="plot-preview-col w-50 pl2">
+            <div class="flex items-center justify-end mb2">
+              <div class="flex">
+                <button @click="copySvg()" class="btn btn-icon mr2" title="Copy SVG">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                  </svg>
+                </button>
+                <button onclick="exportSvg()" class="btn btn-icon" title="Export SVG">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v13"/>
+                    <path d="m16 6-4-4-4 4"/>
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                  </svg>
+                </button>
               </div>
             </div>
-
-            <div class="panel-section">
-              <div class="input-grid">
-                <div class="input-grid-item">
-                  <label for="speedUp" class="input-label"
-                    >Speed Up (%)</label
-                  >
-                  <input
-                    type="number"
-                    id="speedUp"
-                    value="75"
-                    min="1"
-                    max="110"
-                    class="input-field"
-                  />
-                </div>
-                <div class="input-grid-item">
-                  <label for="speedDown" class="input-label"
-                    >Speed Down (%)</label
-                  >
-                  <input
-                    type="number"
-                    id="speedDown"
-                    value="25"
-                    min="1"
-                    max="110"
-                    class="input-field"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <!-- Plot Buttons -->
-            <div class="panel-section">
-              <button
-                class="btn btn-success mr2"
-                id="plotBtn"
-                onclick="plotFromEditorOrSvg()"
-              >
-                Plot
-              </button>
-              <button
-                class="btn btn-primary mr2 hidden"
-                id="resumeBtn"
-                onclick="resumePlot()"
-              >
-                Resume
-              </button>
-              <button
-                class="btn btn-primary hidden"
-                id="returnHomeBtn"
-                onclick="returnHome()"
-              >
-                Go to Home
-              </button>
+            <div class="preview-container plot-preview-wrap mb3" id="previewContainer">
+              <div class="text-muted">Click the preview circle to see your sketch</div>
             </div>
           </div>
         </div>
 
-        <!-- Right Column: Preview + SVG Text Area -->
-        <div class="w-50 pl2">
-          <!-- Preview Section -->
-          <div class="flex items-center justify-end mb2">
-            <div class="flex">
-              <button
-                @click="copySvg()"
-                class="btn btn-icon mr2"
-                title="Copy SVG"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                  <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                </svg>
-              </button>
-              <button
-                onclick="exportSvg()"
-                class="btn btn-icon"
-                title="Export SVG"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 2v13"/>
-                  <path d="m16 6-4-4-4 4"/>
-                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-          <div class="preview-container mb3" id="previewContainer">
-            <div class="text-muted">
-              Click the preview circle to see your sketch
-            </div>
-          </div>
-
-          <!-- SVG Text Area -->
-          <div>
+        <!-- Bottom row: SVG Text Area (left) | Plotter settings (right), Plot button below settings -->
+        <div class="plot-bottom-row flex">
+          <div class="plot-svg-col w-50 pr2">
             <label for="svgInput" class="input-label">SVG Text Area</label>
             <textarea
               id="svgInput"
               placeholder="Paste SVG content here..."
-              class="input-field input-field-textarea"
+              class="input-field input-field-textarea plot-svg-textarea"
             ></textarea>
+          </div>
+          <div class="plot-settings-col w-50 pl2">
+            <div class="panel plot-settings-panel">
+              <div class="panel-section">
+                <label for="layerInput" class="input-label">Layer Number (optional)</label>
+                <input type="number" id="layerInput" placeholder="Leave empty for all layers" class="input-field" />
+              </div>
+              <div class="panel-section">
+                <div class="input-grid">
+                  <div class="input-grid-item">
+                    <label for="penUp" class="input-label">Pen Up Height</label>
+                    <input type="number" id="penUp" value="70" min="0" max="100" class="input-field" />
+                  </div>
+                  <div class="input-grid-item">
+                    <label for="penDown" class="input-label">Pen Down Height</label>
+                    <input type="number" id="penDown" value="40" min="0" max="100" class="input-field" />
+                  </div>
+                </div>
+              </div>
+              <div class="panel-section">
+                <div class="input-grid">
+                  <div class="input-grid-item">
+                    <label for="speedUp" class="input-label">Speed Up (%)</label>
+                    <input type="number" id="speedUp" value="75" min="1" max="110" class="input-field" />
+                  </div>
+                  <div class="input-grid-item">
+                    <label for="speedDown" class="input-label">Speed Down (%)</label>
+                    <input type="number" id="speedDown" value="25" min="1" max="110" class="input-field" />
+                  </div>
+                </div>
+              </div>
+              <div class="panel-section plot-buttons-section">
+                <button class="btn btn-success mr2" id="plotBtn" onclick="plotFromEditorOrSvg()">Plot</button>
+                <button class="btn btn-primary mr2 hidden" id="resumeBtn" onclick="resumePlot()">Resume</button>
+                <button class="btn btn-primary hidden" id="returnHomeBtn" onclick="returnHome()">Go to Home</button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1125,7 +1033,9 @@ function draw() {
           );
           background-size: 20px 20px;
         }
-        canvas { display: block; }
+        canvas { 
+          display: block;
+        }
     </style>
 </head>
 <body>
