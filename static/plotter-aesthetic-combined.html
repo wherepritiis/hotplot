@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plotter Aesthetic - Combined Examples</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f1e8;
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 39px,
+                    rgba(42, 42, 42, 0.1) 39px,
+                    rgba(42, 42, 42, 0.1) 40px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 39px,
+                    rgba(42, 42, 42, 0.1) 39px,
+                    rgba(42, 42, 42, 0.1) 40px
+                );
+            padding: 40px;
+            color: #2a2a2a;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: normal;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-size: 24px;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto 30px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Example 1: Editor with hatching background */
+        .editor-container {
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 8px,
+                    rgba(42, 42, 42, 0.05) 8px,
+                    rgba(42, 42, 42, 0.05) 9px
+                );
+            border: 2px solid #2a2a2a;
+            padding: 20px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2a2a2a;
+        }
+
+        .editor-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .editor-content {
+            background: white;
+            border: 2px solid #2a2a2a;
+            padding: 20px;
+            flex: 1;
+            font-size: 13px;
+            line-height: 1.6;
+            box-shadow: 4px 4px 0 rgba(42, 42, 42, 0.1);
+        }
+
+        /* Example 2: Preview with perspective */
+        .preview-container {
+            background: white;
+            border: 2px solid #4A6FA5;
+            min-height: 400px;
+            position: relative;
+            transform: perspective(800px) rotateY(-3deg);
+            box-shadow: 10px 10px 0 #4A6FA5;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4A6FA5;
+            color: #4A6FA5;
+        }
+
+        .preview-content {
+            flex: 1;
+            background: 
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 9px,
+                    rgba(74, 111, 165, 0.05) 9px,
+                    rgba(74, 111, 165, 0.05) 10px
+                );
+            border: 2px solid #4A6FA5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4A6FA5;
+        }
+
+        /* Example 3: Controls with text pattern */
+        .controls-container {
+            background: white;
+            border: 2px solid #2a2a2a;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .controls-container::before {
+            content: '· · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ';
+            position: absolute;
+            inset: 0;
+            font-size: 12px;
+            line-height: 20px;
+            letter-spacing: 20px;
+            color: rgba(42, 42, 42, 0.1);
+            z-index: 0;
+            padding: 20px;
+        }
+
+        .controls-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .controls-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2a2a2a;
+        }
+
+        /* Example 4: Status with red accents */
+        .status-container {
+            background: white;
+            border: 3px solid #E85D75;
+            padding: 20px;
+            box-shadow: 
+                4px 4px 0 white,
+                4px 4px 0 3px #E85D75;
+        }
+
+        .status-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #E85D75;
+            color: #E85D75;
+        }
+
+        .status-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border: 1px solid rgba(232, 93, 117, 0.3);
+            font-size: 12px;
+        }
+
+        /* UI Elements */
+        .button {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+        }
+
+        .button:hover {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .button-blue {
+            border-color: #4A6FA5;
+            color: #4A6FA5;
+        }
+
+        .button-blue:hover {
+            background: #4A6FA5;
+            color: white;
+        }
+
+        .button-red {
+            border-color: #E85D75;
+            color: #E85D75;
+        }
+
+        .button-red:hover {
+            background: #E85D75;
+            color: white;
+        }
+
+        .toggle-group {
+            display: inline-flex;
+            border: 2px solid #2a2a2a;
+        }
+
+        .toggle-group .button {
+            border: none;
+            border-right: 2px solid #2a2a2a;
+            border-radius: 0;
+        }
+
+        .toggle-group .button:last-child {
+            border-right: none;
+        }
+
+        .toggle-group .button.active {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .input {
+            padding: 10px;
+            border: 2px solid #2a2a2a;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.2);
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>AxiDraw Plotter Control</h1>
+    
+    <h2 style="text-align: center; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 30px; font-weight: normal;">Layout Variation 01: Mixed Aesthetics</h2>
+    
+    <div class="layout-grid">
+        <!-- Editor Section -->
+        <div class="editor-container">
+            <div class="editor-header">
+                <div class="editor-title">Code Editor</div>
+                <div class="toggle-group">
+                    <button class="button active">Edit</button>
+                    <button class="button">SVG</button>
+                    <button class="button">Log</button>
+                </div>
+            </div>
+            <div class="editor-content">
+                <code>
+// Your plotting code here<br>
+function drawSquare(x, y, size) {<br>
+&nbsp;&nbsp;moveTo(x, y);<br>
+&nbsp;&nbsp;lineTo(x + size, y);<br>
+&nbsp;&nbsp;lineTo(x + size, y + size);<br>
+&nbsp;&nbsp;lineTo(x, y + size);<br>
+&nbsp;&nbsp;lineTo(x, y);<br>
+}<br>
+<br>
+drawSquare(100, 100, 50);
+                </code>
+            </div>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="preview-container">
+            <div class="preview-header">Live Preview</div>
+            <div class="preview-content">
+                <div style="text-align: center;">
+                    <p>Canvas Preview Area</p>
+                    <br>
+                    <button class="button button-blue">Run Code</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="controls-container">
+            <div class="controls-content">
+                <div class="controls-header">Plotter Settings</div>
+                
+                <div class="control-group">
+                    <label class="control-label">Speed (mm/s)</label>
+                    <input type="range" class="input" min="1" max="100" value="50">
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Pen Position</label>
+                    <div class="toggle-group">
+                        <button class="button">Up</button>
+                        <button class="button active">Down</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label">Paper Size</label>
+                    <input type="text" class="input" value="A4 (210 x 297 mm)">
+                </div>
+
+                <div class="button-group">
+                    <button class="button">Home</button>
+                    <button class="button">Zero XY</button>
+                    <button class="button">Raise Pen</button>
+                    <button class="button">Lower Pen</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="status-container">
+            <div class="status-header">Connection Status</div>
+            <div class="status-content">
+                <div class="status-item">
+                    <span>Device:</span>
+                    <span>AxiDraw V3/A3</span>
+                </div>
+                <div class="status-item">
+                    <span>Port:</span>
+                    <span>/dev/tty.usbserial</span>
+                </div>
+                <div class="status-item">
+                    <span>Status:</span>
+                    <span>Connected</span>
+                </div>
+                <div class="status-item">
+                    <span>Position:</span>
+                    <span>X: 125.5, Y: 87.3</span>
+                </div>
+                <div class="status-item">
+                    <span>Plotting:</span>
+                    <span>Idle</span>
+                </div>
+                <br>
+                <div class="button-group">
+                    <button class="button button-red">Disconnect</button>
+                    <button class="button">Refresh</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Width Action Bar -->
+        <div class="full-width" style="background: white; border: 2px solid #2a2a2a; padding: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 15px;">
+                <button class="button">New</button>
+                <button class="button">Open</button>
+                <button class="button">Save</button>
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <button class="button button-blue">Execute Plot</button>
+                <button class="button button-red">Emergency Stop</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout Variation 02 -->
+    <h2 style="text-align: center; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin: 60px 0 30px; font-weight: normal;">Layout Variation 02: Hatching & Text Patterns</h2>
+    
+    <div class="layout-grid">
+        <!-- Editor with hatching -->
+        <div style="background: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(42, 42, 42, 0.05) 6px, rgba(42, 42, 42, 0.05) 7px); border: 2px solid #2a2a2a; padding: 20px; min-height: 350px;">
+            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #2a2a2a;">Code Editor</div>
+            <div style="background: white; border: 2px solid #2a2a2a; padding: 20px; height: 260px; font-family: 'Courier New', monospace; font-size: 13px;">
+                // Draw a spiral<br>
+                let angle = 0;<br>
+                let radius = 1;<br>
+                <br>
+                while (radius < 100) {<br>
+                &nbsp;&nbsp;let x = radius * cos(angle);<br>
+                &nbsp;&nbsp;let y = radius * sin(angle);<br>
+                &nbsp;&nbsp;lineTo(x, y);<br>
+                &nbsp;&nbsp;angle += 0.1;<br>
+                &nbsp;&nbsp;radius += 0.2;<br>
+                }
+            </div>
+        </div>
+
+        <!-- Preview with text pattern -->
+        <div style="background: white; position: relative; overflow: hidden; border: 2px solid #2a2a2a; padding: 20px; min-height: 350px;">
+            <div style="position: absolute; inset: 0; font-size: 10px; line-height: 12px; letter-spacing: 8px; color: rgba(42, 42, 42, 0.1); padding: 20px; word-break: break-all;">+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + +</div>
+            <div style="position: relative; z-index: 1; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #2a2a2a;">Preview Canvas</div>
+            <div style="position: relative; z-index: 1; background: white; border: 2px solid #2a2a2a; padding: 30px; height: 230px; display: flex; align-items: center; justify-content: center; text-align: center;">
+                <div>
+                    <p style="margin-bottom: 15px;">SVG Preview</p>
+                    <button class="button">Render</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full width console -->
+        <div class="full-width" style="background: white; border: 2px solid #2a2a2a; padding: 20px;">
+            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #2a2a2a;">Console Output</div>
+            <div style="font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; color: #666;">
+                > Initializing plotter...<br>
+                > Connected to AxiDraw V3<br>
+                > Ready to plot
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout Variation 03 -->
+    <h2 style="text-align: center; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin: 60px 0 30px; font-weight: normal;">Layout Variation 03: 3D Perspective</h2>
+    
+    <div class="layout-grid">
+        <!-- Perspective box 1 -->
+        <div style="background: white; border: 2px solid #4A6FA5; padding: 20px; min-height: 300px; transform: perspective(800px) rotateY(-4deg); box-shadow: 12px 12px 0 #4A6FA5;">
+            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #4A6FA5; color: #4A6FA5;">Drawing Controls</div>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Pen Speed</label>
+                    <input type="range" class="input" style="width: 100%;">
+                </div>
+                <div>
+                    <label style="display: block; margin-bottom: 5px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Layer</label>
+                    <div class="toggle-group">
+                        <button class="button active">1</button>
+                        <button class="button">2</button>
+                        <button class="button">3</button>
+                    </div>
+                </div>
+                <button class="button button-blue">Start Drawing</button>
+            </div>
+        </div>
+
+        <!-- Stacked papers -->
+        <div style="background: white; border: 2px solid #2a2a2a; padding: 20px; min-height: 300px; box-shadow: 4px 4px 0 white, 4px 4px 0 2px #2a2a2a, 8px 8px 0 white, 8px 8px 0 2px #2a2a2a;">
+            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #2a2a2a;">Plot Queue</div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="padding: 10px; border: 2px solid #2a2a2a; background: rgba(232, 93, 117, 0.1);">
+                    <strong>spiral_01.svg</strong> - Ready
+                </div>
+                <div style="padding: 10px; border: 2px solid #2a2a2a;">
+                    <strong>pattern_02.svg</strong> - Queued
+                </div>
+                <div style="padding: 10px; border: 2px solid #2a2a2a;">
+                    <strong>design_03.svg</strong> - Queued
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout Variation 04 -->
+    <h2 style="text-align: center; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin: 60px 0 30px; font-weight: normal;">Layout Variation 04: Minimal Grid</h2>
+    
+    <div class="layout-grid">
+        <div style="background: repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(42, 42, 42, 0.1) 19px, rgba(42, 42, 42, 0.1) 20px), repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(42, 42, 42, 0.1) 19px, rgba(42, 42, 42, 0.1) 20px); border: 2px solid #2a2a2a; padding: 20px; min-height: 350px;">
+            <div style="background: white; padding: 20px; border: 2px solid #2a2a2a; height: 100%;">
+                <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px;">Position</div>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <input type="text" class="input" placeholder="X coordinate">
+                    <input type="text" class="input" placeholder="Y coordinate">
+                    <div class="button-group">
+                        <button class="button">Move To</button>
+                        <button class="button">Home</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="background: white; border: 2px solid #2a2a2a; padding: 20px; min-height: 350px;">
+            <div style="font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #2a2a2a;">Quick Actions</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button class="button">Pen Up</button>
+                <button class="button">Pen Down</button>
+                <button class="button">Move +X</button>
+                <button class="button">Move -X</button>
+                <button class="button">Move +Y</button>
+                <button class="button">Move -Y</button>
+                <button class="button button-red" style="grid-column: 1 / -1;">Stop</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

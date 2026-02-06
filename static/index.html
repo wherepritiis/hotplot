@@ -11,14 +11,13 @@
     />
     <!-- CodeMirror CSS -->
     <link rel="stylesheet" href="/static/vendor/codemirror/codemirror.css" />
-    <!-- CodeMirror Isotope Theme -->
-    <link rel="stylesheet" href="/static/vendor/codemirror/theme/isotope.css" />
     <!-- Custom Styles -->
     <link rel="stylesheet" href="/static/styles.css" />
-    <!-- AlpineJS Data Component - Define before Alpine loads -->
+    <!-- AlpineJS Data Component -->
     <script>
-      // Define Alpine component data function
-      const appDataDefinition = () => ({
+      // Define Alpine component data
+      function appData() {
+        return {
         currentMode: "plot",
         logPanelOpen: false,
         connected: false,
@@ -177,16 +176,17 @@
           } catch (error) {
             window.log(`Error copying SVG: ${error.message}`, "error");
           }
-        },
+        }
+        };
+      };
+    </script>
+    <!-- AlpineJS -->
+    <script>
+      document.addEventListener('alpine:init', () => {
+        Alpine.data('appData', appData);
       });
     </script>
-    <!-- AlpineJS - Load without defer to ensure proper initialization order -->
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- Register Alpine data immediately after Alpine loads -->
-    <script>
-      // Register Alpine data component - Alpine is now loaded
-      Alpine.data("appData", appDataDefinition);
-    </script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <!-- p5.js and p5.plotSvg will be loaded dynamically in preview iframe -->
   </head>
   <body
@@ -221,51 +221,36 @@
         <span class="brand-letter brand-rest" aria-hidden="true">t</span>
       </div>
 
-      <!-- Mode Toggle Group (Center) -->
-      <div class="mode-toggle-group">
-        <div class="mode-toggle-container" id="toggleContainer">
-          <div class="mode-toggle-slider-trail mode-toggle-slider-trail--1" id="toggleSliderTrail1" aria-hidden="true"></div>
-          <div class="mode-toggle-slider-trail" id="toggleSliderTrail2" aria-hidden="true"></div>
-          <div class="mode-toggle-slider" id="toggleSlider" aria-hidden="true"></div>
-          <div class="toggle-option" id="toggleOptionPlot" :class="{ 'toggle-option--active': currentMode === 'plot' }">
-            <div class="toggle-trail toggle-trail--1" id="toggleTrailPlot1" aria-hidden="true"></div>
-            <div class="toggle-trail toggle-trail--2" id="toggleTrailPlot2" aria-hidden="true"></div>
-            <button
-              type="button"
-              @click="switchMode('plot')"
-              :class="currentMode === 'plot' ? 'mode-toggle-btn-active' : 'mode-toggle-btn-inactive'"
-              class="mode-toggle-btn"
-              id="btnPlot"
-            >
-              Plot mode
-            </button>
-          </div>
-          <div class="toggle-option" id="toggleOptionInteractive" :class="{ 'toggle-option--active': currentMode === 'interactive' }">
-            <div class="toggle-trail toggle-trail--1" id="toggleTrailInteractive1" aria-hidden="true"></div>
-            <div class="toggle-trail toggle-trail--2" id="toggleTrailInteractive2" aria-hidden="true"></div>
-            <button
-              type="button"
-              @click="switchMode('interactive')"
-              :class="currentMode === 'interactive' ? 'mode-toggle-btn-active' : 'mode-toggle-btn-inactive'"
-              class="mode-toggle-btn"
-              id="btnInteractive"
-            >
-              Interactive mode
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Log (Right) -->
-      <div class="flex items-center">
+      <!-- Log Button (Right) -->
+      <div class="log-button-wrapper">
         <button
           @click="toggleLogPanel()"
-          class="log-link"
+          class="log-button"
         >
           Log
         </button>
       </div>
     </header>
+
+    <!-- Tabs - Below Header, O2.14 File Folder Tab Style -->
+    <div class="tabs-wrapper">
+      <div class="tabs-container">
+        <button 
+          class="tab"
+          :class="{ 'active': currentMode === 'plot' }"
+          @click="switchMode('plot')"
+        >
+          Plot
+        </button>
+        <button 
+          class="tab"
+          :class="{ 'active': currentMode === 'interactive' }"
+          @click="switchMode('interactive')"
+        >
+          Interactive Mode
+        </button>
+      </div>
+    </div>
 
     <!-- Alert Notifications -->
     <div class="alert-container" x-show="alerts.length > 0">
@@ -300,156 +285,129 @@
       </div>
     </div>
 
-    <!-- Plot Mode Content -->
-    <div x-show="currentMode === 'plot'">
-      <div class="plot-mode-layout">
-        <!-- Top row: Editor | Preview (same height) -->
-        <div class="plot-top-row flex">
-          <div class="plot-editor-col w-50 pr2">
-            <div class="perspective-box-container plot-editor-wrap mb3">
-              <div class="perspective-box">
-                <div class="box-face box-face-front"></div>
-                <div class="box-face box-face-left"></div>
-                <div class="box-content">
-                  <div class="box-editor-container">
-                    <textarea id="codeEditor" class="box-editor-textarea">function setup() {
-  createCanvas(780, 560); // 8.125" x 5.83" at 96 dpi
-  background(255);
+    <!-- Main Content - connected to tabs -->
+    <div class="main-content" id="plotMode" x-show="currentMode === 'plot'">
+      <div class="layout-grid">
+        <!-- Code Editor - O2.11 Triple Stacked Layers -->
+        <div class="editor-container">
+          <div class="editor-header">Code Editor</div>
+          <div class="editor-content">
+            <textarea id="codeEditor">function setup() {
+  createCanvas(780, 560);
   noFill();
+  stroke(42, 42, 42);
 }
 
 function draw() {
   square(50, 100, 40);
+  circle(150, 120, 60);
 }</textarea>
-                  </div>
-                </div>
-                <div class="circle-container" id="circleContainer">
-                  <div class="circle-trail circle-trail--1" id="previewTrail1" aria-hidden="true"></div>
-                  <div class="circle-trail circle-trail--2" id="previewTrail2" aria-hidden="true"></div>
-                  <div class="circle-element" id="circleElement" onclick="runPreview()">
-                    <span class="circle-text">Preview</span>
-                  </div>
-                  <div class="curved-text" id="curvedText">
-                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                      <defs>
-                        <path id="circle-path-p5js" d="M 100,15 A 85,85 0 0,1 185,100" fill="none"/>
-                        <path id="circle-path-sketch" d="M 185,100 A 85,85 0 0,1 15,100" fill="none"/>
-                      </defs>
-                      <text font-size="18" fill="#F9A66C" letter-spacing="0.15em">
-                        <textPath href="#circle-path-p5js" startOffset="0%">p 5 . j s</textPath>
-                      </text>
-                      <text font-size="18" fill="#F9A66C" letter-spacing="0.15em">
-                        <textPath href="#circle-path-sketch" startOffset="0%">s k e t c h</textPath>
-                      </text>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
-          <div class="plot-preview-col w-50 pl2">
-            <div class="flex items-center justify-end mb2">
-              <div class="flex">
-                <button @click="copySvg()" class="btn btn-icon mr2" title="Copy SVG">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
-                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
-                  </svg>
-                </button>
-                <button onclick="exportSvg()" class="btn btn-icon" title="Export SVG">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2v13"/>
-                    <path d="m16 6-4-4-4 4"/>
-                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-            <div class="preview-container-wrapper">
-              <div class="preview-container plot-preview-wrap mb3" id="previewContainer">
-                <div class="text-muted">Click the preview circle to see your sketch</div>
-              </div>
-              <!-- Bottom flap - positioned outside container -->
-              <div class="preview-bottom-flap"></div>
-              <!-- Copy SVG Button - positioned outside container to avoid clipping -->
-              <div class="preview-copy-circle-container" id="previewCopyContainer">
-                    <div class="preview-copy-circle-trail preview-copy-circle-trail--1" id="previewCopyTrail1" aria-hidden="true"></div>
-                    <div class="preview-copy-circle-trail preview-copy-circle-trail--2" id="previewCopyTrail2" aria-hidden="true"></div>
-                    <div class="preview-copy-circle-element" id="previewCopyElement" onclick="copySvg()">
-                      <span class="preview-copy-circle-text">Copy</span>
-                    </div>
-                    <div class="preview-copy-curved-text" id="previewCopyCurved">
-                      <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                          <path id="preview-path-copy-text" d="M 100,15 A 85,85 0 0,1 185,100" fill="none"/>
-                          <path id="preview-path-svg-text" d="M 185,100 A 85,85 0 0,1 15,100" fill="none"/>
-                        </defs>
-                        <text font-size="18" fill="#577bff" letter-spacing="0.15em">
-                          <textPath href="#preview-path-copy-text" startOffset="0%">c o p y</textPath>
-                        </text>
-                        <text font-size="18" fill="#577bff" letter-spacing="0.15em">
-                          <textPath href="#preview-path-svg-text" startOffset="0%">s v g</textPath>
-                        </text>
-                  </svg>
-                </div>
-              </div>
+          
+          <!-- Preview Button - Magnetic Effect -->
+          <div class="magnetic-button-container" id="previewBtnContainer">
+            <div class="magnetic-trail magnetic-trail--1" id="previewTrail1"></div>
+            <div class="magnetic-trail magnetic-trail--2" id="previewTrail2"></div>
+            <button class="magnetic-button" id="previewBtn" onclick="runPreview()">
+              Preview
+            </button>
+            <div class="preview-curved-text" id="previewCurvedText">
+              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <path id="preview-path-p5js" d="M 100,25 A 75,75 0 0,1 175,100" fill="none"/>
+                  <path id="preview-path-sketch" d="M 175,100 A 75,75 0 0,1 25,100" fill="none"/>
+                </defs>
+                <text font-size="12" fill="#2a2a2a" letter-spacing="0.1em" font-family="'Courier New', monospace">
+                  <textPath href="#preview-path-p5js" startOffset="0%">p 5 . j s</textPath>
+                </text>
+                <text font-size="12" fill="#2a2a2a" letter-spacing="0.1em" font-family="'Courier New', monospace">
+                  <textPath href="#preview-path-sketch" startOffset="0%">s k e t c h</textPath>
+                </text>
+              </svg>
             </div>
           </div>
         </div>
 
-        <!-- Bottom row: SVG Text Area (left) | Plotter settings (right), Plot button below settings -->
-        <div class="plot-bottom-row flex">
-          <div class="plot-svg-col w-50 pr2">
-            <div class="perspective-box-container svg-textarea-wrap">
-              <div class="perspective-box">
-                <div class="box-face box-face-front"></div>
-                <div class="box-face box-face-top"></div>
-                <div class="box-content">
-                  <textarea
-                    id="svgInput"
-                    placeholder="Paste SVG content here..."
-                    class="input-field input-field-textarea plot-svg-textarea"
-                  ></textarea>
-                </div>
+        <!-- Preview Container - Red Dot Stipple -->
+        <div class="preview-container">
+          <div id="previewContainer">
+            Click Preview to see your sketch
+          </div>
+          
+          <!-- Copy SVG Button - Magnetic Effect -->
+          <div class="copy-svg-button-container" id="copySvgBtnContainer">
+            <div class="magnetic-trail magnetic-trail--1" id="copySvgTrail1"></div>
+            <div class="magnetic-trail magnetic-trail--2" id="copySvgTrail2"></div>
+            <button class="magnetic-button" id="copySvgBtn" x-on:click="copySvg()">
+              Copy SVG
+            </button>
+            <div class="copy-svg-curved-text" id="copySvgCurvedText">
+              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <path id="copy-path-copy-text" d="M 100,25 A 75,75 0 0,1 175,100" fill="none"/>
+                  <path id="copy-path-svg-text" d="M 175,100 A 75,75 0 0,1 25,100" fill="none"/>
+                </defs>
+                <text font-size="12" fill="#2a2a2a" letter-spacing="0.1em" font-family="'Courier New', monospace">
+                  <textPath href="#copy-path-copy-text" startOffset="0%">c o p y</textPath>
+                </text>
+                <text font-size="12" fill="#2a2a2a" letter-spacing="0.1em" font-family="'Courier New', monospace">
+                  <textPath href="#copy-path-svg-text" startOffset="0%">s v g</textPath>
+                </text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- SVG Text Area - 03.08 Asterisk Field -->
+        <div class="svg-textarea-container">
+          <div class="svg-textarea-header">SVG Content</div>
+          <div class="svg-textarea-inner">
+            <textarea 
+              class="svg-textarea" 
+              id="svgInput" 
+              placeholder="Paste SVG content here"></textarea>
+          </div>
+        </div>
+
+        <!-- Plotter Settings - O5 Style -->
+        <div class="plotter-settings-container">
+          <div class="settings-header">Plotter Settings</div>
+          
+          <div class="control-group">
+            <label class="control-label" for="layerInput">Layer Number (optional)</label>
+            <input type="number" id="layerInput" placeholder="Leave empty for all layers" class="input-field" />
+          </div>
+
+          <div class="control-group">
+            <div class="input-grid">
+              <div>
+                <label class="control-label" for="penUp">Pen Up</label>
+                <input type="number" id="penUp" value="70" min="0" max="100" class="input-field" />
+              </div>
+              <div>
+                <label class="control-label" for="penDown">Pen Down</label>
+                <input type="number" id="penDown" value="40" min="0" max="100" class="input-field" />
               </div>
             </div>
           </div>
-          <div class="plot-settings-col w-50 pl2">
-            <div class="panel plot-settings-panel">
-              <div class="panel-section">
-                <label for="layerInput" class="input-label">Layer Number (optional)</label>
-                <input type="number" id="layerInput" placeholder="Leave empty for all layers" class="input-field" />
+
+          <div class="control-group">
+            <div class="input-grid">
+              <div>
+                <label class="control-label" for="speedUp">Speed Up (%)</label>
+                <input type="number" id="speedUp" value="75" min="1" max="110" class="input-field" />
               </div>
-              <div class="panel-section">
-                <div class="input-grid">
-                  <div class="input-grid-item">
-                    <label for="penUp" class="input-label">Pen Up Height</label>
-                    <input type="number" id="penUp" value="70" min="0" max="100" class="input-field" />
-                  </div>
-                  <div class="input-grid-item">
-                    <label for="penDown" class="input-label">Pen Down Height</label>
-                    <input type="number" id="penDown" value="40" min="0" max="100" class="input-field" />
-                  </div>
-                </div>
-              </div>
-              <div class="panel-section">
-                <div class="input-grid">
-                  <div class="input-grid-item">
-                    <label for="speedUp" class="input-label">Speed Up (%)</label>
-                    <input type="number" id="speedUp" value="75" min="1" max="110" class="input-field" />
-                  </div>
-                  <div class="input-grid-item">
-                    <label for="speedDown" class="input-label">Speed Down (%)</label>
-                    <input type="number" id="speedDown" value="25" min="1" max="110" class="input-field" />
-                  </div>
-                </div>
-              </div>
-              <div class="panel-section plot-buttons-section">
-                <button class="btn btn-success mr2" id="plotBtn" onclick="plotFromEditorOrSvg()">Plot</button>
-                <button class="btn btn-primary mr2 hidden" id="resumeBtn" onclick="resumePlot()">Resume</button>
-                <button class="btn btn-primary hidden" id="returnHomeBtn" onclick="returnHome()">Go to Home</button>
+              <div>
+                <label class="control-label" for="speedDown">Speed Down (%)</label>
+                <input type="number" id="speedDown" value="25" min="1" max="110" class="input-field" />
               </div>
             </div>
+          </div>
+
+          <div class="control-group">
+            <button class="button button-primary" id="plotBtn" onclick="plotFromEditorOrSvg()">Plot</button>
+            <button class="button hidden" id="resumeBtn" onclick="resumePlot()">Resume</button>
+            <button class="button hidden" id="returnHomeBtn" onclick="returnHome()">Go to Home</button>
           </div>
         </div>
       </div>
@@ -468,7 +426,7 @@ function draw() {
     </div>
 
     <!-- Interactive Mode Content -->
-    <div x-show="currentMode === 'interactive'">
+    <div class="main-content" id="interactiveMode" x-show="currentMode === 'interactive'">
       <div class="flex">
         <!-- Command Reference (Left) -->
         <div class="w-50 pr2">
@@ -543,6 +501,7 @@ function draw() {
 
     <!-- Log Side Panel -->
     <div
+      x-cloak
       x-show="logPanelOpen"
       x-transition:enter="transition ease-out duration-300"
       x-transition:enter-start="translate-x-full"
@@ -575,6 +534,7 @@ function draw() {
 
     <!-- Backdrop/Overlay -->
     <div
+      x-cloak
       x-show="logPanelOpen"
       @click="toggleLogPanel()"
       x-transition:enter="transition ease-out duration-300"
@@ -841,7 +801,6 @@ function draw() {
       let currentSvg = null;
       let defaultCode = `function setup() {
   createCanvas(780, 560); // 8.125" x 5.83" at 96 dpi
-  background(255);
   noFill();
 }
 
@@ -988,13 +947,37 @@ function draw() {
             if (textarea.value !== defaultCode) {
               textarea.value = defaultCode;
             }
+            // Hide textarea before CodeMirror initialization to prevent theme flash
+            textarea.style.visibility = 'hidden';
+            textarea.style.opacity = '0';
+            
             codeEditor = CodeMirror.fromTextArea(textarea, {
               lineNumbers: true,
               mode: "javascript",
-              theme: "isotope",
+              theme: "default",
               indentUnit: 2,
               lineWrapping: true,
             });
+            
+            // Ensure textarea stays hidden
+            if (textarea.parentNode) {
+              textarea.style.display = 'none';
+              textarea.style.visibility = 'hidden';
+            }
+            
+            // Show editor-content only after CodeMirror is ready with correct theme
+            const editorContent = document.querySelector('.editor-content');
+            if (editorContent) {
+              // Force a repaint to ensure theme is applied
+              codeEditor.refresh();
+              // Small delay to ensure theme is fully applied
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  editorContent.classList.add('cm-ready');
+                });
+              });
+            }
+            
             // Set value immediately after creation
             setTimeout(() => {
               codeEditor.setValue(defaultCode);
@@ -1018,15 +1001,9 @@ function draw() {
         // Create or update preview iframe
         const previewContainer = document.getElementById("previewContainer");
 
-        // Remove placeholder message if it exists
-        const placeholder = previewContainer.querySelector("div.text-muted");
-        if (
-          placeholder &&
-          placeholder.textContent.includes("preview circle")
-        ) {
-          previewContainer.removeChild(placeholder);
-        }
-
+        // Clear placeholder text
+        previewContainer.textContent = '';
+        
         // Remove existing iframe if it exists
         if (previewIframe) {
           previewContainer.removeChild(previewIframe);
@@ -1034,8 +1011,14 @@ function draw() {
 
         previewIframe = document.createElement("iframe");
         previewIframe.id = "previewFrame";
-        previewIframe.className = "w-100 h-100 bn";
+        previewIframe.style.width = "100%";
+        previewIframe.style.height = "100%";
+        previewIframe.style.border = "none";
+        previewIframe.style.display = "block";
         previewContainer.appendChild(previewIframe);
+        
+        // Add class to indicate iframe is present
+        previewContainer.classList.add("has-iframe");
 
         // Create HTML content for iframe
         const iframeDoc =
@@ -1053,19 +1036,20 @@ function draw() {
           `script src="/static/vendor/p5.plotSvg.js"></` +
           `script>
     <style>
-        body {
+        html, body {
           margin: 0;
           padding: 0;
-          background-color: #ffffff;
-          background-image: radial-gradient(
-            circle at center,
-            rgba(166, 1, 244, 0.2) 1px,
-            transparent 1px
-          );
+          width: 100%;
+          height: 100%;
+          overflow: auto;
+          background: 
+            radial-gradient(circle, rgba(214, 112, 124, 0.3) 1.5px, transparent 1.5px),
+            #f5f1e8;
           background-size: 20px 20px;
         }
         canvas { 
           display: block;
+          background: transparent !important;
         }
     </style>
 </head>
@@ -1074,34 +1058,6 @@ function draw() {
           `script>
         p5.disableFriendlyErrors = true;
         ${code}
-    </` +
-          `script>
-    <` +
-          `script>
-        (function() {
-          function addGridOverlay() {
-            var overlay = document.createElement("div");
-            overlay.setAttribute("aria-hidden", "true");
-            overlay.style.cssText = "position:fixed;inset:0;z-index:9999;pointer-events:none;background-color:transparent;background-image:radial-gradient(circle at center, rgba(166,1,244,0.2) 1px, transparent 1px);background-size:20px 20px;";
-            document.body.appendChild(overlay);
-          }
-          function tryAddOverlay() {
-            if (document.querySelector("canvas")) {
-              addGridOverlay();
-              return true;
-            }
-            return false;
-          }
-          if (tryAddOverlay()) return;
-          var obs = new MutationObserver(function() {
-            if (tryAddOverlay()) obs.disconnect();
-          });
-          obs.observe(document.body, { childList: true, subtree: true });
-          setTimeout(function() {
-            obs.disconnect();
-            tryAddOverlay();
-          }, 2000);
-        })();
     </` +
           `script>
 </body>
@@ -1470,6 +1426,117 @@ function draw() {
         }
         requestAnimationFrame(updateToggleTrails);
       })();
+    </script>
+
+    <!-- Magnetic Button Effects -->
+    <script>
+      // Setup magnetic button effect
+      function setupMagneticButton(containerId, buttonId, trail1Id, trail2Id, curvedTextId) {
+        const container = document.getElementById(containerId);
+        const button = document.getElementById(buttonId);
+        const trail1 = document.getElementById(trail1Id);
+        const trail2 = document.getElementById(trail2Id);
+        const curvedText = document.getElementById(curvedTextId);
+        
+        if (!container || !button) return;
+
+        let rect = button.getBoundingClientRect();
+        let rotationAngle = { previous: 0, current: 0, amt: 0.08 }; // Smooth rotation tracking
+        
+        // Check if this is the copy SVG button (positioned at top) - reduce upward trigger distance
+        const isCopySvgButton = containerId === 'copySvgBtnContainer';
+        
+        const rendered = {
+          tx: { previous: 0, current: 0, amt: 0.12 },
+          ty: { previous: 0, current: 0, amt: 0.12 },
+          t1x: { previous: 0, current: 0, amt: 0.04 },
+          t1y: { previous: 0, current: 0, amt: 0.04 },
+          t2x: { previous: 0, current: 0, amt: 0.07 },
+          t2y: { previous: 0, current: 0, amt: 0.07 },
+          tcx: { previous: 0, current: 0, amt: 0.06 },
+          tcy: { previous: 0, current: 0, amt: 0.06 }
+        };
+
+        let mousepos = { x: 0, y: 0 };
+        
+        window.addEventListener('mousemove', (e) => {
+          mousepos = { x: e.clientX, y: e.clientY };
+        });
+
+        function lerp(a, b, n) {
+          return (1 - n) * a + n * b;
+        }
+
+        function distance(x1, y1, x2, y2) {
+          return Math.hypot(x1 - x2, y1 - y2);
+        }
+
+        function render() {
+          rect = button.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          const d = distance(mousepos.x, mousepos.y, centerX, centerY);
+          
+          // For copy SVG button, use smaller trigger distance to avoid interfering with log button
+          // Also check if mouse is above the button center - if so, use even smaller trigger
+          let trigger = rect.width * 2;
+          if (isCopySvgButton) {
+            const mouseAboveButton = mousepos.y < centerY;
+            trigger = mouseAboveButton ? rect.width * 1.2 : rect.width * 2; // Smaller trigger when above button
+          }
+          
+          let x = 0, y = 0;
+          if (d < trigger) {
+            x = (mousepos.x - centerX) * 0.3;
+            y = (mousepos.y - centerY) * 0.3;
+          }
+          
+          rendered.tx.current = rendered.t1x.current = rendered.t2x.current = rendered.tcx.current = x;
+          rendered.ty.current = rendered.t1y.current = rendered.t2y.current = rendered.tcy.current = y;
+          
+          // Rotation based on horizontal cursor movement - symmetric rotation
+          const isHovering = d < trigger;
+          
+          if (isHovering) {
+            // Calculate rotation based on horizontal distance from center
+            // Use absolute value for symmetric rotation amount, but rotate in direction that keeps text visible
+            const horizontalOffset = mousepos.x - centerX;
+            const maxOffset = rect.width * 2; // Same as trigger distance
+            const rotationAmount = Math.abs(horizontalOffset / maxOffset) * 180; // Always positive rotation amount
+            
+            // Rotate clockwise (positive) when on left, counterclockwise (negative) when on right
+            // This keeps the text visible on both sides
+            rotationAngle.current = horizontalOffset < 0 ? rotationAmount : -rotationAmount;
+          } else {
+            // Smoothly return to 0 when not hovering
+            rotationAngle.current = 0;
+          }
+          
+          // Smooth interpolation
+          rotationAngle.previous = lerp(rotationAngle.previous, rotationAngle.current, rotationAngle.amt);
+          
+          for (const key in rendered) {
+            rendered[key].previous = lerp(rendered[key].previous, rendered[key].current, rendered[key].amt);
+          }
+          
+          if (trail1) trail1.style.transform = `translate(calc(-50% + ${rendered.t1x.previous}px), calc(-50% + ${rendered.t1y.previous}px))`;
+          if (trail2) trail2.style.transform = `translate(calc(-50% + ${rendered.t2x.previous}px), calc(-50% + ${rendered.t2y.previous}px))`;
+          button.style.transform = `translate(calc(-50% + ${rendered.tx.previous}px), calc(-50% + ${rendered.ty.previous}px))`;
+          if (curvedText) {
+            curvedText.style.transform = `translate(${rendered.tcx.previous * 0.5}px, ${rendered.tcy.previous * 0.5}px) rotate(${rotationAngle.previous}deg)`;
+          }
+          
+          requestAnimationFrame(render);
+        }
+        
+        requestAnimationFrame(render);
+      }
+
+      // Initialize magnetic buttons after a short delay
+      setTimeout(() => {
+        setupMagneticButton('previewBtnContainer', 'previewBtn', 'previewTrail1', 'previewTrail2', 'previewCurvedText');
+        setupMagneticButton('copySvgBtnContainer', 'copySvgBtn', 'copySvgTrail1', 'copySvgTrail2', 'copySvgCurvedText');
+      }, 100);
     </script>
   </body>
 </html>

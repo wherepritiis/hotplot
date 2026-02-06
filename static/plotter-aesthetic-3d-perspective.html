@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plotter Aesthetic - 3D Perspective</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f1e8;
+            padding: 40px;
+            color: #2a2a2a;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: normal;
+            letter-spacing: 2px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .example {
+            background: white;
+            padding: 20px;
+            border: 2px solid #2a2a2a;
+        }
+
+        .example h2 {
+            font-size: 14px;
+            font-weight: normal;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 3D Perspective Containers */
+        .perspective-box-1 {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            transform: perspective(600px) rotateY(-5deg);
+            box-shadow: 8px 8px 0 #2a2a2a;
+        }
+
+        .perspective-box-2 {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            transform: perspective(800px) rotateX(5deg) rotateY(-8deg);
+            box-shadow: 12px 12px 0 #2a2a2a;
+        }
+
+        .perspective-box-3 {
+            height: 250px;
+            background: 
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 9px,
+                    #2a2a2a 9px,
+                    #2a2a2a 10px
+                );
+            border: 2px solid #2a2a2a;
+            position: relative;
+            transform: perspective(500px) rotateX(-10deg);
+            box-shadow: 0 15px 0 #2a2a2a;
+        }
+
+        .isometric-box {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            transform: skewY(-3deg) skewX(3deg);
+            border-right: 4px solid #2a2a2a;
+            border-bottom: 4px solid #2a2a2a;
+        }
+
+        .stacked-paper {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            box-shadow: 
+                4px 4px 0 white,
+                4px 4px 0 2px #2a2a2a,
+                8px 8px 0 white,
+                8px 8px 0 2px #2a2a2a;
+        }
+
+        .extruded-box {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            clip-path: polygon(
+                0 0, calc(100% - 20px) 0, 
+                100% 20px, 100% 100%, 
+                20px 100%, 0 calc(100% - 20px)
+            );
+        }
+
+        .extruded-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 20px;
+            height: 20px;
+            background: 
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 2px,
+                    #2a2a2a 2px,
+                    #2a2a2a 3px
+                );
+            border-left: 2px solid #2a2a2a;
+            border-bottom: 2px solid #2a2a2a;
+        }
+
+        .extruded-box::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 20px;
+            height: 20px;
+            background: 
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 2px,
+                    #2a2a2a 2px,
+                    #2a2a2a 3px
+                );
+            border-right: 2px solid #2a2a2a;
+            border-top: 2px solid #2a2a2a;
+        }
+
+        .floating-box {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            transform: translateY(-10px);
+            box-shadow: 0 20px 0 rgba(42, 42, 42, 0.1);
+        }
+
+        .tilted-frame {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            transform: rotate(-2deg);
+            border-top-width: 4px;
+            border-right-width: 4px;
+        }
+
+        .folded-corner {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            clip-path: polygon(
+                0 0, 100% 0,
+                100% calc(100% - 30px),
+                calc(100% - 30px) 100%,
+                0 100%
+            );
+        }
+
+        .folded-corner::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 0 30px 30px;
+            border-color: transparent transparent #2a2a2a transparent;
+        }
+
+        .accordion-fold {
+            height: 250px;
+            background: 
+                linear-gradient(
+                    90deg,
+                    white 0%,
+                    white 30%,
+                    #f5f1e8 30%,
+                    #f5f1e8 31%,
+                    white 31%,
+                    white 60%,
+                    #f5f1e8 60%,
+                    #f5f1e8 61%,
+                    white 61%
+                );
+            border: 2px solid #2a2a2a;
+            border-left: 4px solid #2a2a2a;
+            border-right: 4px solid #2a2a2a;
+            position: relative;
+        }
+
+        .triple-layer {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            box-shadow: 
+                3px 3px 0 white,
+                3px 3px 0 2px #2a2a2a,
+                6px 6px 0 white,
+                6px 6px 0 2px #2a2a2a,
+                9px 9px 0 white,
+                9px 9px 0 2px #2a2a2a;
+        }
+
+        .deep-shadow {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            box-shadow: 
+                2px 2px 0 rgba(42, 42, 42, 0.1),
+                4px 4px 0 rgba(42, 42, 42, 0.1),
+                6px 6px 0 rgba(42, 42, 42, 0.1),
+                8px 8px 0 rgba(42, 42, 42, 0.1),
+                10px 10px 0 rgba(42, 42, 42, 0.1),
+                12px 12px 0 rgba(42, 42, 42, 0.2);
+        }
+
+        .pushed-in {
+            height: 250px;
+            background: white;
+            border: 3px solid #2a2a2a;
+            position: relative;
+            box-shadow: inset 4px 4px 8px rgba(42, 42, 42, 0.2);
+        }
+
+        .tabbed-folder {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            margin-top: 25px;
+        }
+
+        .tabbed-folder::before {
+            content: 'TAB';
+            position: absolute;
+            top: -25px;
+            left: 20px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            border-bottom: none;
+            padding: 5px 20px;
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        .offset-border {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            outline: 2px solid #2a2a2a;
+            outline-offset: 6px;
+        }
+
+        .content-inner {
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 15px;
+        }
+
+        .button {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+        }
+
+        .button:hover {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .toggle-group {
+            display: flex;
+            border: 2px solid #2a2a2a;
+            overflow: hidden;
+        }
+
+        .toggle-group .button {
+            border: none;
+            border-right: 2px solid #2a2a2a;
+            border-radius: 0;
+        }
+
+        .toggle-group .button:last-child {
+            border-right: none;
+        }
+
+        .toggle-group .button.active {
+            background: #2a2a2a;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pen Plotter Aesthetic Exploration: 3D Perspective</h1>
+    
+    <div class="grid">
+        <!-- Example 1: Perspective Y Rotation -->
+        <div class="example">
+            <h2>01. Perspective Y-Axis Rotation</h2>
+            <div class="perspective-box-1">
+                <div class="content-inner">
+                    <p>Editor Panel</p>
+                    <div class="toggle-group">
+                        <button class="button active">Code</button>
+                        <button class="button">Preview</button>
+                        <button class="button">Output</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 2: Perspective XY Rotation -->
+        <div class="example">
+            <h2>02. Perspective XY-Axis Rotation</h2>
+            <div class="perspective-box-2">
+                <div class="content-inner">
+                    <p>Control Panel</p>
+                    <button class="button">Execute</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 3: Perspective with Line Pattern -->
+        <div class="example">
+            <h2>03. Perspective X-Axis with Lines</h2>
+            <div class="perspective-box-3">
+                <div class="content-inner">
+                    <p>Settings Area</p>
+                    <button class="button">Configure</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 4: Isometric Skew -->
+        <div class="example">
+            <h2>04. Isometric Skew</h2>
+            <div class="isometric-box">
+                <div class="content-inner">
+                    <p>Status Display</p>
+                    <div class="toggle-group">
+                        <button class="button">Connect</button>
+                        <button class="button active">Connected</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 5: Stacked Paper Effect -->
+        <div class="example">
+            <h2>05. Stacked Paper Layers</h2>
+            <div class="stacked-paper">
+                <div class="content-inner">
+                    <p>Console Output</p>
+                    <button class="button">Clear Log</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 6: Extruded Corner Effect -->
+        <div class="example">
+            <h2>06. Extruded Corners</h2>
+            <div class="extruded-box">
+                <div class="content-inner">
+                    <p>Preview Window</p>
+                    <button class="button">Refresh</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 7: Floating Box -->
+        <div class="example">
+            <h2>07. Floating with Drop Shadow</h2>
+            <div class="floating-box">
+                <div class="content-inner">
+                    <p>Modal Dialog</p>
+                    <button class="button">Confirm</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 8: Tilted Frame -->
+        <div class="example">
+            <h2>08. Slightly Tilted Container</h2>
+            <div class="tilted-frame">
+                <div class="content-inner">
+                    <p>Info Panel</p>
+                    <button class="button">Details</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 9: Folded Corner -->
+        <div class="example">
+            <h2>09. Dog-Eared Page Effect</h2>
+            <div class="folded-corner">
+                <div class="content-inner">
+                    <p>Document View</p>
+                    <button class="button">Read More</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 10: Accordion Fold -->
+        <div class="example">
+            <h2>10. Accordion Fold Pattern</h2>
+            <div class="accordion-fold">
+                <div class="content-inner">
+                    <p>Expandable Section</p>
+                    <button class="button">Toggle</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 11: Triple Layer -->
+        <div class="example">
+            <h2>11. Triple Stacked Layers</h2>
+            <div class="triple-layer">
+                <div class="content-inner">
+                    <p>Layered Content</p>
+                    <button class="button">View Stack</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 12: Deep Shadow -->
+        <div class="example">
+            <h2>12. Graduated Shadow Depth</h2>
+            <div class="deep-shadow">
+                <div class="content-inner">
+                    <p>Raised Element</p>
+                    <div class="toggle-group">
+                        <button class="button">Low</button>
+                        <button class="button active">High</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 13: Pushed In -->
+        <div class="example">
+            <h2>13. Inset / Pressed Effect</h2>
+            <div class="pushed-in">
+                <div class="content-inner">
+                    <p>Input Field Area</p>
+                    <button class="button">Submit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 14: Tabbed Folder -->
+        <div class="example">
+            <h2>14. File Folder Tab</h2>
+            <div class="tabbed-folder">
+                <div class="content-inner">
+                    <p>Folder Contents</p>
+                    <button class="button">Open</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 15: Offset Border -->
+        <div class="example">
+            <h2>15. Double Border Offset</h2>
+            <div class="offset-border">
+                <div class="content-inner">
+                    <p>Highlighted Section</p>
+                    <button class="button">Select</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

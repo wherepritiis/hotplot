@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotplot - Pen Plotter Aesthetic Layout Prototype</title>
+    <!-- CodeMirror CSS -->
+    <link rel="stylesheet" href="/static/vendor/codemirror/codemirror.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f1e8;
+            color: #2a2a2a;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Header with tabs (O2.14 - Tabbed Folder style) */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        /* Logo centered */
+        .app-logo {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 0.15em;
+        }
+
+        .brand-letter {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2a2a2a;
+            letter-spacing: 0.02em;
+            line-height: 1;
+        }
+
+        /* Log on right */
+        .log-link {
+            background: transparent;
+            border: none;
+            padding: 0;
+            color: #2a2a2a;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            font-family: inherit;
+            text-decoration: underline;
+            transition: color 0.3s ease;
+        }
+
+        .log-link:hover {
+            color: #666;
+        }
+
+        /* Tabs (O2.14 - Tabbed Folder) */
+        .tabbed-folder-container {
+            display: flex;
+            gap: 0;
+            border: 2px solid #2a2a2a;
+            background: white;
+            position: relative;
+            margin-top: 25px;
+        }
+
+        .tabbed-folder-container::before {
+            content: 'PLOT';
+            position: absolute;
+            top: -25px;
+            left: 20px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            border-bottom: none;
+            padding: 5px 20px;
+            font-size: 10px;
+            letter-spacing: 2px;
+            z-index: 1;
+        }
+
+        .tab-button {
+            padding: 10px 20px;
+            background: white;
+            border: none;
+            border-right: 2px solid #2a2a2a;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+            flex: 1;
+        }
+
+        .tab-button:last-child {
+            border-right: none;
+        }
+
+        .tab-button.active {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .tab-button:hover:not(.active) {
+            background: #f5f1e8;
+        }
+
+        /* Code Editor (O2.11 - Triple Stacked Layers) */
+        .code-editor-container {
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            box-shadow: 
+                3px 3px 0 white,
+                3px 3px 0 2px #2a2a2a,
+                6px 6px 0 white,
+                6px 6px 0 2px #2a2a2a,
+                9px 9px 0 white,
+                9px 9px 0 2px #2a2a2a;
+            margin-bottom: 20px;
+            height: 620px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .code-editor-header {
+            padding: 15px 20px;
+            border-bottom: 2px solid #2a2a2a;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .code-editor-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #codeEditor {
+            display: none;
+        }
+
+        /* CodeMirror black and white theme */
+        .CodeMirror {
+            height: 100% !important;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            background: white !important;
+            color: #2a2a2a !important;
+            border: none;
+        }
+
+        .CodeMirror-gutters {
+            background: white !important;
+            border-right: 2px solid #2a2a2a !important;
+        }
+
+        .CodeMirror-linenumber {
+            color: #666 !important;
+        }
+
+        .CodeMirror-cursor {
+            border-left: 2px solid #2a2a2a !important;
+        }
+
+        .CodeMirror-selected {
+            background: rgba(42, 42, 42, 0.1) !important;
+        }
+
+        .CodeMirror-scroll {
+            padding: 12px;
+        }
+
+        /* Preview Button - Magnetic effect with pen plot aesthetic */
+        .preview-button-container {
+            position: absolute;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 120px;
+            z-index: 5;
+            overflow: visible;
+            pointer-events: auto;
+        }
+
+        .preview-button-trail {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid rgba(42, 42, 42, 0.5);
+            background: transparent;
+            pointer-events: none;
+        }
+
+        .preview-button-trail--1 { 
+            border-color: rgba(42, 42, 42, 0.25); 
+        }
+
+        .preview-button-trail--2 { 
+            border-color: rgba(42, 42, 42, 0.45); 
+        }
+
+        .preview-button-element {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 0 rgba(42, 42, 42, 0);
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .preview-button-element:hover {
+            border-color: #2a2a2a;
+            box-shadow: 0 0 20px rgba(42, 42, 42, 0.3);
+        }
+
+        .preview-button-text {
+            font-size: 18px;
+            font-weight: 500;
+            color: #2a2a2a;
+            font-style: italic;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Curved Text Around Preview Button */
+        .preview-curved-text {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            top: -40px;
+            left: -40px;
+            pointer-events: none;
+            overflow: visible;
+            transform-origin: 100px 100px;
+        }
+
+        .preview-curved-text svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .preview-curved-text text {
+            fill: #2a2a2a;
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            transition: fill 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Preview Window (O1.13 - Sparse Dot Grid with dark grid) */
+        .preview-container {
+            background: white;
+            border: 2px solid #2a2a2a;
+            min-height: 485px;
+            position: relative;
+            background-image: 
+                radial-gradient(circle, #2a2a2a 1.5px, transparent 1.5px);
+            background-size: 20px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        /* Copy SVG Button - Magnetic effect */
+        .copy-svg-button-container {
+            position: absolute;
+            top: -60px;
+            right: 20px;
+            width: 120px;
+            height: 120px;
+            z-index: 10;
+            overflow: visible;
+            pointer-events: auto;
+        }
+
+        .copy-svg-button-trail {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 2px solid rgba(42, 42, 42, 0.5);
+            background: transparent;
+            pointer-events: none;
+        }
+
+        .copy-svg-button-trail--1 { 
+            border-color: rgba(42, 42, 42, 0.25); 
+        }
+
+        .copy-svg-button-trail--2 { 
+            border-color: rgba(42, 42, 42, 0.45); 
+        }
+
+        .copy-svg-button-element {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 0 rgba(42, 42, 42, 0);
+            cursor: pointer;
+        }
+
+        .copy-svg-button-element:hover {
+            border-color: #2a2a2a;
+            box-shadow: 0 0 20px rgba(42, 42, 42, 0.3);
+        }
+
+        .copy-svg-button-text {
+            font-size: 18px;
+            font-weight: 500;
+            color: #2a2a2a;
+            font-style: italic;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Curved Text Around Copy Button */
+        .copy-svg-curved-text {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            top: -40px;
+            left: -40px;
+            pointer-events: none;
+            overflow: visible;
+            transform-origin: 100px 100px;
+        }
+
+        .copy-svg-curved-text svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .copy-svg-curved-text text {
+            fill: #2a2a2a;
+            font-size: 18px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            transition: fill 0.3s ease;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* SVG Text Area (O3.08 - Asterisk Field) */
+        .svg-textarea-container {
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            min-height: 220px;
+        }
+
+        .svg-textarea-container::before {
+            content: '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ';
+            position: absolute;
+            inset: 0;
+            font-size: 11px;
+            line-height: 14px;
+            letter-spacing: 14px;
+            color: rgba(42, 42, 42, 0.3);
+            z-index: 0;
+            padding: 20px;
+            word-break: break-all;
+        }
+
+        .svg-textarea-content {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+        }
+
+        .svg-textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 15px;
+            border: 2px solid #2a2a2a;
+            background: white;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #2a2a2a;
+            resize: vertical;
+        }
+
+        .svg-textarea:focus {
+            outline: none;
+            border-color: #2a2a2a;
+            box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.2);
+        }
+
+        .svg-placeholder-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(42, 42, 42, 0.4);
+            font-size: 14px;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .svg-textarea:focus ~ .svg-placeholder-text,
+        .svg-textarea:not(:placeholder-shown) ~ .svg-placeholder-text {
+            display: none;
+        }
+
+        /* Plotter Settings (O5 - Mixed Aesthetics) */
+        .plotter-settings-container {
+            background: white;
+            border: 2px solid #2a2a2a;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plotter-settings-container::before {
+            content: '· · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ';
+            position: absolute;
+            inset: 0;
+            font-size: 12px;
+            line-height: 20px;
+            letter-spacing: 20px;
+            color: rgba(42, 42, 42, 0.1);
+            z-index: 0;
+            padding: 20px;
+        }
+
+        .plotter-settings-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .plotter-settings-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2a2a2a;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #2a2a2a;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background: white;
+            color: #2a2a2a;
+        }
+
+        .control-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.2);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .plot-button {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .plot-button:hover {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        /* Layout Grid */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Top row: Editor | Preview */
+        .top-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        /* Bottom row: SVG Text Area | Plotter Settings */
+        .bottom-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .preview-wrapper {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with tabs (O2.14) -->
+    <div class="app-header">
+        <!-- Logo centered -->
+        <div class="app-logo">
+            <span class="brand-letter">H</span>
+            <span class="brand-letter">o</span>
+            <span class="brand-letter">t</span>
+            <span class="brand-letter">p</span>
+            <span class="brand-letter">l</span>
+            <span class="brand-letter">o</span>
+            <span class="brand-letter">t</span>
+        </div>
+
+        <!-- Log on right -->
+        <button class="log-link">Log</button>
+    </div>
+
+    <!-- Tabs (O2.14 - Tabbed Folder) -->
+    <div class="tabbed-folder-container">
+        <button class="tab-button active">Plot</button>
+        <button class="tab-button">Interactive mode</button>
+    </div>
+
+    <!-- Main Layout -->
+    <div class="layout-grid">
+        <!-- Top Row: Code Editor | Preview -->
+        <div class="top-row full-width">
+            <!-- Code Editor (O2.11 - Triple Stacked Layers) -->
+            <div class="code-editor-container">
+                <div class="code-editor-header">Code Editor</div>
+                <div class="code-editor-content">
+                    <textarea id="codeEditor">function setup() {
+  createCanvas(780, 560);
+  background(230, 235, 210);
+  noFill();
+}
+
+function draw() {
+  square(50, 100, 40);
+}</textarea>
+                    <!-- Preview Button with magnetic effect -->
+                    <div class="preview-button-container" id="previewButtonContainer">
+                        <div class="preview-button-trail preview-button-trail--1" id="previewTrail1"></div>
+                        <div class="preview-button-trail preview-button-trail--2" id="previewTrail2"></div>
+                        <div class="preview-button-element" id="previewButtonElement">
+                            <span class="preview-button-text">Preview</span>
+                        </div>
+                        <div class="preview-curved-text" id="previewCurvedText">
+                            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <path id="preview-path-p5js" d="M 100,15 A 85,85 0 0,1 185,100" fill="none"/>
+                                    <path id="preview-path-sketch" d="M 185,100 A 85,85 0 0,1 15,100" fill="none"/>
+                                </defs>
+                                <text font-size="18" fill="#2a2a2a" letter-spacing="0.15em" font-family="'Courier New', monospace">
+                                    <textPath href="#preview-path-p5js" startOffset="0%">p 5 . j s</textPath>
+                                </text>
+                                <text font-size="18" fill="#2a2a2a" letter-spacing="0.15em" font-family="'Courier New', monospace">
+                                    <textPath href="#preview-path-sketch" startOffset="0%">s k e t c h</textPath>
+                                </text>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preview Window (O1.13 - Sparse Dot Grid) -->
+            <div class="preview-wrapper">
+                <div class="preview-container">
+                    <div class="preview-content">
+                        <div style="text-align: center; color: rgba(42, 42, 42, 0.5);">
+                            Click the preview circle to see your sketch
+                        </div>
+                    </div>
+                </div>
+                <!-- Copy SVG Button with magnetic effect -->
+                <div class="copy-svg-button-container" id="copySvgButtonContainer">
+                    <div class="copy-svg-button-trail copy-svg-button-trail--1" id="copySvgTrail1"></div>
+                    <div class="copy-svg-button-trail copy-svg-button-trail--2" id="copySvgTrail2"></div>
+                    <div class="copy-svg-button-element" id="copySvgButtonElement">
+                        <span class="copy-svg-button-text">Copy</span>
+                    </div>
+                    <div class="copy-svg-curved-text" id="copySvgCurvedText">
+                        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <path id="copy-path-copy-text" d="M 100,15 A 85,85 0 0,1 185,100" fill="none"/>
+                                <path id="copy-path-svg-text" d="M 185,100 A 85,85 0 0,1 15,100" fill="none"/>
+                            </defs>
+                            <text font-size="18" fill="#2a2a2a" letter-spacing="0.15em" font-family="'Courier New', monospace">
+                                <textPath href="#copy-path-copy-text" startOffset="0%">c o p y</textPath>
+                            </text>
+                            <text font-size="18" fill="#2a2a2a" letter-spacing="0.15em" font-family="'Courier New', monospace">
+                                <textPath href="#copy-path-svg-text" startOffset="0%">s v g</textPath>
+                            </text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row: SVG Text Area | Plotter Settings -->
+        <div class="bottom-row full-width">
+            <!-- SVG Text Area (O3.08 - Asterisk Field) -->
+            <div class="svg-textarea-container">
+                <div class="svg-textarea-content">
+                    <textarea class="svg-textarea" id="svgTextarea" placeholder=" "></textarea>
+                    <div class="svg-placeholder-text">Paste SVG content here</div>
+                </div>
+            </div>
+
+            <!-- Plotter Settings (O5 - Mixed Aesthetics) -->
+            <div class="plotter-settings-container">
+                <div class="plotter-settings-content">
+                    <div class="plotter-settings-header">Plotter Settings</div>
+                    
+                    <div class="control-group">
+                        <label class="control-label">Layer Number (optional)</label>
+                        <input type="number" class="control-input" placeholder="Leave empty for all layers" />
+                    </div>
+
+                    <div class="control-group">
+                        <div class="input-grid">
+                            <div>
+                                <label class="control-label">Pen Up Height</label>
+                                <input type="number" class="control-input" value="70" min="0" max="100" />
+                            </div>
+                            <div>
+                                <label class="control-label">Pen Down Height</label>
+                                <input type="number" class="control-input" value="40" min="0" max="100" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="input-grid">
+                            <div>
+                                <label class="control-label">Speed Up (%)</label>
+                                <input type="number" class="control-input" value="75" min="1" max="110" />
+                            </div>
+                            <div>
+                                <label class="control-label">Speed Down (%)</label>
+                                <input type="number" class="control-input" value="25" min="1" max="110" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="plot-button">Plot</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CodeMirror initialization -->
+    <script src="/static/vendor/codemirror/codemirror.js"></script>
+    <script src="/static/vendor/codemirror/mode/javascript/javascript.js"></script>
+    <script>
+        // Initialize CodeMirror when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            const textarea = document.getElementById('codeEditor');
+            const codeEditor = CodeMirror.fromTextArea(textarea, {
+                lineNumbers: true,
+                mode: 'javascript',
+                theme: 'default',
+                indentUnit: 2,
+                lineWrapping: true,
+            });
+            
+            // Store editor reference globally for button interactions
+            window.codeEditor = codeEditor;
+        });
+
+        // Magnetic effect for Preview Button
+        (function () {
+            const getMousePos = (e) => ({ x: e.clientX, y: e.clientY });
+            const distance = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
+            const lerp = (a, b, n) => (1 - n) * a + n * b;
+            let mousepos = { x: 0, y: 0 };
+            window.addEventListener("mousemove", (ev) => { mousepos = getMousePos(ev); });
+            const container = document.getElementById("previewButtonContainer");
+            const el = document.getElementById("previewButtonElement");
+            const trail1 = document.getElementById("previewTrail1");
+            const trail2 = document.getElementById("previewTrail2");
+            const curvedEl = document.getElementById("previewCurvedText");
+            if (!container || !el) return;
+            let rect = el.getBoundingClientRect();
+            let hoverCurved = false;
+            let curveAngle = { previous: 0, current: 0, amt: 0.03 };
+            container.addEventListener("mouseenter", () => { hoverCurved = true; });
+            container.addEventListener("mouseleave", () => { hoverCurved = false; });
+            const distanceToTrigger = () => rect.width * 1.5;
+            const rendered = {
+                tx: { previous: 0, current: 0, amt: 0.12 }, ty: { previous: 0, current: 0, amt: 0.12 },
+                t2x: { previous: 0, current: 0, amt: 0.07 }, t2y: { previous: 0, current: 0, amt: 0.07 },
+                t1x: { previous: 0, current: 0, amt: 0.04 }, t1y: { previous: 0, current: 0, amt: 0.04 },
+                tx2: { previous: 0, current: 0, amt: 0.06 }, ty2: { previous: 0, current: 0, amt: 0.06 }
+            };
+            function updateRect() { rect = el.getBoundingClientRect(); }
+            window.addEventListener("resize", updateRect);
+            function render() {
+                updateRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const d = distance(mousepos.x, mousepos.y, centerX, centerY);
+                const trigger = distanceToTrigger();
+                let x = 0, y = 0;
+                if (d < trigger) {
+                    x = (mousepos.x - centerX) * 0.3;
+                    y = (mousepos.y - centerY) * 0.3;
+                }
+                rendered.tx.current = rendered.t2x.current = rendered.t1x.current = rendered.tx2.current = x;
+                rendered.ty.current = rendered.t2y.current = rendered.t1y.current = rendered.ty2.current = y;
+                curveAngle.current = hoverCurved ? 360 : 0;
+                curveAngle.previous = lerp(curveAngle.previous, curveAngle.current, curveAngle.amt);
+                for (const key of Object.keys(rendered)) {
+                    const r = rendered[key];
+                    r.previous = lerp(r.previous, r.current, r.amt);
+                }
+                trail1.style.transform = "translate3d(" + rendered.t1x.previous + "px," + rendered.t1y.previous + "px,0)";
+                trail2.style.transform = "translate3d(" + rendered.t2x.previous + "px," + rendered.t2y.previous + "px,0)";
+                el.style.transform = "translate3d(" + rendered.tx.previous + "px," + rendered.ty.previous + "px,0)";
+                curvedEl.style.transform = "translate3d(" + (rendered.tx2.previous * 0.5) + "px," + (rendered.ty2.previous * 0.5) + "px,0) rotate(" + curveAngle.previous + "deg)";
+                requestAnimationFrame(render);
+            }
+            requestAnimationFrame(render);
+        })();
+
+        // Magnetic effect for Copy SVG Button
+        (function () {
+            const getMousePos = (e) => ({ x: e.clientX, y: e.clientY });
+            const distance = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
+            const lerp = (a, b, n) => (1 - n) * a + n * b;
+            let mousepos = { x: 0, y: 0 };
+            window.addEventListener("mousemove", (ev) => { mousepos = getMousePos(ev); });
+            const container = document.getElementById("copySvgButtonContainer");
+            const el = document.getElementById("copySvgButtonElement");
+            const trail1 = document.getElementById("copySvgTrail1");
+            const trail2 = document.getElementById("copySvgTrail2");
+            const curvedEl = document.getElementById("copySvgCurvedText");
+            if (!container || !el) return;
+            let rect = el.getBoundingClientRect();
+            let hoverCurved = false;
+            let curveAngle = { previous: 0, current: 0, amt: 0.03 };
+            container.addEventListener("mouseenter", () => { hoverCurved = true; });
+            container.addEventListener("mouseleave", () => { hoverCurved = false; });
+            const distanceToTrigger = () => rect.width * 1.5;
+            const rendered = {
+                tx: { previous: 0, current: 0, amt: 0.12 }, ty: { previous: 0, current: 0, amt: 0.12 },
+                t2x: { previous: 0, current: 0, amt: 0.07 }, t2y: { previous: 0, current: 0, amt: 0.07 },
+                t1x: { previous: 0, current: 0, amt: 0.04 }, t1y: { previous: 0, current: 0, amt: 0.04 },
+                tx2: { previous: 0, current: 0, amt: 0.06 }, ty2: { previous: 0, current: 0, amt: 0.06 }
+            };
+            function updateRect() { rect = el.getBoundingClientRect(); }
+            window.addEventListener("resize", updateRect);
+            function render() {
+                updateRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const d = distance(mousepos.x, mousepos.y, centerX, centerY);
+                const trigger = distanceToTrigger();
+                let x = 0, y = 0;
+                if (d < trigger) {
+                    x = (mousepos.x - centerX) * 0.3;
+                    y = (mousepos.y - centerY) * 0.3;
+                }
+                rendered.tx.current = rendered.t2x.current = rendered.t1x.current = rendered.tx2.current = x;
+                rendered.ty.current = rendered.t2y.current = rendered.t1y.current = rendered.ty2.current = y;
+                curveAngle.current = hoverCurved ? 360 : 0;
+                curveAngle.previous = lerp(curveAngle.previous, curveAngle.current, curveAngle.amt);
+                for (const key of Object.keys(rendered)) {
+                    const r = rendered[key];
+                    r.previous = lerp(r.previous, r.current, r.amt);
+                }
+                trail1.style.transform = "translate3d(" + rendered.t1x.previous + "px," + rendered.t1y.previous + "px,0)";
+                trail2.style.transform = "translate3d(" + rendered.t2x.previous + "px," + rendered.t2y.previous + "px,0)";
+                el.style.transform = "translate3d(" + rendered.tx.previous + "px," + rendered.ty.previous + "px,0)";
+                curvedEl.style.transform = "translate3d(" + (rendered.tx2.previous * 0.5) + "px," + (rendered.ty2.previous * 0.5) + "px,0) rotate(" + curveAngle.previous + "deg)";
+                requestAnimationFrame(render);
+            }
+            requestAnimationFrame(render);
+        })();
+
+        // Handle SVG textarea placeholder
+        const svgTextarea = document.getElementById('svgTextarea');
+        const svgPlaceholder = document.querySelector('.svg-placeholder-text');
+        svgTextarea.addEventListener('input', function() {
+            if (this.value.trim()) {
+                svgPlaceholder.style.display = 'none';
+            } else {
+                svgPlaceholder.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

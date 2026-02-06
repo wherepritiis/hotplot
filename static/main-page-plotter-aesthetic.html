@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HotPlot - Plotter Aesthetic Layout</title>
+    <link rel="stylesheet" href="/static/vendor/codemirror/codemirror.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f1e8;
+            color: #2a2a2a;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Header with tabs - O2.14 style */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        /* Tabs - O2.14 File Folder Tab Style */
+        .tabs-container {
+            display: flex;
+            gap: 4px;
+            position: relative;
+        }
+
+        .tab {
+            background: white;
+            border: 2px solid #2a2a2a;
+            border-bottom: none;
+            padding: 10px 25px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            top: 2px;
+        }
+
+        .tab:hover {
+            background: #f5f1e8;
+        }
+
+        .tab.active {
+            background: white;
+            z-index: 1;
+            font-weight: bold;
+        }
+
+        /* Logo - centered */
+        .app-logo {
+            font-size: 24px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Log button - right side */
+        .log-button {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+        }
+
+        .log-button:hover {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        /* Main content border - connected to tabs */
+        .main-content {
+            border: 2px solid #2a2a2a;
+            background: white;
+            padding: 30px;
+            min-height: calc(100vh - 150px);
+        }
+
+        /* Layout Grid */
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        /* Code Editor - O2.11 Triple Stacked Layers Style */
+        .editor-container {
+            background: white;
+            border: 2px solid #2a2a2a;
+            padding: 20px;
+            min-height: 400px;
+            box-shadow: 
+                3px 3px 0 white,
+                3px 3px 0 2px #2a2a2a,
+                6px 6px 0 white,
+                6px 6px 0 2px #2a2a2a,
+                9px 9px 0 white,
+                9px 9px 0 2px #2a2a2a;
+            position: relative;
+        }
+
+        .editor-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2a2a2a;
+        }
+
+        .editor-content {
+            background: white;
+            border: 2px solid #2a2a2a;
+            height: 320px;
+            overflow: auto;
+            position: relative;
+        }
+
+        /* Preview Container - 01.13 Sparse Dots + Dark Grid */
+        .preview-container {
+            background: 
+                radial-gradient(circle, #2a2a2a 1.5px, transparent 1.5px),
+                #E6EBD2;
+            background-size: 20px 20px;
+            border: 2px solid #2a2a2a;
+            padding: 20px;
+            min-height: 400px;
+            position: relative;
+        }
+
+        .preview-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2a2a2a;
+        }
+
+        .preview-content {
+            background: white;
+            border: 2px solid #2a2a2a;
+            height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* SVG Text Area - 03.08 Asterisk Field */
+        .svg-textarea-container {
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            min-height: 300px;
+        }
+
+        .svg-textarea-container::before {
+            content: '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ';
+            position: absolute;
+            inset: 0;
+            font-size: 11px;
+            line-height: 14px;
+            letter-spacing: 14px;
+            color: rgba(42, 42, 42, 0.15);
+            padding: 20px;
+            word-break: break-all;
+            z-index: 0;
+        }
+
+        .svg-textarea-content {
+            position: relative;
+            z-index: 1;
+            padding: 20px;
+        }
+
+        .svg-textarea-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2a2a2a;
+        }
+
+        .svg-textarea {
+            width: 100%;
+            height: 220px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+
+        .svg-textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.2);
+        }
+
+        .svg-textarea::placeholder {
+            color: #999;
+            text-align: center;
+            line-height: 190px;
+        }
+
+        /* Plotter Settings - O5 Style */
+        .plotter-settings-container {
+            background: white;
+            border: 2px solid #2a2a2a;
+            padding: 20px;
+            min-height: 300px;
+        }
+
+        .settings-header {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #2a2a2a;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #2a2a2a;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            background: white;
+        }
+
+        .input-field:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.2);
+        }
+
+        .input-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        /* Buttons */
+        .button {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+            width: 100%;
+        }
+
+        .button:hover {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .button-primary {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .button-primary:hover {
+            background: white;
+            color: #2a2a2a;
+        }
+
+        /* Magnetic Button Container - Preview Button */
+        .magnetic-button-container {
+            position: absolute;
+            bottom: -30px;
+            right: 30px;
+            width: 120px;
+            height: 120px;
+            z-index: 10;
+        }
+
+        .magnetic-button {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .magnetic-button:hover {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .magnetic-trail {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px solid rgba(42, 42, 42, 0.3);
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .magnetic-trail--1 {
+            opacity: 0.6;
+        }
+
+        .magnetic-trail--2 {
+            opacity: 0.3;
+        }
+
+        /* Copy SVG Button */
+        .copy-svg-button-container {
+            position: absolute;
+            top: -30px;
+            right: 30px;
+            width: 120px;
+            height: 120px;
+            z-index: 10;
+        }
+
+        /* Utility */
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* CodeMirror adjustments for black/white aesthetic */
+        .CodeMirror {
+            height: 100%;
+            font-size: 13px;
+            border: none;
+        }
+
+        .CodeMirror-gutters {
+            background: white;
+            border-right: 1px solid #2a2a2a;
+        }
+
+        .CodeMirror-linenumber {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <!-- Tabs - O2.14 style -->
+        <div class="tabs-container">
+            <button class="tab active" onclick="switchTab('plot')">Plot</button>
+            <button class="tab" onclick="switchTab('interactive')">Interactive Mode</button>
+        </div>
+
+        <!-- Logo - centered -->
+        <div class="app-logo">HotPlot</div>
+
+        <!-- Log button - right -->
+        <button class="log-button" onclick="toggleLog()">Log</button>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content" id="plotMode">
+        <div class="layout-grid">
+            <!-- Code Editor - O2.11 Triple Stacked Style -->
+            <div class="editor-container">
+                <div class="editor-header">Code Editor</div>
+                <div class="editor-content">
+                    <textarea id="codeEditor">function setup() {
+  createCanvas(780, 560);
+  background(230, 235, 210);
+  noFill();
+  stroke(42, 42, 42);
+}
+
+function draw() {
+  // Draw a simple square
+  square(50, 100, 40);
+  
+  // Draw a circle
+  circle(150, 120, 60);
+}</textarea>
+                </div>
+                
+                <!-- Preview Button - Magnetic Effect -->
+                <div class="magnetic-button-container" id="previewBtnContainer">
+                    <div class="magnetic-trail magnetic-trail--1" id="previewTrail1"></div>
+                    <div class="magnetic-trail magnetic-trail--2" id="previewTrail2"></div>
+                    <button class="magnetic-button" id="previewBtn" onclick="runPreview()">
+                        Preview
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview Container - 01.13 Sparse Dots -->
+            <div class="preview-container">
+                <div class="preview-header">Live Preview</div>
+                <div class="preview-content" id="previewContent">
+                    Click Preview to see your sketch
+                </div>
+                
+                <!-- Copy SVG Button - Magnetic Effect -->
+                <div class="copy-svg-button-container" id="copySvgBtnContainer">
+                    <div class="magnetic-trail magnetic-trail--1" id="copySvgTrail1"></div>
+                    <div class="magnetic-trail magnetic-trail--2" id="copySvgTrail2"></div>
+                    <button class="magnetic-button" id="copySvgBtn" onclick="copySvg()">
+                        Copy SVG
+                    </button>
+                </div>
+            </div>
+
+            <!-- SVG Text Area - 03.08 Asterisk Field -->
+            <div class="svg-textarea-container">
+                <div class="svg-textarea-content">
+                    <div class="svg-textarea-header">SVG Content</div>
+                    <textarea 
+                        class="svg-textarea" 
+                        id="svgTextarea" 
+                        placeholder="Paste SVG content here"></textarea>
+                </div>
+            </div>
+
+            <!-- Plotter Settings - O5 Style -->
+            <div class="plotter-settings-container">
+                <div class="settings-header">Plotter Settings</div>
+                
+                <div class="control-group">
+                    <label class="control-label">Layer Number (optional)</label>
+                    <input type="number" class="input-field" placeholder="Leave empty for all layers" />
+                </div>
+
+                <div class="control-group">
+                    <div class="input-grid">
+                        <div>
+                            <label class="control-label">Pen Up</label>
+                            <input type="number" class="input-field" value="70" min="0" max="100" />
+                        </div>
+                        <div>
+                            <label class="control-label">Pen Down</label>
+                            <input type="number" class="input-field" value="40" min="0" max="100" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="input-grid">
+                        <div>
+                            <label class="control-label">Speed Up (%)</label>
+                            <input type="number" class="input-field" value="75" min="1" max="110" />
+                        </div>
+                        <div>
+                            <label class="control-label">Speed Down (%)</label>
+                            <input type="number" class="input-field" value="25" min="1" max="110" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="button button-primary" onclick="plot()">Plot</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Mode (hidden by default) -->
+    <div class="main-content" id="interactiveMode" style="display: none;">
+        <div style="text-align: center; padding: 100px 20px;">
+            <h2 style="font-size: 18px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; font-weight: normal;">Interactive Mode</h2>
+            <p style="color: #666;">Interactive mode controls will go here</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/vendor/codemirror/codemirror.js"></script>
+    <script src="/static/vendor/codemirror/mode/javascript/javascript.js"></script>
+    
+    <script>
+        // Initialize CodeMirror
+        let codeEditor;
+        window.addEventListener('DOMContentLoaded', function() {
+            const textarea = document.getElementById('codeEditor');
+            codeEditor = CodeMirror.fromTextArea(textarea, {
+                lineNumbers: true,
+                mode: 'javascript',
+                theme: 'default',
+                indentUnit: 2,
+                lineWrapping: true
+            });
+        });
+
+        // Tab switching
+        function switchTab(mode) {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            if (mode === 'plot') {
+                tabs[0].classList.add('active');
+                document.getElementById('plotMode').style.display = 'block';
+                document.getElementById('interactiveMode').style.display = 'none';
+            } else {
+                tabs[1].classList.add('active');
+                document.getElementById('plotMode').style.display = 'none';
+                document.getElementById('interactiveMode').style.display = 'block';
+            }
+        }
+
+        // Magnetic button effect
+        function setupMagneticButton(containerId, buttonId, trail1Id, trail2Id) {
+            const container = document.getElementById(containerId);
+            const button = document.getElementById(buttonId);
+            const trail1 = document.getElementById(trail1Id);
+            const trail2 = document.getElementById(trail2Id);
+            
+            if (!container || !button) return;
+
+            let rect = button.getBoundingClientRect();
+            
+            const rendered = {
+                tx: { previous: 0, current: 0, amt: 0.12 },
+                ty: { previous: 0, current: 0, amt: 0.12 },
+                t1x: { previous: 0, current: 0, amt: 0.04 },
+                t1y: { previous: 0, current: 0, amt: 0.04 },
+                t2x: { previous: 0, current: 0, amt: 0.07 },
+                t2y: { previous: 0, current: 0, amt: 0.07 }
+            };
+
+            let mousepos = { x: 0, y: 0 };
+            
+            window.addEventListener('mousemove', (e) => {
+                mousepos = { x: e.clientX, y: e.clientY };
+            });
+
+            function lerp(a, b, n) {
+                return (1 - n) * a + n * b;
+            }
+
+            function distance(x1, y1, x2, y2) {
+                return Math.hypot(x1 - x2, y1 - y2);
+            }
+
+            function render() {
+                rect = button.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const d = distance(mousepos.x, mousepos.y, centerX, centerY);
+                const trigger = rect.width * 2;
+                
+                let x = 0, y = 0;
+                if (d < trigger) {
+                    x = (mousepos.x - centerX) * 0.3;
+                    y = (mousepos.y - centerY) * 0.3;
+                }
+                
+                rendered.tx.current = rendered.t1x.current = rendered.t2x.current = x;
+                rendered.ty.current = rendered.t1y.current = rendered.t2y.current = y;
+                
+                for (const key in rendered) {
+                    rendered[key].previous = lerp(rendered[key].previous, rendered[key].current, rendered[key].amt);
+                }
+                
+                if (trail1) trail1.style.transform = `translate(${rendered.t1x.previous}px, ${rendered.t1y.previous}px)`;
+                if (trail2) trail2.style.transform = `translate(${rendered.t2x.previous}px, ${rendered.t2y.previous}px)`;
+                button.style.transform = `translate(${rendered.tx.previous}px, ${rendered.ty.previous}px)`;
+                
+                requestAnimationFrame(render);
+            }
+            
+            requestAnimationFrame(render);
+        }
+
+        // Initialize magnetic buttons
+        setTimeout(() => {
+            setupMagneticButton('previewBtnContainer', 'previewBtn', 'previewTrail1', 'previewTrail2');
+            setupMagneticButton('copySvgBtnContainer', 'copySvgBtn', 'copySvgTrail1', 'copySvgTrail2');
+        }, 100);
+
+        // Functions
+        function runPreview() {
+            const content = codeEditor ? codeEditor.getValue() : '';
+            document.getElementById('previewContent').innerHTML = 'Preview would render here<br><small style="color: #999;">Code: ' + content.split('\n').length + ' lines</small>';
+        }
+
+        function copySvg() {
+            const svgContent = document.getElementById('svgTextarea').value;
+            if (svgContent) {
+                navigator.clipboard.writeText(svgContent);
+                alert('SVG copied to clipboard!');
+            } else {
+                alert('No SVG content to copy');
+            }
+        }
+
+        function plot() {
+            alert('Plot function would execute here');
+        }
+
+        function toggleLog() {
+            alert('Log panel would toggle here');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Preview Button Playground</title>
+  <!-- Tachyons CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css" />
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/static/styles.css" />
+  <style>
+    body {
+      padding: 40px;
+      background-color: #000000;
+    }
+    
+    .playground-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .playground-title {
+      color: #C033FF;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    
+    .test-section {
+      margin-bottom: 60px;
+    }
+    
+    .test-label {
+      color: #888888;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    
+    /* Preview container mockup */
+    .preview-mockup {
+      position: relative;
+      width: 100%;
+      height: 485px;
+      background-color: #000000;
+      background-image: radial-gradient(
+        circle at center,
+        rgba(166, 1, 244, 0.25) 1px,
+        transparent 1px
+      );
+      background-size: 20px 20px;
+      border: 2px solid #A601F4;
+      border-radius: 8px;
+      overflow: visible; /* Changed to visible so button can extend outside */
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #666666;
+      box-shadow: 0 0 20px rgba(166, 1, 244, 0.25);
+    }
+    
+    /* Circular button for preview window - similar to editor preview button */
+    .preview-circle-container {
+      position: absolute;
+      width: 120px;
+      height: 120px;
+      z-index: 10;
+      overflow: visible;
+    }
+    
+    /* Position variations */
+    .preview-circle-container--bottom-center {
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    
+    .preview-circle-container--top-right {
+      top: 20px;
+      right: 20px;
+    }
+    
+    /* Top edge, positioned right of center (not in corner) */
+    .preview-circle-container--top-right-border {
+      top: -60px; /* Half circle (120px/2 = 60px) extends above border */
+      left: 65%; /* Positioned right of center, away from corner */
+      transform: translateX(-50%); /* Center the circle on this position */
+    }
+    
+    .preview-circle-container--top-left {
+      top: 20px;
+      left: 20px;
+    }
+    
+    .preview-circle-container--bottom-right {
+      bottom: 40px;
+      right: 20px;
+    }
+    
+    .preview-circle-container--center {
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    
+    .preview-circle-trail {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 2px solid rgba(87, 123, 255, 0.5);
+      background: transparent;
+      pointer-events: none;
+    }
+    
+    .preview-circle-trail--1 { 
+      border-color: rgba(87, 123, 255, 0.25);
+    }
+    
+    .preview-circle-trail--2 { 
+      border-color: rgba(87, 123, 255, 0.45);
+    }
+    
+    .preview-circle-element {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: transparent;
+      border: 2px solid #577bff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 0 0 rgba(87, 123, 255, 0);
+      cursor: pointer;
+    }
+    
+    .preview-circle-element:hover {
+      border-color: #7a9aff;
+      box-shadow: 0 0 40px rgba(87, 123, 255, 0.8), 0 0 80px rgba(87, 123, 255, 0.4);
+    }
+    
+    .preview-circle-element:active {
+      border-color: #FFFF00;
+    }
+    
+    .preview-circle-text {
+      font-size: 18px;
+      font-weight: 500;
+      color: #577bff;
+      font-style: italic;
+      transition: color 0.3s ease;
+    }
+    
+    .preview-circle-element:hover .preview-circle-text {
+      color: #7a9aff;
+    }
+    
+    /* Curved text around circle (optional) */
+    .preview-curved-text {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      top: -40px;
+      left: -40px;
+      pointer-events: none;
+      overflow: visible;
+      transform-origin: 100px 100px;
+    }
+    
+    .preview-curved-text svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    
+    .preview-curved-text text {
+      fill: #577bff;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0.15em;
+      transition: fill 0.3s ease;
+    }
+    
+    .preview-circle-container:hover .preview-curved-text text {
+      fill: #7a9aff;
+    }
+    
+    .preview-mockup:hover .preview-circle-element {
+      box-shadow: 0 0 40px rgba(87, 123, 255, 0.8), 0 0 80px rgba(87, 123, 255, 0.4);
+    }
+    
+    .preview-mockup:hover .preview-curved-text text {
+      fill: #7a9aff;
+    }
+    
+    /* Placeholder text */
+    .preview-placeholder {
+      color: #666666;
+      font-size: 14px;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="playground-container">
+    <h1 class="playground-title">Preview Window Button Playground</h1>
+    
+    <!-- Test 1: Bottom Center (like editor preview button) -->
+    <div class="test-section">
+      <div class="test-label">Test 1: Bottom Center Position</div>
+      <div class="preview-mockup">
+        <div class="preview-placeholder">Preview Canvas Area</div>
+        <div class="preview-circle-container preview-circle-container--bottom-center">
+          <div class="preview-circle-trail preview-circle-trail--1" aria-hidden="true"></div>
+          <div class="preview-circle-trail preview-circle-trail--2" aria-hidden="true"></div>
+          <div class="preview-circle-element" onclick="alert('Copy clicked!')">
+            <span class="preview-circle-text">Copy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Test 2: Top Right -->
+    <div class="test-section">
+      <div class="test-label">Test 2: Top Right Position</div>
+      <div class="preview-mockup">
+        <div class="preview-placeholder">Preview Canvas Area</div>
+        <div class="preview-circle-container preview-circle-container--top-right">
+          <div class="preview-circle-trail preview-circle-trail--1" aria-hidden="true"></div>
+          <div class="preview-circle-trail preview-circle-trail--2" aria-hidden="true"></div>
+          <div class="preview-circle-element" onclick="alert('Copy clicked!')">
+            <span class="preview-circle-text">Copy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Test 3: Top Left -->
+    <div class="test-section">
+      <div class="test-label">Test 3: Top Left Position</div>
+      <div class="preview-mockup">
+        <div class="preview-placeholder">Preview Canvas Area</div>
+        <div class="preview-circle-container preview-circle-container--top-left">
+          <div class="preview-circle-trail preview-circle-trail--1" aria-hidden="true"></div>
+          <div class="preview-circle-trail preview-circle-trail--2" aria-hidden="true"></div>
+          <div class="preview-circle-element" onclick="alert('Copy clicked!')">
+            <span class="preview-circle-text">Copy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Test 4: Bottom Right -->
+    <div class="test-section">
+      <div class="test-label">Test 4: Bottom Right Position</div>
+      <div class="preview-mockup">
+        <div class="preview-placeholder">Preview Canvas Area</div>
+        <div class="preview-circle-container preview-circle-container--bottom-right">
+          <div class="preview-circle-trail preview-circle-trail--1" aria-hidden="true"></div>
+          <div class="preview-circle-trail preview-circle-trail--2" aria-hidden="true"></div>
+          <div class="preview-circle-element" onclick="alert('Copy clicked!')">
+            <span class="preview-circle-text">Copy</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Test 5: Center with Curved Text -->
+    <div class="test-section">
+      <div class="test-label">Test 5: Center Position with Curved Text</div>
+      <div class="preview-mockup">
+        <div class="preview-placeholder">Preview Canvas Area</div>
+        <div class="preview-circle-container preview-circle-container--center">
+          <div class="preview-circle-trail preview-circle-trail--1" aria-hidden="true"></div>
+          <div class="preview-circle-trail preview-circle-trail--2" aria-hidden="true"></div>
+          <div class="preview-circle-element" onclick="alert('Copy clicked!')">
+            <span class="preview-circle-text">Copy</span>
+          </div>
+          <div class="preview-curved-text">
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <path id="preview-path-copy" d="M 100,15 A 85,85 0 0,1 185,100" fill="none"/>
+                <path id="preview-path-svg" d="M 185,100 A 85,85 0 0,1 15,100" fill="none"/>
+              </defs>
+              <text font-size="18" fill="#A601F4" letter-spacing="0.15em">
+                <textPath href="#preview-path-copy" startOffset="0%">c o p y</textPath>
+              </text>
+              <text font-size="18" fill="#A601F4" letter-spacing="0.15em">
+                <textPath href="#preview-path-svg" startOffset="0%">s v g</textPath>
+              </text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Test 6: Bottom Center with Curved Text -->
+    <div class="test-section">
+      <div class="test-label">Test 6: Bottom Center with Curved Text</div>
+      <div class="preview-mockup">
+        <div class="preview-placeholder">Preview Canvas Area</div>
+        <div class="preview-circle-container preview-circle-container--bottom-center">
+          <div class="preview-circle-trail preview-circle-trail--1" aria-hidden="true"></div>
+          <div class="preview-circle-trail preview-circle-trail--2" aria-hidden="true"></div>
+          <div class="preview-circle-element" onclick="alert('Copy clicked!')">
+            <span class="preview-circle-text">Copy</span>
+          </div>
+          <div class="preview-curved-text">
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <path id="preview-path-export" d="M 100,15 A 85,85 0 0,1 185,100" fill="none"/>
+                <path id="preview-path-clipboard" d="M 185,100 A 85,85 0 0,1 15,100" fill="none"/>
+              </defs>
+              <text font-size="18" fill="#A601F4" letter-spacing="0.15em">
+                <textPath href="#preview-path-export" startOffset="0%">e x p o r t</textPath>
+              </text>
+              <text font-size="18" fill="#A601F4" letter-spacing="0.15em">
+                <textPath href="#preview-path-clipboard" startOffset="0%">c l i p b o a r d</textPath>
+              </text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Test 7: Top Right on Border with "copy SVG" Curved Text -->
+    <div class="test-section">
+      <div class="test-label">Test 7: Top Right on Border - "copy SVG" Curved Text (with magnetic hover)</div>
+      <div class="preview-mockup">
+        <div class="preview-placeholder">Preview Canvas Area</div>
+        <div class="preview-circle-container preview-circle-container--top-right-border" id="previewCopyContainer">
+          <div class="preview-circle-trail preview-circle-trail--1" id="previewCopyTrail1" aria-hidden="true"></div>
+          <div class="preview-circle-trail preview-circle-trail--2" id="previewCopyTrail2" aria-hidden="true"></div>
+          <div class="preview-circle-element" id="previewCopyElement" onclick="alert('Copy SVG clicked!')">
+            <span class="preview-circle-text">Copy</span>
+          </div>
+          <div class="preview-curved-text" id="previewCopyCurved">
+            <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <path id="preview-path-copy-text" d="M 100,15 A 85,85 0 0,1 185,100" fill="none"/>
+                <path id="preview-path-svg-text" d="M 185,100 A 85,85 0 0,1 15,100" fill="none"/>
+              </defs>
+              <text font-size="18" fill="#577bff" letter-spacing="0.15em">
+                <textPath href="#preview-path-copy-text" startOffset="0%">c o p y</textPath>
+              </text>
+              <text font-size="18" fill="#577bff" letter-spacing="0.15em">
+                <textPath href="#preview-path-svg-text" startOffset="0%">s v g</textPath>
+              </text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Magnetic hover behavior for preview copy button -->
+  <script>
+    (function () {
+      const getMousePos = (e) => ({ x: e.clientX, y: e.clientY });
+      const distance = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
+      const lerp = (a, b, n) => (1 - n) * a + n * b;
+      let mousepos = { x: 0, y: 0 };
+      window.addEventListener("mousemove", (ev) => { mousepos = getMousePos(ev); });
+      const container = document.getElementById("previewCopyContainer");
+      const el = document.getElementById("previewCopyElement");
+      const trail1 = document.getElementById("previewCopyTrail1");
+      const trail2 = document.getElementById("previewCopyTrail2");
+      const curvedEl = document.getElementById("previewCopyCurved");
+      if (!container || !el) return;
+      let rect = el.getBoundingClientRect();
+      let hoverCurved = false;
+      let curveAngle = { previous: 0, current: 0, amt: 0.03 };
+      container.addEventListener("mouseenter", () => { hoverCurved = true; });
+      container.addEventListener("mouseleave", () => { hoverCurved = false; });
+      const distanceToTrigger = () => rect.width * 1.5;
+      const rendered = {
+        tx: { previous: 0, current: 0, amt: 0.12 }, ty: { previous: 0, current: 0, amt: 0.12 },
+        t2x: { previous: 0, current: 0, amt: 0.07 }, t2y: { previous: 0, current: 0, amt: 0.07 },
+        t1x: { previous: 0, current: 0, amt: 0.04 }, t1y: { previous: 0, current: 0, amt: 0.04 },
+        tx2: { previous: 0, current: 0, amt: 0.06 }, ty2: { previous: 0, current: 0, amt: 0.06 }
+      };
+      function updateRect() { rect = el.getBoundingClientRect(); }
+      window.addEventListener("resize", updateRect);
+      function render() {
+        updateRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const d = distance(mousepos.x, mousepos.y, centerX, centerY);
+        const trigger = distanceToTrigger();
+        let x = 0, y = 0;
+        if (d < trigger) {
+          x = (mousepos.x - centerX) * 0.3;
+          y = (mousepos.y - centerY) * 0.3;
+        }
+        rendered.tx.current = rendered.t2x.current = rendered.t1x.current = rendered.tx2.current = x;
+        rendered.ty.current = rendered.t2y.current = rendered.t1y.current = rendered.ty2.current = y;
+        curveAngle.current = hoverCurved ? 360 : 0;
+        curveAngle.previous = lerp(curveAngle.previous, curveAngle.current, curveAngle.amt);
+        for (const key of Object.keys(rendered)) {
+          const r = rendered[key];
+          r.previous = lerp(r.previous, r.current, r.amt);
+        }
+        trail1.style.transform = "translate3d(" + rendered.t1x.previous + "px," + rendered.t1y.previous + "px,0)";
+        trail2.style.transform = "translate3d(" + rendered.t2x.previous + "px," + rendered.t2y.previous + "px,0)";
+        el.style.transform = "translate3d(" + rendered.tx.previous + "px," + rendered.ty.previous + "px,0)";
+        curvedEl.style.transform = "translate3d(" + (rendered.tx2.previous * 0.5) + "px," + (rendered.ty2.previous * 0.5) + "px,0) rotate(" + curveAngle.previous + "deg)";
+        requestAnimationFrame(render);
+      }
+      requestAnimationFrame(render);
+    })();
+  </script>
+</body>
+</html>

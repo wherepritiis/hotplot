@@ -1,14 +1,30 @@
 /* ============================================
-   BASE STYLES - DARK THEME
+   BASE STYLES - PLOTTER AESTHETIC
    ============================================ */
 * {
   box-sizing: border-box;
 }
 
+/* Hide elements until AlpineJS is ready */
+[x-cloak] {
+    display: none !important;
+}
+
+/* Prevent layout shifts during initialization */
+.main-content {
+  visibility: visible;
+  opacity: 1;
+}
+
+.main-content[x-cloak] {
+  visibility: hidden;
+  opacity: 0;
+}
+
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  background-color: #E6EBD2;
-  color: #e0e0e0;
+  font-family: 'Courier New', monospace;
+  background-color: #f5f1e8;
+  color: #2a2a2a;
   line-height: 1.6;
   cursor: url('cursor_c.png') 0 0, auto;
 }
@@ -61,17 +77,6 @@ body {
   align-items: flex-start;
   justify-content: flex-start;
   position: relative;
-  background-color: #000000;
-  background-image: radial-gradient(
-    circle at center,
-    rgba(241, 122, 126, 0.5) 1px,
-    transparent 1px
-  );
-  background-size: 20px 20px;
-  border: 1px solid #4A6163;
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(74, 97, 99, 0.25);
-  z-index: 3;
 }
 
 /* Placeholder text centered in preview container */
@@ -336,14 +341,13 @@ body {
    CODE EDITOR STYLING
    ============================================ */
 .CodeMirror {
-  border: 1px solid rgba(241, 122, 126, 0.3);
-  border-radius: 8px;
+  border: none;
   font-family: 'Courier New', Courier, monospace;
 }
 
 .CodeMirror-focused {
-  border-color: rgba(241, 122, 126, 0.5);
-  box-shadow: 0 0 10px rgba(241, 122, 126, 0.2);
+  border: none;
+  box-shadow: none;
 }
 
 .CodeMirror-scroll {
@@ -358,21 +362,20 @@ body {
 .perspective-box-container .CodeMirror {
   height: 440px;
   font-size: 14px;
-  border: 1px solid rgba(241, 122, 126, 0.3);
-  border-radius: 8px;
+  border: none;
 }
 
 .perspective-box-container .CodeMirror-gutters {
-  border-right: 1px solid rgba(241, 122, 126, 0.3);
+  border-right: none;
 }
 
 .perspective-box-container:hover .CodeMirror {
-  border-color: rgba(241, 122, 126, 0.5);
-  box-shadow: 0 0 10px rgba(241, 122, 126, 0.2);
+  border: none;
+  box-shadow: none;
 }
 
 .perspective-box-container:hover .CodeMirror-gutters {
-  border-right-color: rgba(241, 122, 126, 0.5);
+  border-right: none;
 }
 
 /* ============================================
@@ -475,13 +478,13 @@ body {
 .app-header {
   background: transparent;
   border: none;
-  border-radius: 16px;
   padding: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: relative;
+  min-height: 60px;
 }
 
 
@@ -499,12 +502,13 @@ body {
 .brand-letter {
   font-size: 24px;
   font-weight: 700;
-  color: #F17A7E;
+  color: #2a2a2a;
   letter-spacing: 0.02em;
   line-height: 1;
+  font-family: 'Courier New', monospace;
 }
-.brand-letter--h { color: #F17A7E; }
-.brand-rest { color: #F17A7E; }
+.brand-letter--h { color: #2a2a2a; }
+.brand-rest { color: #2a2a2a; }
 .logo-toggle-wrap {
   display: inline-flex;
   align-items: center;
@@ -529,7 +533,7 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 2px solid rgba(241, 122, 126, 0.6);
+  border: 2px solid #2a2a2a;
   background: transparent;
   transition: border-color 0.2s ease, background 0.2s ease;
 }
@@ -545,15 +549,15 @@ body {
   transition: transform 0.25s ease, background 0.25s ease;
 }
 .logo-toggle input:checked + .logo-toggle-track {
-  border-color: #F17A7E;
-  background: rgba(241, 122, 126, 0.15);
+  border-color: #2a2a2a;
+  background: rgba(42, 42, 42, 0.1);
 }
 .logo-toggle input:checked + .logo-toggle-track .logo-toggle-knob {
   transform: translateX(10px);
   background: #888888;
 }
 .logo-toggle input:focus-visible + .logo-toggle-track {
-  box-shadow: 0 0 0 2px rgba(241, 122, 126, 0.4);
+  box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.3);
 }
 .brand-status-o {
   display: inline-block;
@@ -576,11 +580,6 @@ body {
   box-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
 }
 
-.app-logo {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
 
 /* ============================================
    MODE TOGGLE GROUP
@@ -783,35 +782,38 @@ body {
    BUTTONS
    ============================================ */
 .btn {
-  padding: 12px 24px;
-  border: 1px solid rgba(241, 122, 126, 0.3);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.5);
-  color: #e0e0e0;
+  padding: 10px 20px;
+  border: 2px solid #2a2a2a;
+  background: white;
+  color: #2a2a2a;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  font-family: inherit;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+  font-family: 'Courier New', monospace;
 }
 
 .btn:hover {
-  border-color: #F17A7E;
-  background: rgba(241, 122, 126, 0.1);
-  color: #F17A7E;
-  box-shadow: 0 0 10px rgba(241, 122, 126, 0.2);
+  background: #2a2a2a;
+  color: white;
 }
 
 .btn-primary {
-  background: rgba(241, 122, 126, 0.2);
-  border-color: #F17A7E;
-  color: #F17A7E;
+  background: #2a2a2a;
+  border-color: #2a2a2a;
+  color: white;
 }
 
 .btn-primary:hover {
-  background: rgba(241, 122, 126, 0.3);
-  border-color: #F17A7E;
-  box-shadow: 0 0 15px rgba(241, 122, 126, 0.4);
+  background: white;
+  color: #2a2a2a;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-success {
@@ -878,18 +880,22 @@ body {
    PANELS & CARDS
    ============================================ */
 .panel {
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(241, 122, 126, 0.2);
-  border-radius: 16px;
+  background: white;
+  border: 2px solid #2a2a2a;
   padding: 24px;
   margin-bottom: 24px;
+  font-family: 'Courier New', monospace;
 }
 
 .panel-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #F17A7E;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #2a2a2a;
   margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #2a2a2a;
 }
 
 .panel-section {
@@ -906,24 +912,21 @@ body {
 .input-field {
   width: 100%;
   padding: 10px 16px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(241, 122, 126, 0.3);
-  border-radius: 8px;
-  color: #e0e0e0;
-  font-size: 14px;
-  font-family: inherit;
-  transition: all 0.3s ease;
+  background: white;
+  border: 2px solid #2a2a2a;
+  color: #2a2a2a;
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
+  transition: all 0.2s ease;
 }
 
 .input-field::placeholder {
-  color: #666666;
+  color: rgba(42, 42, 42, 0.4);
 }
 
 .input-field:focus {
   outline: none;
-  border-color: #F17A7E;
-  background: rgba(0, 0, 0, 0.7);
-  box-shadow: 0 0 0 2px rgba(241, 122, 126, 0.2);
+  box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.2);
 }
 
 .input-field-textarea {
@@ -932,14 +935,15 @@ body {
   resize: vertical;
 }
 
-/* SVG Text Area — purple border to match left panel */
+/* SVG Text Area - Plotter Aesthetic */
 #svgInput {
-  background: #F9A66C;
-  border: 1px solid #4A6163;
-  box-shadow: 0 0 15px rgba(74, 97, 99, 0.2);
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 #svgInput:focus {
-  box-shadow: 0 0 20px rgba(74, 97, 99, 0.3), 0 0 0 2px rgba(74, 97, 99, 0.2);
+  outline: none;
+  box-shadow: none;
 }
 
 .input-label {
@@ -962,40 +966,7 @@ body {
 /* ============================================
    PREVIEW CONTAINER
    ============================================ */
-.preview-container {
-  width: 100%;
-  height: 400px;
-  background-color: #000000;
-  background-image: radial-gradient(
-    circle at center,
-    rgba(241, 122, 126, 0.25) 1px,
-    transparent 1px
-  );
-  background-size: 20px 20px;
-  border: 2px solid #F17A7E;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #666666;
-  box-shadow: 0 0 20px rgba(241, 122, 126, 0.25);
-}
-
-.preview-container iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-/* Ensure preview iframe maintains exact canvas size */
-/* Iframe stays at canvas size (780×560); container scrolls when smaller */
-.plot-mode-layout .plot-preview-wrap.preview-container iframe {
-  width: 780px;
-  height: 560px;
-  flex-shrink: 0;
-}
+/* Old preview container styles removed - using plotter aesthetic below */
 
 
 /* ============================================
@@ -1201,48 +1172,55 @@ body {
   height: 100%;
   width: 400px;
   max-width: 400px;
-  background: rgba(0, 0, 0, 0.95);
-  border-left: 1px solid rgba(241, 122, 126, 0.3);
-  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+  background: #f5f1e8;
+  border-left: 2px solid #2a2a2a;
+  box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   z-index: 9999;
+  font-family: 'Courier New', monospace;
 }
 
 .log-panel-header {
   padding: 20px;
-  border-bottom: 1px solid rgba(241, 122, 126, 0.3);
+  border-bottom: 2px solid #2a2a2a;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: white;
 }
 
 .log-panel-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #F17A7E;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #2a2a2a;
   margin: 0;
+  font-family: 'Courier New', monospace;
 }
 
 .log-panel-close {
   background: transparent;
   border: none;
-  color: #888888;
+  color: #2a2a2a;
   cursor: pointer;
   font-size: 24px;
   padding: 0;
   line-height: 1;
+  font-family: 'Courier New', monospace;
 }
 
 .log-panel-close:hover {
-  color: #e0e0e0;
+  color: #2a2a2a;
+  opacity: 0.7;
 }
 
 .log-panel-content {
   flex: 1;
   padding: 20px;
   overflow: auto;
-  background: rgba(0, 0, 0, 0.3);
+  background: #f5f1e8;
   min-height: 0;
 }
 
@@ -1252,7 +1230,7 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(42, 42, 42, 0.3);
   z-index: 9998;
 }
 
@@ -1260,9 +1238,9 @@ body {
    LOG AREA STYLING
    ============================================ */
 #logArea {
-  font-family: 'Courier New', Courier, monospace;
-  font-size: 13px;
-  color: #e0e0e0;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #2a2a2a;
 }
 
 #logArea .log-entry {
@@ -1271,15 +1249,15 @@ body {
 }
 
 #logArea .log-entry.success {
-  color: #66ff66;
+  color: #2a2a2a;
 }
 
 #logArea .log-entry.error {
-  color: #ff6666;
+  color: #2a2a2a;
 }
 
 #logArea .log-entry.info {
-  color: #F17A7E;
+  color: #2a2a2a;
 }
 
 /* ============================================
@@ -1293,7 +1271,7 @@ body {
 .command-item {
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(241, 122, 126, 0.1);
+  border-bottom: 1px solid #2a2a2a;
 }
 
 .command-item:last-child {
@@ -1302,16 +1280,19 @@ body {
 }
 
 .command-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #F17A7E;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #2a2a2a;
   margin-bottom: 4px;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Courier New', monospace;
 }
 
 .command-description {
-  font-size: 13px;
-  color: #888888;
+  font-size: 12px;
+  color: #2a2a2a;
+  font-family: 'Courier New', monospace;
 }
 
 /* ============================================
@@ -1320,11 +1301,11 @@ body {
 .repl-container {
   min-height: 400px;
   max-height: 500px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(241, 122, 126, 0.3);
-  border-radius: 8px;
+  background: white;
+  border: 2px solid #2a2a2a;
   padding: 16px;
   overflow: auto;
+  font-family: 'Courier New', monospace;
 }
 
 .repl-input-container {
@@ -1338,8 +1319,9 @@ body {
 }
 
 .repl-history-empty {
-  color: #666666;
-  font-size: 13px;
+  color: rgba(42, 42, 42, 0.5);
+  font-size: 12px;
+  font-family: 'Courier New', monospace;
 }
 
 .repl-entry {
@@ -1347,22 +1329,23 @@ body {
 }
 
 .repl-command {
-  font-size: 13px;
-  color: #e0e0e0;
+  font-size: 12px;
+  color: #2a2a2a;
   margin-bottom: 4px;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Courier New', monospace;
 }
 
 .repl-command-prompt {
-  color: #F17A7E;
-  font-weight: 600;
+  color: #2a2a2a;
+  font-weight: bold;
   margin-right: 8px;
 }
 
 .repl-response {
-  font-size: 13px;
-  color: #888888;
+  font-size: 12px;
+  color: #2a2a2a;
   margin-left: 20px;
+  font-family: 'Courier New', monospace;
 }
 
 /* ============================================
@@ -1450,4 +1433,570 @@ body {
   .curved-text text {
     font-size: 14px;
   }
+}
+
+/* ============================================
+   PLOTTER AESTHETIC STYLES
+   ============================================ */
+
+/* Tabs - O2.14 File Folder Tab Style */
+.tabs-wrapper {
+  margin-bottom: 0;
+  margin-left: 40px;
+  min-height: 42px;
+  height: 42px;
+}
+
+.tabs-container {
+  display: flex;
+  gap: 8px;
+  position: relative;
+}
+
+.tab {
+  background: transparent;
+  border: 2px solid transparent;
+  border-bottom: none;
+  padding: 10px 25px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: none;
+  position: relative;
+  top: 2px;
+  font-family: 'Courier New', monospace;
+  box-sizing: border-box;
+  min-height: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  vertical-align: bottom;
+}
+
+.tab:hover {
+  background: transparent;
+}
+
+.tab.active {
+  background: white;
+  border: 2px solid #2a2a2a;
+  border-bottom: none;
+  z-index: 1;
+  font-weight: bold;
+  box-sizing: border-box;
+  min-height: 40px;
+  height: 40px;
+  transition: none;
+}
+
+/* Main Content Border - Connected to tabs */
+.main-content {
+  border: 2px solid #2a2a2a;
+  background: #f5f1e8;
+  padding: 30px;
+  min-height: calc(100vh - 150px);
+  margin-top: 0;
+  position: relative;
+}
+
+/* Log Button - Plotter Aesthetic */
+.log-button {
+  padding: 10px 20px;
+  background: white;
+  border: 2px solid #2a2a2a;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+  color: #2a2a2a;
+  box-shadow: 4px 4px 0 #2a2a2a;
+}
+
+.log-button:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 8px 8px 0 #2a2a2a;
+}
+
+.log-button-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+/* Code Editor - O2.11 Triple Stacked Layers */
+.editor-container {
+  background: white;
+  border: 2px solid #2a2a2a;
+  padding: 20px;
+  box-shadow: 
+    3px 3px 0 white,
+    3px 3px 0 2px #2a2a2a,
+    6px 6px 0 white,
+    6px 6px 0 2px #2a2a2a,
+    9px 9px 0 white,
+    9px 9px 0 2px #2a2a2a;
+  position: relative;
+  min-height: 480px;
+  height: 480px;
+  box-sizing: border-box;
+  will-change: auto;
+}
+
+.editor-header {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #2a2a2a;
+  color: #2a2a2a;
+}
+
+.editor-content {
+  background: white;
+  border: none;
+  position: relative;
+  min-height: 400px;
+  height: 400px;
+  overflow: hidden;
+  will-change: auto;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.editor-content.cm-ready {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Ensure CodeMirror matches default theme immediately - prevent any theme flash */
+.editor-content .CodeMirror,
+.editor-content .CodeMirror.cm-s-default,
+.editor-content .CodeMirror.cm-s-isotope,
+.editor-content .CodeMirror.cm-s-material-ocean {
+  background: white !important;
+  color: #2a2a2a !important;
+}
+
+.editor-content .CodeMirror-gutters,
+.editor-content .CodeMirror.cm-s-default .CodeMirror-gutters,
+.editor-content .CodeMirror.cm-s-isotope .CodeMirror-gutters,
+.editor-content .CodeMirror.cm-s-material-ocean .CodeMirror-gutters {
+  background: white !important;
+  border-right: none !important;
+}
+
+.editor-content .CodeMirror-linenumber,
+.editor-content .CodeMirror.cm-s-default .CodeMirror-linenumber,
+.editor-content .CodeMirror.cm-s-isotope .CodeMirror-linenumber,
+.editor-content .CodeMirror.cm-s-material-ocean .CodeMirror-linenumber {
+  color: #999 !important;
+}
+
+.editor-content .CodeMirror-cursor {
+  border-left: 1px solid #2a2a2a !important;
+}
+
+.editor-content textarea {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  border: none;
+  padding: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  resize: none;
+  margin: 0;
+  box-sizing: border-box;
+  background: white;
+  color: #2a2a2a;
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* Show textarea only if CodeMirror is not available (fallback) */
+.editor-content:not(:has(.CodeMirror)) textarea {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Hide textarea once CodeMirror is initialized */
+.editor-content .CodeMirror + textarea,
+.editor-content:has(.CodeMirror) textarea {
+  display: none !important;
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* Preview Container - 01.13 Sparse Dots */
+.preview-container {
+  background: 
+    radial-gradient(circle, rgba(214, 112, 124, 0.3) 1.5px, transparent 1.5px),
+    #f5f1e8;
+  background-size: 20px 20px;
+  border: 2px solid #d6707c;
+  padding: 0;
+  min-height: 400px;
+  position: relative;
+  overflow: visible;
+}
+
+#previewContainer {
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(42, 42, 42, 0.5);
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+  position: relative;
+}
+
+#previewContainer.has-iframe {
+  display: block;
+  overflow: hidden;
+}
+
+#previewFrame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+  overflow: auto;
+}
+
+.preview-header {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #2a2a2a;
+  color: #2a2a2a;
+}
+
+/* SVG Textarea - 03.08 Asterisk Pattern */
+.svg-textarea-container {
+  background: white;
+  border: 2px solid #2a2a2a;
+  position: relative;
+  overflow: hidden;
+  min-height: 300px;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 14px;
+  color: rgba(42, 42, 42, 0.3);
+  word-break: break-all;
+}
+
+.svg-textarea-container::before {
+  content: '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ';
+  position: absolute;
+  inset: 0;
+  padding: 10px;
+  z-index: 0;
+}
+
+.svg-textarea-header {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 20px 20px 10px 20px;
+  font-family: 'Courier New', monospace;
+  background: white;
+}
+
+.svg-textarea-inner {
+  position: relative;
+  z-index: 2;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  background: white;
+  border: 2px solid #2a2a2a;
+  max-width: 70%;
+  margin: 0 auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.svg-textarea {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  background: transparent;
+  border: none;
+  padding: 15px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  resize: vertical;
+  color: #2a2a2a;
+}
+
+.svg-textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.2);
+}
+
+/* Plotter Settings - O5 Stacked Style */
+.plotter-settings-container {
+  background: white;
+  border: 2px solid #2a2a2a;
+  padding: 20px;
+}
+
+.settings-header {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #2a2a2a;
+  color: #2a2a2a;
+}
+
+.control-group {
+  margin-bottom: 20px;
+}
+
+.control-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #2a2a2a;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px;
+  border: 2px solid #2a2a2a;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  background: white;
+  color: #2a2a2a;
+}
+
+.input-field:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.2);
+}
+
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+/* Layout Grid */
+.layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+/* Magnetic Button Styles */
+.magnetic-button-container {
+  position: absolute;
+  bottom: -30px;
+  right: 80px;
+  width: 120px;
+  height: 120px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.magnetic-button {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid #2a2a2a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Courier New', monospace;
+  color: #2a2a2a;
+  pointer-events: auto;
+  z-index: 0;
+}
+
+.magnetic-button:hover {
+  background: #2a2a2a;
+  color: white;
+}
+
+.magnetic-trail {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 2px solid rgba(42, 42, 42, 0.3);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.magnetic-trail--1 {
+  opacity: 0.6;
+}
+
+.magnetic-trail--2 {
+  opacity: 0.3;
+}
+
+.copy-svg-button-container {
+  position: absolute;
+  top: 10px;
+  right: 80px;
+  width: 120px;
+  height: 120px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Curved Text Around Preview Button */
+.preview-curved-text {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    top: -40px;
+    left: -40px;
+    pointer-events: none;
+    overflow: visible;
+    transform-origin: 100px 100px;
+    z-index: 10;
+}
+
+.preview-curved-text svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.preview-curved-text text {
+    fill: #2a2a2a;
+    font-size: 12px;
+    font-weight: normal;
+    letter-spacing: 0.1em;
+    font-family: 'Courier New', monospace;
+}
+
+/* Curved Text Around Copy SVG Button */
+.copy-svg-curved-text {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    top: -40px;
+    left: -40px;
+    pointer-events: none;
+    overflow: visible;
+    transform-origin: 100px 100px;
+    z-index: 10;
+}
+
+.copy-svg-curved-text svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.copy-svg-curved-text text {
+    fill: #2a2a2a;
+    font-size: 12px;
+    font-weight: normal;
+    letter-spacing: 0.1em;
+    font-family: 'Courier New', monospace;
+}
+
+/* CodeMirror adjustments for plotter aesthetic */
+.CodeMirror {
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  color: #2a2a2a;
+  height: 400px !important;
+  box-sizing: border-box;
+}
+
+.editor-content .CodeMirror {
+  height: 400px !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.CodeMirror-gutters {
+  background: white;
+  border-right: none;
+}
+
+.CodeMirror-linenumber {
+  color: #666;
+}
+
+/* Button styles for plotter aesthetic */
+.button {
+  padding: 12px 24px;
+  background: white;
+  border: 2px solid #2a2a2a;
+  cursor: pointer;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.1s;
+  width: 100%;
+  color: #2a2a2a;
+}
+
+.button:hover {
+  background: #2a2a2a;
+  color: white;
+}
+
+.button-primary {
+  background: #2a2a2a;
+  color: white;
+}
+
+.button-primary:hover {
+  background: white;
+  color: #2a2a2a;
+}
+
+/* Header adjustments */
+/* Logo centered in header */
+.app-logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+}
+
+.log-button-wrapper {
+  margin-left: auto;
+  z-index: 2;
 }

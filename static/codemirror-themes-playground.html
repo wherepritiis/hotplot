@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeMirror Themes Playground</title>
+  
+  <!-- CodeMirror CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+  
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #E6EBD2;
+      color: #333;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      color: #F17A7E;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .theme-nav {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    
+    .theme-name {
+      min-width: 200px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: #F17A7E;
+      padding: 10px 20px;
+    }
+    
+    button {
+      padding: 12px 24px;
+      border: 1px solid rgba(241, 122, 126, 0.3);
+      border-radius: 8px;
+      background: rgba(241, 122, 126, 0.1);
+      color: #F17A7E;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+    
+    button:hover {
+      border-color: #F17A7E;
+      background: rgba(241, 122, 126, 0.2);
+      box-shadow: 0 0 10px rgba(241, 122, 126, 0.2);
+    }
+    
+    button:active {
+      transform: scale(0.98);
+    }
+    
+    .editor-container {
+      border: 1px solid rgba(241, 122, 126, 0.3);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .CodeMirror {
+      height: 600px;
+      font-size: 14px;
+    }
+    
+    .info {
+      margin-top: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid rgba(241, 122, 126, 0.2);
+      border-radius: 8px;
+      font-size: 13px;
+      color: #666;
+    }
+    
+    .info strong {
+      color: #F17A7E;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>CodeMirror Themes Playground</h1>
+    
+    <div class="controls">
+      <div class="theme-nav">
+        <button id="prevBtn">← Previous</button>
+        <div class="theme-name" id="themeName">isotope</div>
+        <button id="nextBtn">Next →</button>
+      </div>
+    </div>
+    
+    <div class="editor-container">
+      <textarea id="codeEditor">function setup() {
+  createCanvas(780, 560);
+  background(230, 235, 210);
+  noFill();
+}
+
+function draw() {
+  // Draw a rotating square
+  push();
+  translate(width/2, height/2);
+  rotate(frameCount * 0.01);
+  square(-50, -50, 100);
+  pop();
+  
+  // Draw some circles
+  for (let i = 0; i < 5; i++) {
+    circle(100 + i * 120, 100, 50);
+  }
+  
+  // Draw text
+  fill(0);
+  textSize(24);
+  text("Hello, CodeMirror!", 50, 500);
+}</textarea>
+    </div>
+    
+    <div class="info">
+      <strong>Note:</strong> Use the Previous/Next buttons to cycle through themes, or use arrow keys (← → or ↑ ↓) for keyboard navigation. 
+      Some themes may take a moment to load. Current theme: <strong id="currentTheme">isotope</strong>
+    </div>
+  </div>
+
+  <!-- CodeMirror JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+  
+  <!-- CodeMirror Themes - Load dynamically -->
+  <script>
+    const themes = [
+      'default', '3024-day', '3024-night', 'abbott', 'abcdef', 'ambiance', 'ayu-dark', 'ayu-mirage',
+      'base16-dark', 'base16-light', 'bespin', 'blackboard', 'cobalt', 'colorforth', 'dracula',
+      'duotone-dark', 'duotone-light', 'eclipse', 'elegant', 'erlang-dark', 'gruvbox-dark', 'hopscotch',
+      'icecoder', 'idea', 'isotope', 'juejin', 'lesser-dark', 'liquibyte', 'lucario', 'material',
+      'material-darker', 'material-palenight', 'material-ocean', 'mbo', 'mdn-like', 'midnight',
+      'monokai', 'moxer', 'neat', 'neo', 'night', 'nord', 'oceanic-next', 'panda-syntax',
+      'paraiso-dark', 'paraiso-light', 'pastel-on-dark', 'railscasts', 'rubyblue', 'seti',
+      'shadowfox', 'solarized dark', 'solarized light', 'the-matrix', 'tomorrow-night-bright',
+      'tomorrow-night-eighties', 'ttcn', 'twilight', 'vibrant-ink', 'xq-dark', 'xq-light',
+      'yeti', 'yonce', 'zenburn'
+    ];
+    
+    let codeEditor;
+    let loadedThemes = new Set();
+    let currentThemeIndex = themes.indexOf('isotope');
+    
+    function loadTheme(themeName) {
+      // Skip if already loaded
+      if (loadedThemes.has(themeName) || themeName === 'default') {
+        return Promise.resolve();
+      }
+      
+      return new Promise((resolve, reject) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        // Handle theme names with spaces (e.g., "solarized dark" -> "solarized-dark")
+        const themeFileName = themeName.replace(/\s+/g, '-');
+        link.href = `https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/${themeFileName}.min.css`;
+        link.onload = () => {
+          loadedThemes.add(themeName);
+          resolve();
+        };
+        link.onerror = () => {
+          console.warn(`Failed to load theme: ${themeName}`);
+          resolve(); // Continue even if theme fails to load
+        };
+        document.head.appendChild(link);
+      });
+    }
+    
+    function changeTheme(themeName) {
+      loadTheme(themeName).then(() => {
+        if (codeEditor) {
+          codeEditor.setOption('theme', themeName);
+          document.getElementById('themeName').textContent = themeName;
+          document.getElementById('currentTheme').textContent = themeName;
+        }
+      });
+    }
+    
+    function nextTheme() {
+      currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+      changeTheme(themes[currentThemeIndex]);
+    }
+    
+    function prevTheme() {
+      currentThemeIndex = (currentThemeIndex - 1 + themes.length) % themes.length;
+      changeTheme(themes[currentThemeIndex]);
+    }
+    
+    // Initialize CodeMirror
+    window.addEventListener('DOMContentLoaded', function() {
+      const textarea = document.getElementById('codeEditor');
+      
+      // Load initial theme
+      loadTheme('isotope').then(() => {
+        codeEditor = CodeMirror.fromTextArea(textarea, {
+          lineNumbers: true,
+          mode: 'javascript',
+          theme: 'isotope',
+          indentUnit: 2,
+          lineWrapping: true,
+        });
+        
+        // Button handlers
+        document.getElementById('nextBtn').addEventListener('click', nextTheme);
+        document.getElementById('prevBtn').addEventListener('click', prevTheme);
+        
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            nextTheme();
+          } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            prevTheme();
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Distributed Perspective Boxes Playground</title>
+  <!-- Tachyons CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css" />
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/static/styles.css" />
+  <style>
+    body {
+      padding: 40px;
+      background-color: #000000;
+      color: #e0e0e0;
+    }
+    
+    .playground-container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    
+    .playground-title {
+      color: #C033FF;
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    
+    .test-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+    
+    /* Code Editor Container - TOP FLAP */
+    .code-editor-section {
+      grid-column: 1;
+      grid-row: 1 / 3;
+    }
+    
+    .code-editor-perspective {
+      position: relative;
+      width: 100%;
+      height: 500px;
+      perspective: 1000px;
+      padding-top: 30px; /* Space for top flap */
+    }
+    
+    .code-editor-box {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      overflow: visible;
+    }
+    
+    .code-editor-face-front {
+      position: absolute;
+      width: 100%;
+      height: calc(100% - 30px);
+      top: 30px;
+      left: 0;
+      border: 2px solid #A601F4;
+      background: rgba(0, 0, 0, 0);
+      z-index: 3;
+    }
+    
+    .code-editor-face-top {
+      position: absolute;
+      width: 100%;
+      height: 80px;
+      top: 0;
+      left: 0;
+      border: 2px solid #A601F4;
+      background: rgba(0, 0, 0, 0);
+      transform: skewX(-20deg);
+      transform-origin: top left;
+      z-index: 2;
+      filter: blur(1px);
+      opacity: 0.8;
+    }
+    
+    .code-editor-content {
+      position: absolute;
+      top: 30px;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 30px);
+      padding: 20px;
+      z-index: 4;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .code-editor-mockup {
+      pointer-events: auto;
+      flex: 1;
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(166, 1, 244, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      color: #888888;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      overflow: auto;
+    }
+    
+    /* SVG Text Area Container - LEFT FLAP */
+    .svg-text-section {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    
+    .svg-text-perspective {
+      position: relative;
+      width: 100%;
+      height: 300px;
+      perspective: 1000px;
+      padding-left: 30px; /* Space for left flap */
+    }
+    
+    .svg-text-box {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      overflow: visible;
+    }
+    
+    .svg-text-face-front {
+      position: absolute;
+      width: calc(100% - 30px);
+      height: 100%;
+      top: 0;
+      left: 0;
+      border: 2px solid #A601F4;
+      background: rgba(0, 0, 0, 0);
+      z-index: 3;
+    }
+    
+    .svg-text-face-left {
+      position: absolute;
+      width: 80px;
+      height: 100%;
+      top: 0;
+      left: -30px;
+      border: 2px solid #A601F4;
+      background: rgba(0, 0, 0, 0);
+      transform: skewY(-10deg);
+      transform-origin: top left;
+      z-index: 1;
+      filter: blur(1px);
+      opacity: 0.8;
+    }
+    
+    .svg-text-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: calc(100% - 30px);
+      height: 100%;
+      padding: 20px;
+      z-index: 4;
+      pointer-events: none;
+    }
+    
+    .svg-text-mockup {
+      pointer-events: auto;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(166, 1, 244, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      color: #888888;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      resize: none;
+    }
+    
+    /* Preview Container - RIGHT FLAP */
+    .preview-section {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    
+    .preview-perspective {
+      position: relative;
+      width: 100%;
+      height: 500px;
+      perspective: 1000px;
+      padding-right: 30px; /* Space for right flap */
+    }
+    
+    .preview-box {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      overflow: visible;
+    }
+    
+    .preview-face-front {
+      position: absolute;
+      width: calc(100% - 30px);
+      height: 100%;
+      top: 0;
+      left: 0;
+      border: 2px solid #A601F4;
+      background: rgba(0, 0, 0, 0);
+      z-index: 3;
+    }
+    
+    .preview-face-right {
+      position: absolute;
+      width: 80px;
+      height: 100%;
+      top: 0;
+      right: -30px;
+      border: 2px solid #A601F4;
+      background: rgba(0, 0, 0, 0);
+      transform: skewY(10deg);
+      transform-origin: top right;
+      z-index: 1;
+      filter: blur(1px);
+      opacity: 0.8;
+    }
+    
+    .preview-content {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: calc(100% - 30px);
+      height: 100%;
+      padding: 20px;
+      z-index: 4;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .preview-mockup {
+      pointer-events: auto;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(166, 1, 244, 0.3);
+      border-radius: 8px;
+      padding: 20px;
+      color: #888888;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Hover effects */
+    .code-editor-perspective:hover .code-editor-face-front,
+    .code-editor-perspective:hover .code-editor-face-top {
+      border-color: #C033FF;
+      box-shadow: 0 0 20px rgba(166, 1, 244, 0.3);
+    }
+    
+    .svg-text-perspective:hover .svg-text-face-front,
+    .svg-text-perspective:hover .svg-text-face-left {
+      border-color: #C033FF;
+      box-shadow: 0 0 20px rgba(166, 1, 244, 0.3);
+    }
+    
+    .preview-perspective:hover .preview-face-front,
+    .preview-perspective:hover .preview-face-right {
+      border-color: #C033FF;
+      box-shadow: 0 0 20px rgba(166, 1, 244, 0.3);
+    }
+    
+    .section-label {
+      color: #888888;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="playground-container">
+    <h1 class="playground-title">Distributed Perspective Boxes Test</h1>
+    <p style="text-align: center; color: #888888; margin-bottom: 40px;">
+      Testing: Code Editor (left flap) | Preview (right flap) | SVG Text Area (top flap)
+    </p>
+    
+    <div class="test-layout">
+      <!-- Code Editor - TOP FLAP -->
+      <div class="code-editor-section">
+        <div class="section-label">Code Editor (Top Flap)</div>
+        <div class="code-editor-perspective">
+          <div class="code-editor-box">
+            <div class="code-editor-face-front"></div>
+            <div class="code-editor-face-top"></div>
+            <div class="code-editor-content">
+              <div class="code-editor-mockup">
+                function setup() {<br>
+                &nbsp;&nbsp;createCanvas(780, 560);<br>
+                &nbsp;&nbsp;background(255);<br>
+                &nbsp;&nbsp;noFill();<br>
+                }<br><br>
+                function draw() {<br>
+                &nbsp;&nbsp;// Your drawing code here<br>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Preview Container - RIGHT FLAP -->
+      <div class="preview-section">
+        <div class="section-label">Preview Container (Right Flap)</div>
+        <div class="preview-perspective">
+          <div class="preview-box">
+            <div class="preview-face-front"></div>
+            <div class="preview-face-right"></div>
+            <div class="preview-content">
+              <div class="preview-mockup">
+                Preview Canvas Area
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- SVG Text Area - LEFT FLAP -->
+      <div class="svg-text-section">
+        <div class="section-label">SVG Text Area (Left Flap)</div>
+        <div class="svg-text-perspective">
+          <div class="svg-text-box">
+            <div class="svg-text-face-front"></div>
+            <div class="svg-text-face-left"></div>
+            <div class="svg-text-content">
+              <textarea class="svg-text-mockup" placeholder="Paste SVG content here..."></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div style="margin-top: 60px; padding: 20px; background: rgba(166, 1, 244, 0.1); border: 1px solid rgba(166, 1, 244, 0.3); border-radius: 8px;">
+      <h3 style="color: #C033FF; margin-bottom: 12px;">Notes:</h3>
+      <ul style="color: #888888; line-height: 1.8;">
+        <li>Code Editor has TOP flap only</li>
+        <li>Preview Container has RIGHT flap only</li>
+        <li>SVG Text Area has LEFT flap only</li>
+        <li>All flaps use the same purple border color (#A601F4)</li>
+        <li>Hover effects apply to each container independently</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

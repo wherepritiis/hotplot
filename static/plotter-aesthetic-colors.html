@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plotter Aesthetic - Color Variations</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f1e8;
+            padding: 40px;
+            color: #2a2a2a;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: normal;
+            letter-spacing: 2px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .example {
+            background: white;
+            padding: 20px;
+            border: 2px solid #2a2a2a;
+        }
+
+        .example h2 {
+            font-size: 14px;
+            font-weight: normal;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Color variation containers */
+        .red-blue-hatch {
+            height: 250px;
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 6px,
+                    #E85D75 6px,
+                    #E85D75 7px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 6px,
+                    #4A6FA5 6px,
+                    #4A6FA5 7px
+                );
+            border: 2px solid #2a2a2a;
+            position: relative;
+        }
+
+        .blue-gradient-lines {
+            height: 250px;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    #4A6FA5,
+                    #4A6FA5 1px,
+                    transparent 1px,
+                    transparent 5px,
+                    #6B8EC3 5px,
+                    #6B8EC3 6px,
+                    transparent 6px,
+                    transparent 10px
+                );
+            border: 2px solid #2a2a2a;
+            position: relative;
+        }
+
+        .red-perspective {
+            height: 250px;
+            background: white;
+            border: 3px solid #E85D75;
+            position: relative;
+            transform: perspective(600px) rotateY(-5deg);
+            box-shadow: 8px 8px 0 #E85D75;
+        }
+
+        .dual-tone-grid {
+            height: 250px;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 19px,
+                    #E85D75 19px,
+                    #E85D75 20px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 19px,
+                    #4A6FA5 19px,
+                    #4A6FA5 20px
+                );
+            border: 2px solid #2a2a2a;
+            position: relative;
+        }
+
+        .black-red-border {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            outline: 3px solid #E85D75;
+            outline-offset: -8px;
+            position: relative;
+        }
+
+        .layered-colors {
+            height: 250px;
+            background: white;
+            border: 2px solid #4A6FA5;
+            position: relative;
+            box-shadow: 
+                4px 4px 0 #E85D75,
+                8px 8px 0 #2a2a2a;
+        }
+
+        .red-stipple {
+            height: 250px;
+            background: 
+                radial-gradient(circle, #E85D75 1px, transparent 1px);
+            background-size: 10px 10px;
+            border: 2px solid #E85D75;
+            position: relative;
+        }
+
+        .blue-wave {
+            height: 250px;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 8px,
+                    #4A6FA5 8px,
+                    #4A6FA5 9px,
+                    transparent 9px,
+                    transparent 12px,
+                    #4A6FA5 12px,
+                    #4A6FA5 13px
+                );
+            border: 2px solid #2a2a2a;
+            position: relative;
+        }
+
+        .alternating-hatch {
+            height: 250px;
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    #E85D75 0px,
+                    #E85D75 1px,
+                    transparent 1px,
+                    transparent 10px,
+                    #4A6FA5 10px,
+                    #4A6FA5 11px,
+                    transparent 11px,
+                    transparent 20px
+                );
+            border: 2px solid #2a2a2a;
+            position: relative;
+        }
+
+        .color-corners {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            border-top: 4px solid #E85D75;
+            border-bottom: 4px solid #4A6FA5;
+            position: relative;
+        }
+
+        .gradient-border {
+            height: 250px;
+            background: white;
+            border: 3px solid #2a2a2a;
+            position: relative;
+            box-shadow: 
+                inset 0 4px 0 #E85D75,
+                inset 0 -4px 0 #4A6FA5;
+        }
+
+        .checkerboard-color {
+            height: 250px;
+            background: 
+                repeating-conic-gradient(
+                    #E85D75 0deg 90deg,
+                    #4A6FA5 90deg 180deg,
+                    #E85D75 180deg 270deg,
+                    #4A6FA5 270deg 360deg
+                );
+            background-size: 20px 20px;
+            border: 2px solid #2a2a2a;
+            position: relative;
+        }
+
+        .split-tone {
+            height: 250px;
+            background: 
+                linear-gradient(
+                    90deg,
+                    rgba(232, 93, 117, 0.1) 0%,
+                    rgba(232, 93, 117, 0.1) 50%,
+                    rgba(74, 111, 165, 0.1) 50%,
+                    rgba(74, 111, 165, 0.1) 100%
+                );
+            border: 2px solid #2a2a2a;
+            border-left: 3px solid #E85D75;
+            border-right: 3px solid #4A6FA5;
+            position: relative;
+        }
+
+        .diagonal-split {
+            height: 250px;
+            background: 
+                linear-gradient(
+                    135deg,
+                    rgba(232, 93, 117, 0.15) 0%,
+                    rgba(232, 93, 117, 0.15) 48%,
+                    transparent 48%,
+                    transparent 52%,
+                    rgba(74, 111, 165, 0.15) 52%,
+                    rgba(74, 111, 165, 0.15) 100%
+                );
+            border: 2px solid #2a2a2a;
+            position: relative;
+        }
+
+        .color-frame {
+            height: 250px;
+            background: white;
+            border: 8px solid transparent;
+            border-image: repeating-linear-gradient(
+                90deg,
+                #E85D75,
+                #E85D75 10px,
+                #4A6FA5 10px,
+                #4A6FA5 20px
+            ) 8;
+            position: relative;
+        }
+
+        .tricolor-shadow {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            box-shadow: 
+                3px 3px 0 #E85D75,
+                6px 6px 0 #4A6FA5,
+                9px 9px 0 #2a2a2a;
+        }
+
+        .content-inner {
+            position: relative;
+            z-index: 2;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 15px;
+        }
+
+        .content-box {
+            background: white;
+            padding: 20px 30px;
+            border: 2px solid #2a2a2a;
+        }
+
+        /* Button variations */
+        .button-red {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #E85D75;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #E85D75;
+        }
+
+        .button-red:hover {
+            background: #E85D75;
+            color: white;
+        }
+
+        .button-blue {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #4A6FA5;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #4A6FA5;
+        }
+
+        .button-blue:hover {
+            background: #4A6FA5;
+            color: white;
+        }
+
+        .button-black {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button-black:hover {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .toggle-group-color {
+            display: flex;
+            overflow: hidden;
+        }
+
+        .toggle-group-color .button-red,
+        .toggle-group-color .button-blue {
+            border-radius: 0;
+            border-right: none;
+        }
+
+        .toggle-group-color .button-red:last-child,
+        .toggle-group-color .button-blue:last-child {
+            border-right: 2px solid #E85D75;
+        }
+
+        .toggle-group-color .button-blue:last-child {
+            border-right: 2px solid #4A6FA5;
+        }
+
+        .toggle-group-color .button-red.active {
+            background: #E85D75;
+            color: white;
+        }
+
+        .toggle-group-color .button-blue.active {
+            background: #4A6FA5;
+            color: white;
+        }
+
+        .input-red {
+            padding: 8px 12px;
+            border: 2px solid #E85D75;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            width: 200px;
+        }
+
+        .input-red:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(232, 93, 117, 0.3);
+        }
+
+        .input-blue {
+            padding: 8px 12px;
+            border: 2px solid #4A6FA5;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            width: 200px;
+        }
+
+        .input-blue:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <h1>Pen Plotter Aesthetic Exploration: Color Variations</h1>
+    
+    <div class="grid">
+        <!-- Example 1: Red/Blue Cross Hatch -->
+        <div class="example">
+            <h2>01. Red/Blue Cross Hatch Background</h2>
+            <div class="red-blue-hatch">
+                <div class="content-inner">
+                    <div class="content-box">
+                        <p>Editor Panel</p>
+                        <div class="toggle-group-color">
+                            <button class="button-red active">Code</button>
+                            <button class="button-red">Preview</button>
+                            <button class="button-red">Output</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 2: Blue Gradient Lines -->
+        <div class="example">
+            <h2>02. Blue Gradient Line Pattern</h2>
+            <div class="blue-gradient-lines">
+                <div class="content-inner">
+                    <div class="content-box">
+                        <p>Preview Window</p>
+                        <button class="button-blue">Execute</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 3: Red Perspective Box -->
+        <div class="example">
+            <h2>03. Red Perspective Container</h2>
+            <div class="red-perspective">
+                <div class="content-inner">
+                    <p>Control Panel</p>
+                    <button class="button-red">Configure</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 4: Dual-Tone Grid -->
+        <div class="example">
+            <h2>04. Red/Blue Grid Pattern</h2>
+            <div class="dual-tone-grid">
+                <div class="content-inner">
+                    <div class="content-box">
+                        <p>Coordinate System</p>
+                        <input type="text" class="input-red" placeholder="X coordinate..." />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 5: Black with Red Border -->
+        <div class="example">
+            <h2>05. Dual Border Container</h2>
+            <div class="black-red-border">
+                <div class="content-inner">
+                    <p>Settings Area</p>
+                    <input type="text" class="input-blue" placeholder="Enter value..." />
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 6: Layered Color Shadows -->
+        <div class="example">
+            <h2>06. Layered Color Shadows</h2>
+            <div class="layered-colors">
+                <div class="content-inner">
+                    <p>Status Display</p>
+                    <div class="toggle-group-color">
+                        <button class="button-blue">Connect</button>
+                        <button class="button-blue active">Connected</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 7: Red Stipple -->
+        <div class="example">
+            <h2>07. Red Dot Stipple</h2>
+            <div class="red-stipple">
+                <div class="content-inner">
+                    <div class="content-box">
+                        <p>Alert Area</p>
+                        <button class="button-red">Warning</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 8: Blue Wave -->
+        <div class="example">
+            <h2>08. Blue Wave Lines</h2>
+            <div class="blue-wave">
+                <div class="content-inner">
+                    <div class="content-box">
+                        <p>Info Panel</p>
+                        <button class="button-blue">Details</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 9: Alternating Hatch -->
+        <div class="example">
+            <h2>09. Red/Blue Alternating Hatch</h2>
+            <div class="alternating-hatch">
+                <div class="content-inner">
+                    <div class="content-box">
+                        <p>Dual Mode</p>
+                        <input type="text" class="input-red" placeholder="Mode..." />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 10: Color Corners -->
+        <div class="example">
+            <h2>10. Colored Top/Bottom Borders</h2>
+            <div class="color-corners">
+                <div class="content-inner">
+                    <p>Header Area</p>
+                    <button class="button-black">Action</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 11: Gradient Border -->
+        <div class="example">
+            <h2>11. Inset Color Strips</h2>
+            <div class="gradient-border">
+                <div class="content-inner">
+                    <p>Framed Content</p>
+                    <button class="button-black">View</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 12: Checkerboard -->
+        <div class="example">
+            <h2>12. Color Checkerboard</h2>
+            <div class="checkerboard-color">
+                <div class="content-inner">
+                    <div class="content-box">
+                        <p>Pattern Test</p>
+                        <button class="button-black">Toggle</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 13: Split Tone -->
+        <div class="example">
+            <h2>13. Vertical Split Tone</h2>
+            <div class="split-tone">
+                <div class="content-inner">
+                    <p>Two-Panel View</p>
+                    <div class="toggle-group-color">
+                        <button class="button-red">Left</button>
+                        <button class="button-blue">Right</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 14: Diagonal Split -->
+        <div class="example">
+            <h2>14. Diagonal Color Split</h2>
+            <div class="diagonal-split">
+                <div class="content-inner">
+                    <p>Angled Division</p>
+                    <button class="button-black">Select</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 15: Color Frame -->
+        <div class="example">
+            <h2>15. Striped Border Frame</h2>
+            <div class="color-frame">
+                <div class="content-inner">
+                    <p>Featured Content</p>
+                    <input type="text" class="input-blue" placeholder="Input..." />
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 16: Tricolor Shadow -->
+        <div class="example">
+            <h2>16. Three-Color Shadow Stack</h2>
+            <div class="tricolor-shadow">
+                <div class="content-inner">
+                    <p>Elevated Panel</p>
+                    <button class="button-black">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

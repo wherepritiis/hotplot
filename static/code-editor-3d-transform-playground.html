@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SVG Textarea 3D Transform Playground</title>
+  <!-- Tachyons CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/tachyons@4.12.0/css/tachyons.min.css" />
+  <style>
+    html {
+      --s: 140px; /* control the size*/
+      --c1: #170409;
+      --c2: #67917a;
+      
+      --_g: #0000 52%,var(--c1) 54% 57%,#0000 59%; 
+      background: 
+       radial-gradient(farthest-side at -33.33% 50%,var(--_g)) 0 calc(var(--s)/2),
+       radial-gradient(farthest-side at 50% 133.33%,var(--_g)) calc(var(--s)/2) 0,
+       radial-gradient(farthest-side at 133.33% 50%,var(--_g)),
+       radial-gradient(farthest-side at 50% -33.33%,var(--_g)),
+       var(--c2);
+      background-size: calc(var(--s)/4.667) var(--s),var(--s) calc(var(--s)/4.667);
+      min-height: 100vh;
+    }
+    
+    body {
+      margin: 0;
+      padding: 40px;
+      min-height: 100vh;
+      perspective: 1000px;
+    }
+    
+    .playground-container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    
+    .playground-title {
+      color: #C033FF;
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 30px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .test-section {
+      margin-bottom: 60px;
+    }
+    
+    .test-label {
+      color: #888888;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 12px 20px;
+      border-radius: 8px;
+      backdrop-filter: blur(10px);
+    }
+    
+    /* 3D Transform SVG Textarea - Base */
+    .svg-textarea-3d {
+      width: 700px;
+      min-height: 220px;
+      margin: 100px auto;
+      position: relative;
+      transform:
+        scale(0.75)
+        rotateY(-30deg)
+        rotateX(45deg)
+        translateZ(4.5rem);
+      transform-origin: 50% 100%;
+      transform-style: preserve-3d;
+      box-shadow: 1rem 1rem 2rem rgba(0,0,0,0.25);
+      transition: 0.6s ease transform;
+    }
+    
+    .svg-textarea-3d:hover {
+      transform: scale(1);
+    }
+    
+    /* SVG Textarea Content */
+    .svg-textarea-content {
+      position: relative;
+      width: 100%;
+      min-height: 220px;
+      background: #000000;
+      border-radius: 8px;
+      padding: 20px;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .svg-textarea-mockup {
+      flex: 1;
+      width: 100%;
+      min-height: 180px;
+      background: #E6EBD2;
+      border: none;
+      border-radius: 8px;
+      padding: 20px;
+      color: #333;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      resize: vertical;
+    }
+    
+    /* Option 1: Double Stroke Layers */
+    .option-1::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border: 2px solid rgba(74, 97, 99, 0.6);
+      transform: translateZ(4rem);
+      border-radius: 8px;
+      pointer-events: none;
+      transition: 0.6s ease transform;
+    }
+    
+    .option-1:hover::before {
+      transform: translateZ(0);
+    }
+    
+    .option-1::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border: 2px solid rgba(74, 97, 99, 0.3);
+      transform: translateZ(-4rem);
+      border-radius: 8px;
+      pointer-events: none;
+      transition: 0.6s ease transform;
+    }
+    
+    .option-1:hover::after {
+      transform: translateZ(-1px);
+    }
+    
+    /* Option 2: Glowing Stroke Layers */
+    .option-2::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border: 1px solid rgba(241, 122, 126, 0.8);
+      transform: translateZ(4rem);
+      border-radius: 8px;
+      pointer-events: none;
+      box-shadow: 0 0 10px rgba(241, 122, 126, 0.4);
+      transition: 0.6s ease transform, 0.6s ease box-shadow;
+    }
+    
+    .option-2:hover::before {
+      transform: translateZ(0);
+      box-shadow: 0 0 20px rgba(241, 122, 126, 0.6);
+    }
+    
+    .option-2::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border: 1px solid rgba(241, 122, 126, 0.4);
+      transform: translateZ(-4rem);
+      border-radius: 8px;
+      pointer-events: none;
+      box-shadow: 0 0 15px rgba(241, 122, 126, 0.2);
+      transition: 0.6s ease transform, 0.6s ease box-shadow;
+    }
+    
+    .option-2:hover::after {
+      transform: translateZ(-1px);
+      box-shadow: 0 0 10px rgba(241, 122, 126, 0.3);
+    }
+    
+    /* Option 3: Dashed Stroke Layers */
+    .option-3::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border: 2px dashed rgba(87, 123, 255, 0.7);
+      transform: translateZ(4rem);
+      border-radius: 8px;
+      pointer-events: none;
+      transition: 0.6s ease transform;
+    }
+    
+    .option-3:hover::before {
+      transform: translateZ(0);
+    }
+    
+    .option-3::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border: 2px dashed rgba(87, 123, 255, 0.4);
+      transform: translateZ(-4rem);
+      border-radius: 8px;
+      pointer-events: none;
+      transition: 0.6s ease transform;
+    }
+    
+    .option-3:hover::after {
+      transform: translateZ(-1px);
+    }
+    
+    /* Option 4: Multi-layer Strokes with Different Colors */
+    .option-4::before {
+      content: '';
+      position: absolute;
+      inset: -1px;
+      border: 1px solid rgba(241, 122, 126, 0.8);
+      transform: translateZ(4rem);
+      border-radius: 8px;
+      pointer-events: none;
+      transition: 0.6s ease transform;
+    }
+    
+    .option-4:hover::before {
+      transform: translateZ(0);
+    }
+    
+    .option-4::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border: 1px solid rgba(87, 123, 255, 0.6);
+      transform: translateZ(-4rem);
+      border-radius: 8px;
+      pointer-events: none;
+      transition: 0.6s ease transform;
+    }
+    
+    .option-4:hover::after {
+      transform: translateZ(-1px);
+    }
+  </style>
+</head>
+<body>
+  <div class="playground-container">
+    <h1 class="playground-title">SVG Textarea 3D Transform Playground</h1>
+    
+    <div class="test-section">
+      <div class="test-label">Option 1: Double Stroke Layers (Teal/Gray)</div>
+      <div class="svg-textarea-3d option-1">
+        <div class="svg-textarea-content">
+          <textarea class="svg-textarea-mockup" placeholder="Enter SVG code here..."><svg width="100" height="100">
+  <circle cx="50" cy="50" r="40" fill="none" stroke="#F17A7E" stroke-width="2"/>
+</svg></textarea>
+        </div>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <div class="test-label">Option 2: Glowing Stroke Layers (Orange/Pink)</div>
+      <div class="svg-textarea-3d option-2">
+        <div class="svg-textarea-content">
+          <textarea class="svg-textarea-mockup" placeholder="Enter SVG code here..."><svg width="100" height="100">
+  <circle cx="50" cy="50" r="40" fill="none" stroke="#F17A7E" stroke-width="2"/>
+</svg></textarea>
+        </div>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <div class="test-label">Option 3: Dashed Stroke Layers (Blue)</div>
+      <div class="svg-textarea-3d option-3">
+        <div class="svg-textarea-content">
+          <textarea class="svg-textarea-mockup" placeholder="Enter SVG code here..."><svg width="100" height="100">
+  <circle cx="50" cy="50" r="40" fill="none" stroke="#F17A7E" stroke-width="2"/>
+</svg></textarea>
+        </div>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <div class="test-label">Option 4: Multi-color Stroke Layers (Orange + Blue)</div>
+      <div class="svg-textarea-3d option-4">
+        <div class="svg-textarea-content">
+          <textarea class="svg-textarea-mockup" placeholder="Enter SVG code here..."><svg width="100" height="100">
+  <circle cx="50" cy="50" r="40" fill="none" stroke="#F17A7E" stroke-width="2"/>
+</svg></textarea>
+        </div>
+      </div>
+    </div>
+    
+    <div class="test-section">
+      <div class="test-label">Reference: Hover over each SVG textarea to see the transform effect</div>
+      <div style="background: rgba(0, 0, 0, 0.7); padding: 20px; border-radius: 8px; backdrop-filter: blur(10px);">
+        <p style="color: #888888; margin: 0;">
+          This playground tests 3D transform effects on SVG textarea with different stroke-based depth layers.
+          Each option uses ::before and ::after pseudo-elements with borders/strokes instead of transparent fills.
+          Hover over each textarea to see it scale up and the stroke layers adjust.
+        </p>
+        <p style="color: #888888; margin-top: 12px;">
+          Reference: <a href="https://codepen.io/polypane/pen/ZExZzrp" target="_blank" style="color: #577bff;">CodePen - 3D Transform Effect</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

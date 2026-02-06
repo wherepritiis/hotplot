@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plotter Aesthetic - Hatching Patterns</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f1e8;
+            padding: 40px;
+            color: #2a2a2a;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: normal;
+            letter-spacing: 2px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .example {
+            background: white;
+            padding: 20px;
+            border: 2px solid #2a2a2a;
+        }
+
+        .example h2 {
+            font-size: 14px;
+            font-weight: normal;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Hatching Pattern Backgrounds */
+        .bg-diagonal-hatch {
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 8px,
+                #2a2a2a 8px,
+                #2a2a2a 9px
+            );
+        }
+
+        .bg-cross-hatch {
+            background-image: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 8px,
+                    #2a2a2a 8px,
+                    #2a2a2a 9px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 8px,
+                    #2a2a2a 8px,
+                    #2a2a2a 9px
+                );
+        }
+
+        .bg-horizontal-lines {
+            background-image: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 4px,
+                #2a2a2a 4px,
+                #2a2a2a 5px
+            );
+        }
+
+        .bg-vertical-lines {
+            background-image: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 4px,
+                #2a2a2a 4px,
+                #2a2a2a 5px
+            );
+        }
+
+        .bg-grid {
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 19px,
+                    #2a2a2a 19px,
+                    #2a2a2a 20px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 19px,
+                    #2a2a2a 19px,
+                    #2a2a2a 20px
+                );
+        }
+
+        .bg-dense-hatch {
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 3px,
+                #2a2a2a 3px,
+                #2a2a2a 4px
+            );
+        }
+
+        .bg-stipple {
+            background-image: 
+                radial-gradient(circle, #2a2a2a 1px, transparent 1px);
+            background-size: 8px 8px;
+        }
+
+        .bg-wave-lines {
+            background-image: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 6px,
+                #2a2a2a 6px,
+                #2a2a2a 7px,
+                transparent 7px,
+                transparent 9px,
+                #2a2a2a 9px,
+                #2a2a2a 10px
+            );
+        }
+
+        .bg-thick-thin-lines {
+            background-image: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 8px,
+                #2a2a2a 8px,
+                #2a2a2a 11px,
+                transparent 11px,
+                transparent 15px,
+                #2a2a2a 15px,
+                #2a2a2a 16px
+            );
+        }
+
+        .bg-diagonal-grid {
+            background-image: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 14px,
+                    #2a2a2a 14px,
+                    #2a2a2a 15px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 14px,
+                    #2a2a2a 14px,
+                    #2a2a2a 15px
+                );
+        }
+
+        .bg-parallel-hatch {
+            background-image: 
+                repeating-linear-gradient(
+                    30deg,
+                    transparent,
+                    transparent 5px,
+                    #2a2a2a 5px,
+                    #2a2a2a 6px
+                ),
+                repeating-linear-gradient(
+                    30deg,
+                    transparent,
+                    transparent 5px,
+                    #2a2a2a 5px,
+                    #2a2a2a 6px
+                );
+            background-position: 0 0, 10px 0;
+        }
+
+        .bg-brick-pattern {
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 14px,
+                    #2a2a2a 14px,
+                    #2a2a2a 15px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 29px,
+                    #2a2a2a 29px,
+                    #2a2a2a 30px
+                );
+        }
+
+        .bg-sparse-dots {
+            background-image: 
+                radial-gradient(circle, #2a2a2a 1.5px, transparent 1.5px);
+            background-size: 20px 20px;
+        }
+
+        .bg-dense-grid {
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 9px,
+                    #2a2a2a 9px,
+                    #2a2a2a 10px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 9px,
+                    #2a2a2a 9px,
+                    #2a2a2a 10px
+                );
+        }
+
+        .bg-contour-lines {
+            background-image: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 10px,
+                    #2a2a2a 10px,
+                    #2a2a2a 11px,
+                    transparent 11px,
+                    transparent 12px,
+                    #2a2a2a 12px,
+                    #2a2a2a 13px,
+                    transparent 13px,
+                    transparent 30px
+                );
+        }
+
+        .bg-weave-pattern {
+            background-image: 
+                repeating-linear-gradient(
+                    90deg,
+                    #2a2a2a 0px,
+                    #2a2a2a 1px,
+                    transparent 1px,
+                    transparent 5px
+                ),
+                repeating-linear-gradient(
+                    0deg,
+                    #2a2a2a 0px,
+                    #2a2a2a 1px,
+                    transparent 1px,
+                    transparent 5px
+                );
+            background-position: 0 0, 2.5px 2.5px;
+        }
+
+        /* Container styles */
+        .content-box {
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .inner-content {
+            background: white;
+            padding: 30px;
+            border: 2px solid #2a2a2a;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        /* Button styles */
+        .button {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.1s;
+        }
+
+        .button:hover {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0;
+            margin-top: 15px;
+        }
+
+        .button-group .button {
+            border-radius: 0;
+            flex: 1;
+        }
+
+        .button-group .button:not(:last-child) {
+            border-right: none;
+        }
+
+        .button-group .button.active {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        /* Input styles */
+        .input {
+            padding: 10px;
+            border: 2px solid #2a2a2a;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            width: 100%;
+            background: white;
+        }
+
+        .input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #2a2a2a;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pen Plotter Aesthetic Exploration: Hatching Patterns</h1>
+    
+    <div class="grid">
+        <!-- Example 1: Diagonal Hatching Background -->
+        <div class="example">
+            <h2>01. Diagonal Hatching Background</h2>
+            <div class="content-box bg-diagonal-hatch">
+                <div class="inner-content">
+                    <p>Code Editor Area</p>
+                    <div class="button-group">
+                        <button class="button active">Plot</button>
+                        <button class="button">Control</button>
+                        <button class="button">Serial</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 2: Cross Hatching Background -->
+        <div class="example">
+            <h2>02. Cross Hatching Background</h2>
+            <div class="content-box bg-cross-hatch">
+                <div class="inner-content">
+                    <p>Preview Area</p>
+                    <button class="button">Run Code</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 3: Horizontal Lines -->
+        <div class="example">
+            <h2>03. Horizontal Line Pattern</h2>
+            <div class="content-box bg-horizontal-lines">
+                <div class="inner-content">
+                    <p>Settings Panel</p>
+                    <input type="text" class="input" placeholder="Enter value..." />
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 4: Vertical Lines -->
+        <div class="example">
+            <h2>04. Vertical Line Pattern</h2>
+            <div class="content-box bg-vertical-lines">
+                <div class="inner-content">
+                    <p>Output Console</p>
+                    <div class="button-group">
+                        <button class="button">Clear</button>
+                        <button class="button">Copy</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 5: Grid Pattern -->
+        <div class="example">
+            <h2>05. Grid Pattern Background</h2>
+            <div class="content-box bg-grid">
+                <div class="inner-content">
+                    <p>Coordinate System</p>
+                    <button class="button">Reset Origin</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 6: Dense Hatching -->
+        <div class="example">
+            <h2>06. Dense Diagonal Hatching</h2>
+            <div class="content-box bg-dense-hatch">
+                <div class="inner-content">
+                    <p>Status Area</p>
+                    <div class="button-group">
+                        <button class="button">Connect</button>
+                        <button class="button">Disconnect</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 7: Stipple Dots -->
+        <div class="example">
+            <h2>07. Stipple Dot Pattern</h2>
+            <div class="content-box bg-stipple">
+                <div class="inner-content">
+                    <p>Log Panel</p>
+                    <button class="button">Clear All</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 8: Wave Lines -->
+        <div class="example">
+            <h2>08. Double Wave Lines</h2>
+            <div class="content-box bg-wave-lines">
+                <div class="inner-content">
+                    <p>Command Area</p>
+                    <input type="text" class="input" placeholder="G-code command..." />
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 9: Thick-Thin Lines -->
+        <div class="example">
+            <h2>09. Thick & Thin Lines</h2>
+            <div class="content-box bg-thick-thin-lines">
+                <div class="inner-content">
+                    <p>Toolpath View</p>
+                    <button class="button">Generate Path</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 10: Diagonal Grid -->
+        <div class="example">
+            <h2>10. Diagonal Grid Pattern</h2>
+            <div class="content-box bg-diagonal-grid">
+                <div class="inner-content">
+                    <p>Canvas Grid</p>
+                    <div class="button-group">
+                        <button class="button">Show</button>
+                        <button class="button active">Hide</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 11: Parallel Hatching -->
+        <div class="example">
+            <h2>11. Parallel Double Hatch</h2>
+            <div class="content-box bg-parallel-hatch">
+                <div class="inner-content">
+                    <p>Shading Preview</p>
+                    <button class="button">Apply</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 12: Brick Pattern -->
+        <div class="example">
+            <h2>12. Brick Grid Pattern</h2>
+            <div class="content-box bg-brick-pattern">
+                <div class="inner-content">
+                    <p>Layout Grid</p>
+                    <input type="text" class="input" placeholder="Grid size..." />
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 13: Sparse Dots -->
+        <div class="example">
+            <h2>13. Sparse Dot Grid</h2>
+            <div class="content-box bg-sparse-dots">
+                <div class="inner-content">
+                    <p>Reference Points</p>
+                    <button class="button">Mark Points</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 14: Dense Grid -->
+        <div class="example">
+            <h2>14. Fine Grid Pattern</h2>
+            <div class="content-box bg-dense-grid">
+                <div class="inner-content">
+                    <p>Paper Template</p>
+                    <div class="button-group">
+                        <button class="button">A4</button>
+                        <button class="button">A3</button>
+                        <button class="button">Letter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 15: Contour Lines -->
+        <div class="example">
+            <h2>15. Contour Line Pattern</h2>
+            <div class="content-box bg-contour-lines">
+                <div class="inner-content">
+                    <p>Topographic Style</p>
+                    <button class="button">Adjust Density</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 16: Weave Pattern -->
+        <div class="example">
+            <h2>16. Basket Weave Pattern</h2>
+            <div class="content-box bg-weave-pattern">
+                <div class="inner-content">
+                    <p>Texture Background</p>
+                    <button class="button">Randomize</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

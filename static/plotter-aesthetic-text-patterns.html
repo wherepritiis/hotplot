@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plotter Aesthetic - Text Patterns</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f1e8;
+            padding: 40px;
+            color: #2a2a2a;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: normal;
+            letter-spacing: 2px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .example {
+            background: white;
+            padding: 20px;
+            border: 2px solid #2a2a2a;
+        }
+
+        .example h2 {
+            font-size: 14px;
+            font-weight: normal;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Text Pattern Backgrounds */
+        .text-grid-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 10px;
+            line-height: 12px;
+            letter-spacing: 8px;
+            color: rgba(42, 42, 42, 0.3);
+            word-break: break-all;
+        }
+
+        .text-grid-bg::before {
+            content: 'PLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOT';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .dot-grid-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 12px;
+            line-height: 16px;
+            letter-spacing: 16px;
+            color: rgba(42, 42, 42, 0.4);
+            word-break: break-all;
+        }
+
+        .dot-grid-bg::before {
+            content: '· · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .plus-grid-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 10px;
+            line-height: 14px;
+            letter-spacing: 12px;
+            color: rgba(42, 42, 42, 0.3);
+            word-break: break-all;
+        }
+
+        .plus-grid-bg::before {
+            content: '+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .hash-grid-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 10px;
+            line-height: 14px;
+            letter-spacing: 10px;
+            color: rgba(42, 42, 42, 0.35);
+            word-break: break-all;
+        }
+
+        .hash-grid-bg::before {
+            content: '# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # ';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .letter-pattern-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 9px;
+            line-height: 11px;
+            letter-spacing: 6px;
+            color: rgba(42, 42, 42, 0.25);
+            word-break: break-all;
+        }
+
+        .letter-pattern-bg::before {
+            content: 'AXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAWAXIDRAW';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .mixed-chars-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 10px;
+            line-height: 13px;
+            letter-spacing: 8px;
+            color: rgba(42, 42, 42, 0.3);
+            word-break: break-all;
+        }
+
+        .mixed-chars-bg::before {
+            content: 'o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l o i I l ';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .cross-text-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 10px;
+            line-height: 12px;
+            letter-spacing: 10px;
+            color: rgba(42, 42, 42, 0.25);
+            word-break: break-all;
+        }
+
+        .cross-text-bg::before {
+            content: '+ + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + + ';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .asterisk-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 11px;
+            line-height: 14px;
+            letter-spacing: 14px;
+            color: rgba(42, 42, 42, 0.3);
+            word-break: break-all;
+        }
+
+        .asterisk-bg::before {
+            content: '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .x-marks-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 12px;
+            line-height: 15px;
+            letter-spacing: 12px;
+            color: rgba(42, 42, 42, 0.25);
+            word-break: break-all;
+        }
+
+        .x-marks-bg::before {
+            content: 'X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X X ';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .numbers-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 9px;
+            line-height: 11px;
+            letter-spacing: 8px;
+            color: rgba(42, 42, 42, 0.2);
+            word-break: break-all;
+        }
+
+        .numbers-bg::before {
+            content: '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .brackets-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 11px;
+            line-height: 13px;
+            letter-spacing: 10px;
+            color: rgba(42, 42, 42, 0.3);
+            word-break: break-all;
+        }
+
+        .brackets-bg::before {
+            content: '[ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] [ ] ';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .equals-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 11px;
+            line-height: 13px;
+            letter-spacing: 10px;
+            color: rgba(42, 42, 42, 0.25);
+            word-break: break-all;
+        }
+
+        .equals-bg::before {
+            content: '= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .slashes-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 10px;
+            line-height: 12px;
+            letter-spacing: 8px;
+            color: rgba(42, 42, 42, 0.3);
+            word-break: break-all;
+        }
+
+        .slashes-bg::before {
+            content: '/ / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / ';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .underscore-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 10px;
+            line-height: 12px;
+            letter-spacing: 4px;
+            color: rgba(42, 42, 42, 0.35);
+            word-break: break-all;
+        }
+
+        .underscore-bg::before {
+            content: '_______________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .pipe-bg {
+            height: 250px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+            font-size: 10px;
+            line-height: 12px;
+            letter-spacing: 8px;
+            color: rgba(42, 42, 42, 0.3);
+            word-break: break-all;
+        }
+
+        .pipe-bg::before {
+            content: '| | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | | ';
+            position: absolute;
+            inset: 0;
+            padding: 10px;
+        }
+
+        .content-inner {
+            position: relative;
+            z-index: 2;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 15px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            max-width: 70%;
+            margin: 0 auto;
+            margin-top: 50px;
+        }
+
+        .button {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid #2a2a2a;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button:hover {
+            background: #2a2a2a;
+            color: white;
+        }
+
+        .input {
+            padding: 8px 12px;
+            border: 2px solid #2a2a2a;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pen Plotter Aesthetic Exploration: Text Patterns</h1>
+    
+    <div class="grid">
+        <!-- Example 1: PLOT text grid -->
+        <div class="example">
+            <h2>01. Repeated Text Pattern</h2>
+            <div class="text-grid-bg">
+                <div class="content-inner">
+                    <p>Editor</p>
+                    <button class="button">Run</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 2: Dot grid -->
+        <div class="example">
+            <h2>02. Dot Grid Pattern</h2>
+            <div class="dot-grid-bg">
+                <div class="content-inner">
+                    <p>Preview</p>
+                    <button class="button">Export</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 3: Plus grid -->
+        <div class="example">
+            <h2>03. Plus Sign Grid</h2>
+            <div class="plus-grid-bg">
+                <div class="content-inner">
+                    <p>Settings</p>
+                    <input type="text" class="input" placeholder="Value..." />
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 4: Hash grid -->
+        <div class="example">
+            <h2>04. Hash Symbol Grid</h2>
+            <div class="hash-grid-bg">
+                <div class="content-inner">
+                    <p>Output</p>
+                    <button class="button">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 5: Letter pattern -->
+        <div class="example">
+            <h2>05. Custom Text Pattern</h2>
+            <div class="letter-pattern-bg">
+                <div class="content-inner">
+                    <p>Console</p>
+                    <button class="button">Connect</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 6: Mixed characters -->
+        <div class="example">
+            <h2>06. Mixed Character Pattern</h2>
+            <div class="mixed-chars-bg">
+                <div class="content-inner">
+                    <p>Status</p>
+                    <button class="button">Refresh</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 7: Cross Pattern -->
+        <div class="example">
+            <h2>07. Plus Signs Dense</h2>
+            <div class="cross-text-bg">
+                <div class="content-inner">
+                    <p>Alignment Grid</p>
+                    <button class="button">Center</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 8: Asterisks -->
+        <div class="example">
+            <h2>08. Asterisk Field</h2>
+            <div class="asterisk-bg">
+                <div class="content-inner">
+                    <p>Starfield Effect</p>
+                    <button class="button">Animate</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 9: X Marks -->
+        <div class="example">
+            <h2>09. X Pattern Grid</h2>
+            <div class="x-marks-bg">
+                <div class="content-inner">
+                    <p>Crosshatch Text</p>
+                    <input type="text" class="input" placeholder="Input..." />
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 10: Numbers -->
+        <div class="example">
+            <h2>10. Sequential Numbers</h2>
+            <div class="numbers-bg">
+                <div class="content-inner">
+                    <p>Data Background</p>
+                    <button class="button">Calculate</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 11: Brackets -->
+        <div class="example">
+            <h2>11. Bracket Pattern</h2>
+            <div class="brackets-bg">
+                <div class="content-inner">
+                    <p>Code Context</p>
+                    <button class="button">Format</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 12: Equals Signs -->
+        <div class="example">
+            <h2>12. Equals Grid</h2>
+            <div class="equals-bg">
+                <div class="content-inner">
+                    <p>Equation Area</p>
+                    <input type="text" class="input" placeholder="Expression..." />
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 13: Slashes -->
+        <div class="example">
+            <h2>13. Forward Slash Pattern</h2>
+            <div class="slashes-bg">
+                <div class="content-inner">
+                    <p>Path Display</p>
+                    <button class="button">Browse</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 14: Underscores -->
+        <div class="example">
+            <h2>14. Underscore Lines</h2>
+            <div class="underscore-bg">
+                <div class="content-inner">
+                    <p>Form Field</p>
+                    <button class="button">Fill</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Example 15: Pipes -->
+        <div class="example">
+            <h2>15. Vertical Pipe Grid</h2>
+            <div class="pipe-bg">
+                <div class="content-inner">
+                    <p>Column Layout</p>
+                    <button class="button">Adjust</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

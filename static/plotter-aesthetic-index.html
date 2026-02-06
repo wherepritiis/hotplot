@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pen Plotter Aesthetic Explorations</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #f5f1e8;
+            padding: 60px 40px;
+            color: #2a2a2a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-weight: normal;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border: 2px solid #2a2a2a;
+            padding: 30px;
+            text-decoration: none;
+            color: #2a2a2a;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-height: 200px;
+        }
+
+        .card:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 8px 8px 0 #2a2a2a;
+        }
+
+        .card-number {
+            font-size: 48px;
+            font-weight: bold;
+            opacity: 0.3;
+            line-height: 1;
+        }
+
+        .card-title {
+            font-size: 18px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .card-description {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #666;
+            flex: 1;
+        }
+
+        .card-preview {
+            height: 80px;
+            border: 1px solid #2a2a2a;
+            margin-top: 10px;
+        }
+
+        .preview-hatching {
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 6px,
+                #2a2a2a 6px,
+                #2a2a2a 7px
+            );
+        }
+
+        .preview-3d {
+            background: white;
+            transform: perspective(400px) rotateY(-5deg);
+            box-shadow: 4px 4px 0 #2a2a2a;
+        }
+
+        .preview-text {
+            background: white;
+            font-size: 8px;
+            line-height: 10px;
+            letter-spacing: 6px;
+            color: rgba(42, 42, 42, 0.3);
+            overflow: hidden;
+            padding: 5px;
+        }
+
+        .preview-color {
+            background: 
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 5px,
+                    #E85D75 5px,
+                    #E85D75 6px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 5px,
+                    #4A6FA5 5px,
+                    #4A6FA5 6px
+                );
+        }
+
+        .preview-combined {
+            background: white;
+            border-left: 3px solid #E85D75;
+            border-right: 3px solid #4A6FA5;
+        }
+
+        .footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Pen Plotter Aesthetics</h1>
+        <p class="subtitle">62 Design Variations for AxiDraw Control Panel</p>
+    </div>
+
+    <div class="grid">
+        <a href="plotter-aesthetic-hatching.html" class="card">
+            <div class="card-number">01</div>
+            <div class="card-title">Hatching Patterns</div>
+            <div class="card-description">
+                16 variations: diagonal, cross-hatch, horizontal, vertical, grids, stipple, wave lines, brick patterns, and more.
+            </div>
+            <div class="card-preview preview-hatching"></div>
+        </a>
+
+        <a href="plotter-aesthetic-3d-perspective.html" class="card">
+            <div class="card-number">02</div>
+            <div class="card-title">3D Perspective</div>
+            <div class="card-description">
+                15 variations: perspective transforms, isometric views, stacked papers, folded corners, floating boxes, and shadows.
+            </div>
+            <div class="card-preview preview-3d"></div>
+        </a>
+
+        <a href="plotter-aesthetic-text-patterns.html" class="card">
+            <div class="card-number">03</div>
+            <div class="card-title">Text Patterns</div>
+            <div class="card-description">
+                15 variations: repeated text, dots, plus signs, asterisks, numbers, brackets, slashes, underscores, and pipes.
+            </div>
+            <div class="card-preview preview-text">PLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOTPLOT</div>
+        </a>
+
+        <a href="plotter-aesthetic-colors.html" class="card">
+            <div class="card-number">04</div>
+            <div class="card-title">Color Variations</div>
+            <div class="card-description">
+                16 variations: red/blue hatches, gradients, stipples, dual-tone grids, colored borders, split tones, and layered shadows.
+            </div>
+            <div class="card-preview preview-color"></div>
+        </a>
+
+        <a href="plotter-aesthetic-combined.html" class="card">
+            <div class="card-number">05</div>
+            <div class="card-title">Combined Layouts</div>
+            <div class="card-description">
+                4 complete interface layouts mixing different aesthetics - perfect for testing full-page combinations.
+            </div>
+            <div class="card-preview preview-combined"></div>
+        </a>
+    </div>
+
+    <div class="footer">
+        <p>Reference exploration pages • Not integrated with main application</p>
+    </div>
+</body>
+</html>
