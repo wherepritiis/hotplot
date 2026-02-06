@@ -3,7 +3,7 @@
    ============================================ */
 * {
   box-sizing: border-box;
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 /* Hide elements until AlpineJS is ready */
@@ -23,7 +23,7 @@
 }
 
 body {
-  font-family: "oaks", sans-serif !important;
+  font-family: 'Courier New', Courier, monospace !important;
   background-color: #f5f1e8;
   color: #2a2a2a;
   line-height: 1.6;
@@ -33,7 +33,7 @@ body {
 /* Override Tachyons sans-serif class */
 body.sans-serif,
 .sans-serif {
-  font-family: "oaks", sans-serif !important;
+  font-family: 'Courier New', Courier, monospace !important;
 }
 
 /* Container */
@@ -349,11 +349,11 @@ body.sans-serif,
    ============================================ */
 .CodeMirror {
   border: none;
-  font-family: "logic-monospace", monospace !important;
+  font-family: 'Courier New', Courier, monospace !important;
 }
 
 .CodeMirror * {
-  font-family: "logic-monospace", monospace !important;
+  font-family: 'Courier New', Courier, monospace !important;
 }
 
 .CodeMirror-focused {
@@ -513,12 +513,12 @@ body.sans-serif,
   gap: 0;
 }
 .brand-letter {
-  font-size: 24px;
+  font-size: 30px;
   font-weight: 700;
   color: #2a2a2a;
   letter-spacing: 0.02em;
   line-height: 1;
-  font-family: "oaks-expanded", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
 }
 .brand-letter--h { color: #2a2a2a; }
 .brand-rest { color: #2a2a2a; }
@@ -574,22 +574,23 @@ body.sans-serif,
 }
 .brand-status-o {
   display: inline-block;
-  font-family: "oaks-expanded", sans-serif;
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.02em;
-  margin: 0 0.12em 0 0.12em;
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  font-size: 30px;
+  line-height: 0;
+  box-sizing: border-box;
+  margin: 0.08em 0.12em 0 0.12em;
   flex-shrink: 0;
-  transition: color 0.25s ease, text-shadow 0.25s ease;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease;
 }
 .brand-status-o.brand-status--connected {
-  color: #33ff00;
-  text-shadow: 0 0 8px rgba(51, 255, 0, 0.5);
+  background-color: #33ff00;
+  box-shadow: 0 0 8px rgba(51, 255, 0, 0.5);
 }
 .brand-status-o.brand-status--disconnected {
-  color: #ff3333;
-  text-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
+  background-color: #ff3333;
+  box-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
 }
 
 
@@ -677,7 +678,7 @@ body.sans-serif,
   font-size: 16px;
   font-weight: 500;
   color: #888888;
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
   border-radius: 12px;
   flex: 1;
   display: flex;
@@ -804,7 +805,7 @@ body.sans-serif,
   text-transform: uppercase;
   letter-spacing: 1px;
   transition: all 0.2s ease;
-  font-family: "oaks-expanded", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .btn:hover {
@@ -879,7 +880,7 @@ body.sans-serif,
   cursor: pointer;
   font-size: 16px;
   font-weight: 500;
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
   text-decoration: underline;
   transition: color 0.3s ease;
 }
@@ -896,7 +897,7 @@ body.sans-serif,
   border: 2px solid #2a2a2a;
   padding: 24px;
   margin-bottom: 24px;
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .panel-title {
@@ -928,7 +929,7 @@ body.sans-serif,
   border: 2px solid #2a2a2a;
   color: #2a2a2a;
   font-size: 12px;
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
   transition: all 0.2s ease;
 }
 
@@ -941,9 +942,17 @@ body.sans-serif,
   box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.2);
 }
 
+/* Number input: show up/down arrows (spinners) at all times */
+input[type="number"].input-field::-webkit-inner-spin-button,
+input[type="number"].input-field::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
 .input-field-textarea {
   min-height: 200px;
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
   resize: vertical;
 }
 
@@ -1190,7 +1199,7 @@ body.sans-serif,
   display: flex;
   flex-direction: column;
   z-index: 9999;
-  font-family: "logic-monospace", monospace;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .log-panel-header {
@@ -1209,7 +1218,7 @@ body.sans-serif,
   letter-spacing: 2px;
   color: #2a2a2a;
   margin: 0;
-  font-family: "logic-monospace", monospace;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .log-panel-close {
@@ -1220,7 +1229,7 @@ body.sans-serif,
   font-size: 24px;
   padding: 0;
   line-height: 1;
-  font-family: "logic-monospace", monospace;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .log-panel-close:hover {
@@ -1250,7 +1259,7 @@ body.sans-serif,
    LOG AREA STYLING
    ============================================ */
 #logArea {
-  font-family: "logic-monospace", monospace;
+  font-family: 'Courier New', Courier, monospace;
   font-size: 12px;
   color: #2a2a2a;
 }
@@ -1298,13 +1307,13 @@ body.sans-serif,
   letter-spacing: 1px;
   color: #2a2a2a;
   margin-bottom: 4px;
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .command-description {
   font-size: 12px;
   color: #2a2a2a;
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 /* ============================================
@@ -1317,7 +1326,7 @@ body.sans-serif,
   border: 2px solid #2a2a2a;
   padding: 16px;
   overflow: auto;
-  font-family: "logic-monospace", monospace;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .repl-input-container {
@@ -1333,7 +1342,7 @@ body.sans-serif,
 .repl-history-empty {
   color: rgba(42, 42, 42, 0.5);
   font-size: 12px;
-  font-family: "logic-monospace", monospace;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .repl-entry {
@@ -1344,7 +1353,7 @@ body.sans-serif,
   font-size: 12px;
   color: #2a2a2a;
   margin-bottom: 4px;
-  font-family: "logic-monospace", monospace;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .repl-command-prompt {
@@ -1357,7 +1366,7 @@ body.sans-serif,
   font-size: 12px;
   color: #2a2a2a;
   margin-left: 20px;
-  font-family: "logic-monospace", monospace;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 /* ============================================
@@ -1457,6 +1466,8 @@ body.sans-serif,
   margin-left: 40px;
   min-height: 42px;
   height: 42px;
+  overflow: hidden;
+  padding-top: 2px;
 }
 
 .tabs-container {
@@ -1477,7 +1488,7 @@ body.sans-serif,
   transition: none;
   position: relative;
   top: 2px;
-  font-family: "oaks-expanded", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
   box-sizing: border-box;
   min-height: 44px;
   height: 44px;
@@ -1493,8 +1504,10 @@ body.sans-serif,
 
 .tab.active {
   background: white;
-  border: 2px solid #2a2a2a;
-  border-bottom: 2px solid #f5f1e8;
+  border-left: 2px solid #2a2a2a;
+  border-right: 2px solid #2a2a2a;
+  border-top: 2px solid #2a2a2a;
+  border-bottom: none;
   z-index: 1;
   font-weight: bold;
   box-sizing: border-box;
@@ -1519,7 +1532,7 @@ body.sans-serif,
   background: white;
   border: 2px solid #2a2a2a;
   cursor: pointer;
-  font-family: "oaks-expanded", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -1613,7 +1626,7 @@ body.sans-serif,
   min-height: 340px;
   border: none;
   padding: 0;
-  font-family: "logic-monospace", monospace;
+  font-family: 'Courier New', Courier, monospace;
   font-size: 13px;
   resize: none;
   margin: 0;
@@ -1654,7 +1667,8 @@ body.sans-serif,
   align-items: center;
   justify-content: center;
   color: rgba(42, 42, 42, 0.5);
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
   font-weight: 400;
   overflow: hidden;
   position: relative;
@@ -1693,6 +1707,13 @@ body.sans-serif,
   padding: 20px;
 }
 
+.svg-textarea-container.svg-and-settings-outer {
+  border-top: 4px solid #e27d7f;
+  border-bottom: 4px solid #5e84b8;
+  border-left: 2px solid #2a2a2a;
+  border-right: 2px solid #2a2a2a;
+}
+
 .svg-and-settings-outer {
   grid-column: 1 / -1;
 }
@@ -1722,7 +1743,7 @@ body.sans-serif,
   margin-bottom: 20px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
   color: #2a2a2a;
 }
 
@@ -1733,13 +1754,13 @@ body.sans-serif,
   background: white;
   border: 2px solid #2a2a2a;
   overflow: hidden;
-  font-size: 10px;
-  line-height: 12px;
+  font-size: 8px;
+  line-height: 14px;
   letter-spacing: 10px;
   color: rgba(42, 42, 42, 0.3);
   word-break: break-all;
   margin-bottom: 0;
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .svg-textarea-slash-bg::before {
@@ -1772,7 +1793,7 @@ body.sans-serif,
   background: transparent;
   border: none;
   padding: 15px;
-  font-family: "logic-monospace", monospace;
+  font-family: 'Courier New', Courier, monospace;
   font-size: 12px;
   resize: vertical;
   color: #2a2a2a;
@@ -1784,7 +1805,8 @@ body.sans-serif,
 }
 
 .svg-textarea::placeholder {
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
   font-weight: 400;
 }
 
@@ -1822,7 +1844,7 @@ body.sans-serif,
   width: 100%;
   padding: 10px;
   border: 2px solid #2a2a2a;
-  font-family: "oaks", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
   font-size: 12px;
   background: white;
   color: #2a2a2a;
@@ -1844,7 +1866,7 @@ body.sans-serif,
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30px;
-  margin-bottom: 30px;
+  margin-bottom: 0;
 }
 
 /* Magnetic Button Styles */
@@ -1875,7 +1897,7 @@ body.sans-serif,
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  font-family: "oaks-expanded", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
   color: #2a2a2a;
   pointer-events: auto;
   z-index: 0;
@@ -1888,8 +1910,9 @@ body.sans-serif,
 
 /* Preview Button - Pinkish Red */
 #previewBtn {
+  background: #E85D75;
   border-color: #E85D75;
-  color: #E85D75;
+  color: white;
 }
 
 #previewBtn:hover {
@@ -1903,8 +1926,9 @@ body.sans-serif,
 
 /* Copy SVG Button - Blue */
 #copySvgBtn {
+  background: #4A6FA5;
   border-color: #4A6FA5;
-  color: #4A6FA5;
+  color: white;
 }
 
 #copySvgBtn:hover {
@@ -1967,10 +1991,10 @@ body.sans-serif,
 
 .preview-curved-text text {
     fill: #E85D75;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: normal;
     letter-spacing: 0.1em;
-    font-family: "oaks", sans-serif;
+    font-family: system-ui, -apple-system, sans-serif;
 }
 
 /* Curved Text Around Copy SVG Button */
@@ -1994,16 +2018,16 @@ body.sans-serif,
 
 .copy-svg-curved-text text {
     fill: #4A6FA5;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: normal;
     letter-spacing: 0.1em;
-    font-family: "oaks", sans-serif;
+    font-family: system-ui, -apple-system, sans-serif;
 }
 
 /* CodeMirror adjustments for plotter aesthetic */
 .CodeMirror,
 .CodeMirror * {
-  font-family: "logic-monospace", monospace !important;
+  font-family: 'Courier New', Courier, monospace !important;
 }
 
 .CodeMirror {
@@ -2022,7 +2046,7 @@ body.sans-serif,
 .CodeMirror-lines,
 .CodeMirror-line,
 .CodeMirror pre {
-  font-family: "logic-monospace", monospace !important;
+  font-family: 'Courier New', Courier, monospace !important;
 }
 
 .CodeMirror-gutters {
@@ -2040,7 +2064,7 @@ body.sans-serif,
   background: white;
   border: 2px solid #2a2a2a;
   cursor: pointer;
-  font-family: "oaks-expanded", sans-serif;
+  font-family: 'Courier New', Courier, monospace;
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 1px;

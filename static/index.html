@@ -4,8 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AxiDraw Control Panel</title>
-    <!-- Adobe Typekit Font -->
-    <link rel="stylesheet" href="https://use.typekit.net/bac6sng.css">
     <!-- Tachyons CSS -->
     <link
       rel="stylesheet"
@@ -215,11 +213,11 @@
         </span>
         <span class="brand-letter brand-rest" aria-hidden="true">tpl</span>
         <span
-          class="brand-letter brand-status-o"
+          class="brand-status-o"
           :class="connected ? 'brand-status--connected' : 'brand-status--disconnected'"
           id="brandStatusO"
           aria-label="Connection status"
-        >O</span>
+        ></span>
         <span class="brand-letter brand-rest" aria-hidden="true">t</span>
       </div>
 
@@ -310,10 +308,10 @@
                   <path id="preview-path-p5js" d="M 100,25 A 75,75 0 0,1 175,100" fill="none"/>
                   <path id="preview-path-sketch" d="M 175,100 A 75,75 0 0,1 25,100" fill="none"/>
                 </defs>
-                <text font-size="12" fill="#2a2a2a" letter-spacing="0.1em" font-family="oaks, sans-serif">
-                  <textPath href="#preview-path-p5js" startOffset="0%">p 5 . j s</textPath>
+                <text font-size="16" fill="#2a2a2a" letter-spacing="0.1em" font-family="system-ui, -apple-system, sans-serif">
+                  <textPath href="#preview-path-p5js" startOffset="15%">p5. js</textPath>
                 </text>
-                <text font-size="12" fill="#2a2a2a" letter-spacing="0.1em" font-family="oaks, sans-serif">
+                <text font-size="16" fill="#2a2a2a" letter-spacing="0.1em" font-family="system-ui, -apple-system, sans-serif">
                   <textPath href="#preview-path-sketch" startOffset="0%">s k e t c h</textPath>
                 </text>
               </svg>
@@ -324,7 +322,6 @@
         <!-- Preview Container - Red Dot Stipple -->
         <div class="preview-container">
           <div id="previewContainer">
-            Click Preview to see your sketch
           </div>
           
           <!-- Copy SVG Button - Magnetic Effect -->
@@ -340,10 +337,10 @@
                   <path id="copy-path-copy-text" d="M 100,25 A 75,75 0 0,1 175,100" fill="none"/>
                   <path id="copy-path-svg-text" d="M 175,100 A 75,75 0 0,1 25,100" fill="none"/>
                 </defs>
-                <text font-size="12" fill="#2a2a2a" letter-spacing="0.1em" font-family="oaks, sans-serif">
+                <text font-size="16" fill="#2a2a2a" letter-spacing="0.1em" font-family="system-ui, -apple-system, sans-serif">
                   <textPath href="#copy-path-copy-text" startOffset="0%">c o p y</textPath>
                 </text>
-                <text font-size="12" fill="#2a2a2a" letter-spacing="0.1em" font-family="oaks, sans-serif">
+                <text font-size="16" fill="#2a2a2a" letter-spacing="0.1em" font-family="system-ui, -apple-system, sans-serif">
                   <textPath href="#copy-path-svg-text" startOffset="0%">s v g</textPath>
                 </text>
               </svg>
@@ -368,8 +365,8 @@
             <div class="plotter-settings-content">
               <div class="settings-header">Plotter Settings</div>
               <div class="control-group">
-                <label class="control-label" for="layerInput">Layer Number (optional)</label>
-                <input type="number" id="layerInput" placeholder="Leave empty for all layers" class="input-field" />
+                <label class="control-label" for="layerInput">Layer Number</label>
+                <input type="number" id="layerInput" placeholder="Leave empty to plot all layers" class="input-field" />
               </div>
               <div class="control-group">
                 <div class="input-grid">
