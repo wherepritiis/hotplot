@@ -1655,6 +1655,7 @@ body.sans-serif,
   justify-content: center;
   color: rgba(42, 42, 42, 0.5);
   font-family: "oaks", sans-serif;
+  font-weight: 400;
   overflow: hidden;
   position: relative;
 }
@@ -1721,7 +1722,7 @@ body.sans-serif,
   margin-bottom: 20px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-family: "logic-monospace", monospace;
+  font-family: "oaks", sans-serif;
   color: #2a2a2a;
 }
 
@@ -1780,6 +1781,11 @@ body.sans-serif,
 .svg-textarea:focus {
   outline: none;
   box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.2);
+}
+
+.svg-textarea::placeholder {
+  font-family: "oaks", sans-serif;
+  font-weight: 400;
 }
 
 /* Plotter Settings - content only (no box when inside .svg-and-settings-outer) */
