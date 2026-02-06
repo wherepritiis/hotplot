@@ -292,16 +292,7 @@
         <div class="editor-container">
           <div class="editor-header">Code Editor</div>
           <div class="editor-content">
-            <textarea id="codeEditor">function setup() {
-  createCanvas(780, 560);
-  noFill();
-  stroke(42, 42, 42);
-}
-
-function draw() {
-  square(50, 100, 40);
-  circle(150, 120, 60);
-}</textarea>
+            <textarea id="codeEditor"></textarea>
           </div>
           
           <!-- Preview Button - Magnetic Effect -->
@@ -932,8 +923,22 @@ function draw() {
         return svgString;
       }
 
-      // Initialize CodeMirror when page loads
-      window.addEventListener("DOMContentLoaded", function () {
+      // Initialize CodeMirror after DOM and Alpine.js are ready
+      function initCodeMirror() {
+        const textarea = document.getElementById("codeEditor");
+        const plotMode = document.getElementById("plotMode");
+        
+        // Ensure elements exist
+        if (!textarea || !plotMode) {
+          return false;
+        }
+        
+        // Check if plot mode is visible (Alpine.js x-show has rendered it)
+        const computedStyle = window.getComputedStyle(plotMode);
+        if (computedStyle.display === 'none') {
+          return false;
+        }
+        
         // Load CodeMirror script dynamically
         const codemirrorScript = document.createElement("script");
         codemirrorScript.src = "/static/vendor/codemirror/codemirror.js";
@@ -942,50 +947,41 @@ function draw() {
           jsModeScript.src =
             "/static/vendor/codemirror/mode/javascript/javascript.js";
           jsModeScript.onload = function () {
-            const textarea = document.getElementById("codeEditor");
-            // Ensure textarea has the value before CodeMirror reads it
-            if (textarea.value !== defaultCode) {
-              textarea.value = defaultCode;
-            }
-            // Hide textarea before CodeMirror initialization to prevent theme flash
-            textarea.style.visibility = 'hidden';
-            textarea.style.opacity = '0';
+            // Set default code in textarea before initialization
+            textarea.value = defaultCode;
             
+            // Initialize CodeMirror
             codeEditor = CodeMirror.fromTextArea(textarea, {
               lineNumbers: true,
               mode: "javascript",
               theme: "default",
               indentUnit: 2,
               lineWrapping: true,
+              value: defaultCode,
+              readOnly: false,
             });
             
-            // Ensure textarea stays hidden
-            if (textarea.parentNode) {
-              textarea.style.display = 'none';
-              textarea.style.visibility = 'hidden';
-            }
-            
-            // Show editor-content only after CodeMirror is ready with correct theme
-            const editorContent = document.querySelector('.editor-content');
-            if (editorContent) {
-              // Force a repaint to ensure theme is applied
-              codeEditor.refresh();
-              // Small delay to ensure theme is fully applied
-              requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                  editorContent.classList.add('cm-ready');
-                });
-              });
-            }
-            
-            // Set value immediately after creation
+            // Focus the editor after initialization
             setTimeout(() => {
-              codeEditor.setValue(defaultCode);
-            }, 0);
+              codeEditor.focus();
+            }, 100);
           };
           document.head.appendChild(jsModeScript);
         };
         document.head.appendChild(codemirrorScript);
+        
+        return true;
+      }
+      
+      // Wait for DOM and Alpine.js to be ready
+      window.addEventListener("DOMContentLoaded", function () {
+        // Try to initialize, retry if Alpine hasn't rendered yet
+        function tryInit() {
+          if (!initCodeMirror()) {
+            setTimeout(tryInit, 50);
+          }
+        }
+        tryInit();
       });
 
       function runPreview() {

@@ -3,6 +3,7 @@
    ============================================ */
 * {
   box-sizing: border-box;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 /* Hide elements until AlpineJS is ready */
@@ -22,11 +23,17 @@
 }
 
 body {
-  font-family: 'Courier New', monospace;
+  font-family: 'Courier New', Courier, monospace !important;
   background-color: #f5f1e8;
   color: #2a2a2a;
   line-height: 1.6;
   cursor: url('cursor_c.png') 0 0, auto;
+}
+
+/* Override Tachyons sans-serif class */
+body.sans-serif,
+.sans-serif {
+  font-family: 'Courier New', Courier, monospace !important;
 }
 
 /* Container */
@@ -342,7 +349,11 @@ body {
    ============================================ */
 .CodeMirror {
   border: none;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
+.CodeMirror * {
+  font-family: 'Courier New', Courier, monospace !important;
 }
 
 .CodeMirror-focused {
@@ -353,10 +364,12 @@ body {
 .CodeMirror-scroll {
   padding: 12px;
   background: transparent;
+  pointer-events: auto;
 }
 
 .CodeMirror-lines {
   padding: 0;
+  pointer-events: auto;
 }
 
 .perspective-box-container .CodeMirror {
@@ -665,7 +678,7 @@ body {
   font-size: 16px;
   font-weight: 500;
   color: #888888;
-  font-family: inherit;
+  font-family: 'Courier New', Courier, monospace;
   border-radius: 12px;
   flex: 1;
   display: flex;
@@ -867,7 +880,7 @@ body {
   cursor: pointer;
   font-size: 16px;
   font-weight: 500;
-  font-family: inherit;
+  font-family: 'Courier New', Courier, monospace;
   text-decoration: underline;
   transition: color 0.3s ease;
 }
@@ -1539,18 +1552,19 @@ body {
     9px 9px 0 white,
     9px 9px 0 2px #2a2a2a;
   position: relative;
-  min-height: 480px;
-  height: 480px;
+  min-height: 400px;
+  height: 400px;
   box-sizing: border-box;
   will-change: auto;
+  pointer-events: auto;
 }
 
 .editor-header {
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 2px;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
   border-bottom: 2px solid #2a2a2a;
   color: #2a2a2a;
 }
@@ -1559,18 +1573,11 @@ body {
   background: white;
   border: none;
   position: relative;
-  min-height: 400px;
-  height: 400px;
+  min-height: 340px;
+  height: 340px;
   overflow: hidden;
   will-change: auto;
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.1s;
-}
-
-.editor-content.cm-ready {
-  visibility: visible;
-  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Ensure CodeMirror matches default theme immediately - prevent any theme flash */
@@ -1604,7 +1611,7 @@ body {
 .editor-content textarea {
   width: 100%;
   height: 100%;
-  min-height: 400px;
+  min-height: 340px;
   border: none;
   padding: 0;
   font-family: 'Courier New', monospace;
@@ -1614,22 +1621,17 @@ body {
   box-sizing: border-box;
   background: white;
   color: #2a2a2a;
-  visibility: hidden;
-  opacity: 0;
 }
 
-/* Show textarea only if CodeMirror is not available (fallback) */
-.editor-content:not(:has(.CodeMirror)) textarea {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* Hide textarea once CodeMirror is initialized */
-.editor-content .CodeMirror + textarea,
-.editor-content:has(.CodeMirror) textarea {
+/* Hide textarea only AFTER CodeMirror is initialized */
+/* CodeMirror.fromTextArea automatically hides the textarea, but we ensure it stays hidden */
+/* IMPORTANT: Only target #codeEditor, not CodeMirror's internal textarea */
+.editor-content:has(.CodeMirror) textarea#codeEditor {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+  left: -9999px !important;
   display: none !important;
-  visibility: hidden;
-  opacity: 0;
 }
 
 /* Preview Container - 01.13 Sparse Dots */
@@ -1932,18 +1934,28 @@ body {
 }
 
 /* CodeMirror adjustments for plotter aesthetic */
+.CodeMirror,
+.CodeMirror * {
+  font-family: 'Courier New', Courier, monospace !important;
+}
+
 .CodeMirror {
-  font-family: 'Courier New', monospace;
   font-size: 13px;
   color: #2a2a2a;
-  height: 400px !important;
+  height: 340px !important;
   box-sizing: border-box;
 }
 
 .editor-content .CodeMirror {
-  height: 400px !important;
+  height: 340px !important;
   width: 100% !important;
   box-sizing: border-box;
+}
+
+.CodeMirror-lines,
+.CodeMirror-line,
+.CodeMirror pre {
+  font-family: 'Courier New', Courier, monospace !important;
 }
 
 .CodeMirror-gutters {
