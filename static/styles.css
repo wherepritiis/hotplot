@@ -1688,32 +1688,42 @@ body.sans-serif,
   background: white;
   border: 2px solid #2a2a2a;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   min-height: 300px;
-  font-size: 11px;
-  line-height: 14px;
-  letter-spacing: 14px;
-  color: rgba(42, 42, 42, 0.3);
-  word-break: break-all;
+  padding: 20px;
 }
 
-.svg-textarea-container::before {
-  content: '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ';
+.svg-textarea-header {
+  font-size: 14px;
+  font-weight: normal;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Courier New', monospace;
+  color: #2a2a2a;
+}
+
+.svg-textarea-slash-bg {
+  position: relative;
+  width: 100%;
+  min-height: 250px;
+  background: white;
+  border: 2px solid #2a2a2a;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 12px;
+  letter-spacing: 8px;
+  color: rgba(42, 42, 42, 0.3);
+  word-break: break-all;
+  margin-bottom: 0;
+}
+
+.svg-textarea-slash-bg::before {
+  content: '/ / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / ';
   position: absolute;
   inset: 0;
   padding: 10px;
   z-index: 0;
-}
-
-.svg-textarea-header {
-  position: relative;
-  z-index: 1;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  padding: 20px 20px 10px 20px;
-  font-family: 'Courier New', monospace;
-  background: white;
 }
 
 .svg-textarea-inner {
@@ -1722,14 +1732,12 @@ body.sans-serif,
   padding: 30px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   min-height: 220px;
   background: white;
   border: 2px solid #2a2a2a;
   max-width: 70%;
   margin: 0 auto;
-  margin-top: 20px;
+  margin-top: 50px;
   margin-bottom: 20px;
 }
 
