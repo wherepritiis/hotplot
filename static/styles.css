@@ -1693,6 +1693,29 @@ body.sans-serif,
   padding: 20px;
 }
 
+.svg-and-settings-outer {
+  grid-column: 1 / -1;
+}
+
+.svg-and-settings-row {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+}
+
+.svg-textarea-section {
+  flex: 0 0 calc(50% - 12px);
+  min-width: 0;
+}
+
+.plotter-settings-content {
+  flex: 0 0 calc(50% - 12px);
+  min-width: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
 .svg-textarea-header {
   font-size: 14px;
   font-weight: normal;
@@ -1759,7 +1782,7 @@ body.sans-serif,
   box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.2);
 }
 
-/* Plotter Settings - O5 Stacked Style */
+/* Plotter Settings - content only (no box when inside .svg-and-settings-outer) */
 .plotter-settings-container {
   background: white;
   border: 2px solid #2a2a2a;
@@ -1990,6 +2013,24 @@ body.sans-serif,
   color: #2a2a2a;
 }
 
+.plotter-settings-content .control-group:has(.button) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.plotter-settings-content .button {
+  width: auto;
+  box-shadow: 4px 4px 0 #2a2a2a;
+}
+
+.plotter-settings-content .button:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 8px 8px 0 #2a2a2a;
+  background: #2a2a2a;
+  color: white;
+}
+
 .button:hover {
   background: #2a2a2a;
   color: white;
@@ -2000,9 +2041,17 @@ body.sans-serif,
   color: white;
 }
 
-.button-primary:hover {
+.plotter-settings-content .button-primary {
   background: white;
   color: #2a2a2a;
+  box-shadow: 4px 4px 0 #2a2a2a;
+}
+
+.plotter-settings-content .button-primary:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 8px 8px 0 #2a2a2a;
+  background: #2a2a2a;
+  color: white;
 }
 
 /* Header adjustments */

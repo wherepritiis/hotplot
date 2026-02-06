@@ -240,7 +240,7 @@
           :class="{ 'active': currentMode === 'plot' }"
           @click="switchMode('plot')"
         >
-          Plot
+          Plot Mode
         </button>
         <button 
           class="tab"
@@ -349,58 +349,56 @@
           </div>
         </div>
 
-        <!-- SVG Text Area - Forward Slash Pattern -->
-        <div class="svg-textarea-container">
+        <!-- SVG Text Area + Plotter Settings - shared outer box -->
+        <div class="svg-textarea-container svg-and-settings-outer">
           <div class="svg-textarea-header">SVG TEXT AREA</div>
-          <div class="svg-textarea-slash-bg">
-            <div class="svg-textarea-inner">
-              <textarea 
-                class="svg-textarea" 
-                id="svgInput" 
-                placeholder="Paste SVG content here"></textarea>
-            </div>
-          </div>
-        </div>
-
-        <!-- Plotter Settings - O5 Style -->
-        <div class="plotter-settings-container">
-          <div class="settings-header">Plotter Settings</div>
-          
-          <div class="control-group">
-            <label class="control-label" for="layerInput">Layer Number (optional)</label>
-            <input type="number" id="layerInput" placeholder="Leave empty for all layers" class="input-field" />
-          </div>
-
-          <div class="control-group">
-            <div class="input-grid">
-              <div>
-                <label class="control-label" for="penUp">Pen Up</label>
-                <input type="number" id="penUp" value="70" min="0" max="100" class="input-field" />
-              </div>
-              <div>
-                <label class="control-label" for="penDown">Pen Down</label>
-                <input type="number" id="penDown" value="40" min="0" max="100" class="input-field" />
+          <div class="svg-and-settings-row">
+            <div class="svg-textarea-section">
+              <div class="svg-textarea-slash-bg">
+                <div class="svg-textarea-inner">
+                  <textarea 
+                    class="svg-textarea" 
+                    id="svgInput" 
+                    placeholder="Paste SVG content here"></textarea>
+                </div>
               </div>
             </div>
-          </div>
-
-          <div class="control-group">
-            <div class="input-grid">
-              <div>
-                <label class="control-label" for="speedUp">Speed Up (%)</label>
-                <input type="number" id="speedUp" value="75" min="1" max="110" class="input-field" />
+            <div class="plotter-settings-content">
+              <div class="settings-header">Plotter Settings</div>
+              <div class="control-group">
+                <label class="control-label" for="layerInput">Layer Number (optional)</label>
+                <input type="number" id="layerInput" placeholder="Leave empty for all layers" class="input-field" />
               </div>
-              <div>
-                <label class="control-label" for="speedDown">Speed Down (%)</label>
-                <input type="number" id="speedDown" value="25" min="1" max="110" class="input-field" />
+              <div class="control-group">
+                <div class="input-grid">
+                  <div>
+                    <label class="control-label" for="penUp">Pen Up</label>
+                    <input type="number" id="penUp" value="70" min="0" max="100" class="input-field" />
+                  </div>
+                  <div>
+                    <label class="control-label" for="penDown">Pen Down</label>
+                    <input type="number" id="penDown" value="40" min="0" max="100" class="input-field" />
+                  </div>
+                </div>
+              </div>
+              <div class="control-group">
+                <div class="input-grid">
+                  <div>
+                    <label class="control-label" for="speedUp">Speed Up (%)</label>
+                    <input type="number" id="speedUp" value="75" min="1" max="110" class="input-field" />
+                  </div>
+                  <div>
+                    <label class="control-label" for="speedDown">Speed Down (%)</label>
+                    <input type="number" id="speedDown" value="25" min="1" max="110" class="input-field" />
+                  </div>
+                </div>
+              </div>
+              <div class="control-group">
+                <button class="button button-primary" id="plotBtn" onclick="plotFromEditorOrSvg()">Plot</button>
+                <button class="button hidden" id="resumeBtn" onclick="resumePlot()">Resume</button>
+                <button class="button hidden" id="returnHomeBtn" onclick="returnHome()">Go to Home</button>
               </div>
             </div>
-          </div>
-
-          <div class="control-group">
-            <button class="button button-primary" id="plotBtn" onclick="plotFromEditorOrSvg()">Plot</button>
-            <button class="button hidden" id="resumeBtn" onclick="resumePlot()">Resume</button>
-            <button class="button hidden" id="returnHomeBtn" onclick="returnHome()">Go to Home</button>
           </div>
         </div>
       </div>
