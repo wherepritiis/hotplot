@@ -584,11 +584,13 @@
           const plotting = state.plotting || false;
           const paused = state.paused || false;
 
-          // Plot button: enabled when not plotting and not paused
-          if (!plotting && !paused) {
-            plotBtn.disabled = false;
+          // Plot button: disabled while plotting OR paused (user must Resume or Go to Home when paused)
+          const plotShouldBeDisabled = plotting || paused;
+          plotBtn.disabled = plotShouldBeDisabled;
+          if (plotShouldBeDisabled) {
+            plotBtn.setAttribute("disabled", "");
           } else {
-            plotBtn.disabled = true;
+            plotBtn.removeAttribute("disabled");
           }
 
           // Resume button: visible only when paused
@@ -614,7 +616,7 @@
       // Make checkState globally accessible
       window.checkState = async function () {
         try {
-          const response = await fetch("/state");
+          const response = await fetch("/state?t=" + Date.now(), { cache: "no-store" });
           const state = await response.json();
           updateState(state);
         } catch (error) {
@@ -984,7 +986,7 @@ function draw() {
         tryInit();
       });
 
-      function runPreview() {
+      async function runPreview() {
         const code = codeEditor
           ? codeEditor.getValue()
           : document.getElementById("codeEditor").value;
@@ -997,11 +999,8 @@ function draw() {
         // Create or update preview iframe
         const previewContainer = document.getElementById("previewContainer");
 
-        // Clear placeholder text
-        previewContainer.textContent = '';
-        
-        // Remove existing iframe if it exists
-        if (previewIframe) {
+        // Remove existing iframe only if it's still in the DOM (avoid removeChild error after re-run)
+        if (previewIframe && previewIframe.parentNode === previewContainer) {
           previewContainer.removeChild(previewIframe);
         }
 
@@ -1064,6 +1063,18 @@ function draw() {
         iframeDoc.close();
 
         log("Preview updated", "success");
+
+        // Generate and store SVG so Copy SVG uses the same output as the preview
+        try {
+          const svgString = await generateSvgFromCode(code);
+          currentSvg = svgString;
+          const alpineData = getAlpineData();
+          if (alpineData) {
+            alpineData.currentSvg = svgString;
+          }
+        } catch (err) {
+          log(`SVG generation failed: ${err.message}`, "error");
+        }
       }
 
       async function plotFromEditor() {

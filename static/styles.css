@@ -2114,6 +2114,37 @@ input[type="number"]::-webkit-outer-spin-button {
   color: white;
 }
 
+/* Disabled button state – muted look, no hover */
+.button:disabled,
+.button[disabled] {
+  background: #e8e8e8;
+  border-color: #bbb;
+  color: #888;
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.plotter-settings-content .button:disabled,
+.plotter-settings-content .button[disabled] {
+  box-shadow: 2px 2px 0 #bbb;
+}
+
+.button-primary:disabled,
+.button-primary[disabled] {
+  background: #bbb;
+  color: #e8e8e8;
+  border-color: #999;
+}
+
+.plotter-settings-content .button-primary:disabled,
+.plotter-settings-content .button-primary[disabled] {
+  background: #e8e8e8;
+  color: #999;
+  box-shadow: 2px 2px 0 #bbb;
+}
+
 /* Header adjustments */
 /* Logo centered in header */
 .app-logo {

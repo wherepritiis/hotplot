@@ -36,6 +36,23 @@ def get_state():
     return state
 
 
+def reconnect_interactive():
+    """Re-establish interactive connection (e.g. after a plot finishes). Leaves UI connection switch on."""
+    global axidraw_instance
+    if axidraw_instance is not None:
+        return
+    try:
+        axidraw_instance = axidraw.AxiDraw()
+        axidraw_instance.interactive()
+        if axidraw_instance.connect():
+            print("Reconnected interactive session after plot")
+        else:
+            axidraw_instance = None
+    except Exception as e:
+        print(f"Warning: Could not reconnect interactive session: {e}")
+        axidraw_instance = None
+
+
 
 
 @app.route('/')
@@ -240,6 +257,8 @@ def run_plot(svg, layer, pen_pos_up, pen_pos_down, speed_penup, speed_pendown):
     finally:
         plot_active = False
         plot_thread = None
+        # Restore interactive connection so the UI connection switch stays on
+        reconnect_interactive()
 
 
 @app.route('/plot', methods=['POST'])
@@ -434,6 +453,7 @@ def run_resume_plot(temp_settings):
     finally:
         plot_active = False
         plot_thread = None
+        reconnect_interactive()
 
 
 @app.route('/home', methods=['POST'])
@@ -455,6 +475,9 @@ def home():
         # Clear paused state so UI shows Play button again (no resume option)
         paused_svg = None
         paused_plot_settings = None
+        
+        # Restore interactive connection so the UI connection switch stays on
+        reconnect_interactive()
         
         return jsonify({"success": True, "message": "Returned to home corner (0, 0)"})
         
