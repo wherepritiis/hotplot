@@ -1284,9 +1284,35 @@ input[type="number"]::-webkit-outer-spin-button {
 /* ============================================
    COMMAND REFERENCE
    ============================================ */
+.command-reference-intro {
+  font-size: 12px;
+  color: #555;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
 .command-reference {
   max-height: 600px;
   overflow: auto;
+}
+
+.command-reference-group {
+  margin-bottom: 20px;
+}
+
+.command-reference-group:last-child {
+  margin-bottom: 0;
+}
+
+.command-group-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #666;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #ddd;
 }
 
 .command-item {
@@ -1295,6 +1321,7 @@ input[type="number"]::-webkit-outer-spin-button {
   border-bottom: 1px solid #2a2a2a;
 }
 
+.command-reference-group .command-item:last-child,
 .command-item:last-child {
   border-bottom: none;
   margin-bottom: 0;
@@ -1859,6 +1886,94 @@ input[type="number"]::-webkit-outer-spin-button {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 15px;
+}
+
+/* Layer selection: dropdown (All + layer numbers) */
+.layer-dropdown {
+  position: relative;
+  width: 100%;
+}
+
+.layer-dropdown-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 2px solid #2a2a2a;
+  background: white;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  color: #2a2a2a;
+  cursor: pointer;
+  text-align: left;
+}
+
+.layer-dropdown-trigger:hover {
+  background: #f9f9f5;
+}
+
+.layer-dropdown-trigger:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.2);
+}
+
+.layer-dropdown-arrow {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 8px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid #2a2a2a;
+}
+
+/* Scrollable when many layers; fixed height so dropdown doesn't grow off-screen */
+.layer-dropdown-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 2px;
+  max-height: 220px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: white;
+  border: 2px solid #2a2a2a;
+  z-index: 100;
+}
+
+.layer-dropdown-panel[hidden] {
+  display: none;
+}
+
+.layer-dropdown-option {
+  padding: 8px 12px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  color: #2a2a2a;
+  cursor: pointer;
+}
+
+.layer-dropdown-option:hover {
+  background: #f0ede5;
+}
+
+.layer-dropdown-option.selected {
+  background: #2a2a2a;
+  color: white;
+}
+
+.layer-dropdown-list {
+  border-top: 1px solid #e0ddd5;
+}
+
+.layer-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #666;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 /* Layout Grid */

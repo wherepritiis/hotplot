@@ -365,8 +365,18 @@
             <div class="plotter-settings-content">
               <div class="settings-header">Plotter Settings</div>
               <div class="control-group">
-                <label class="control-label" for="layerInput">Layer Number</label>
-                <input type="number" id="layerInput" placeholder="Leave empty to plot all layers" class="input-field" />
+                <label class="control-label">Layers to plot</label>
+                <div id="layerDropdown" class="layer-dropdown" data-all="true" data-selected="">
+                  <button type="button" id="layerDropdownTrigger" class="layer-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose layers to plot">
+                    <span class="layer-dropdown-label">All layers</span>
+                    <span class="layer-dropdown-arrow" aria-hidden="true"></span>
+                  </button>
+                  <div id="layerDropdownPanel" class="layer-dropdown-panel" role="listbox" aria-multiselectable="true" hidden>
+                    <div class="layer-dropdown-option selected" role="option" data-value="all" aria-selected="true">All layers</div>
+                    <div id="layerDropdownList" class="layer-dropdown-list"></div>
+                  </div>
+                </div>
+                <p id="layerHint" class="layer-hint">Paste or generate SVG to see all layers</p>
               </div>
               <div class="control-group">
                 <div class="input-grid">
@@ -422,26 +432,74 @@
         <div class="w-50 pr2">
           <div class="panel">
             <h2 class="panel-title">Command Reference</h2>
+            <p class="command-reference-intro">PyAxidraw interactive API (units: inches). All commands require an active connection.</p>
             <div class="command-reference">
-              <div class="command-item">
-                <div class="command-name">moveto x y</div>
-                <div class="command-description">Absolute pen-up move to (x, y)</div>
+              <div class="command-reference-group">
+                <div class="command-group-label">Pen</div>
+                <div class="command-item">
+                  <div class="command-name">penup</div>
+                  <div class="command-description">Raise pen</div>
+                </div>
+                <div class="command-item">
+                  <div class="command-name">pendown</div>
+                  <div class="command-description">Lower pen</div>
+                </div>
               </div>
-              <div class="command-item">
-                <div class="command-name">lineto x y</div>
-                <div class="command-description">Absolute pen-down move to (x, y)</div>
+              <div class="command-reference-group">
+                <div class="command-group-label">Motion (absolute)</div>
+                <div class="command-item">
+                  <div class="command-name">moveto x y</div>
+                  <div class="command-description">Pen-up move to (x, y)</div>
+                </div>
+                <div class="command-item">
+                  <div class="command-name">lineto x y</div>
+                  <div class="command-description">Pen-down move to (x, y)</div>
+                </div>
+                <div class="command-item">
+                  <div class="command-name">goto x y</div>
+                  <div class="command-description">Move to (x, y), keep current pen state</div>
+                </div>
               </div>
-              <div class="command-item">
-                <div class="command-name">penup</div>
-                <div class="command-description">Raise pen</div>
+              <div class="command-reference-group">
+                <div class="command-group-label">Motion (relative)</div>
+                <div class="command-item">
+                  <div class="command-name">move dx dy</div>
+                  <div class="command-description">Pen-up move by (dx, dy)</div>
+                </div>
+                <div class="command-item">
+                  <div class="command-name">line dx dy</div>
+                  <div class="command-description">Pen-down move by (dx, dy)</div>
+                </div>
+                <div class="command-item">
+                  <div class="command-name">go dx dy</div>
+                  <div class="command-description">Move by (dx, dy), keep current pen state</div>
+                </div>
               </div>
-              <div class="command-item">
-                <div class="command-name">pendown</div>
-                <div class="command-description">Lower pen</div>
+              <div class="command-reference-group">
+                <div class="command-group-label">Utility</div>
+                <div class="command-item">
+                  <div class="command-name">home</div>
+                  <div class="command-description">Move to home (0, 0), keep pen state</div>
+                </div>
+                <div class="command-item">
+                  <div class="command-name">delay ms</div>
+                  <div class="command-description">Pause for ms milliseconds</div>
+                </div>
+                <div class="command-item">
+                  <div class="command-name">draw_path x1 y1 x2 y2 …</div>
+                  <div class="command-description">Draw path through points (alternating x, y)</div>
+                </div>
               </div>
-              <div class="command-item">
-                <div class="command-name">home</div>
-                <div class="command-description">Move to home position (0, 0)</div>
+              <div class="command-reference-group">
+                <div class="command-group-label">Query (read-only)</div>
+                <div class="command-item">
+                  <div class="command-name">turtle_pos</div>
+                  <div class="command-description">Return last known turtle position (x, y)</div>
+                </div>
+                <div class="command-item">
+                  <div class="command-name">current_pos</div>
+                  <div class="command-description">Return last known physical position (x, y)</div>
+                </div>
               </div>
             </div>
           </div>
@@ -662,6 +720,128 @@
         }
       }
 
+      // Discover layer numbers from SVG (groups named like "1 black", "2 red" → inkscape:label or similar)
+      function parseLayersFromSvg(svgStr) {
+        if (!svgStr || !svgStr.trim()) return [];
+        const numbers = new Set();
+        // Match inkscape:label="N" or inkscape:label="N ..." (layer names starting with a number)
+        const re = /inkscape:label\s*=\s*["'](\d+)[^"']*["']/gi;
+        let m;
+        while ((m = re.exec(svgStr)) !== null) numbers.add(parseInt(m[1], 10));
+        // Also match <g id="1 black"> style if used
+        const idRe = /<g[^>]+id\s*=\s*["'](\d+)[^"']*["']/gi;
+        while ((m = idRe.exec(svgStr)) !== null) numbers.add(parseInt(m[1], 10));
+        return Array.from(numbers).sort((a, b) => a - b);
+      }
+
+      function updateLayerOptions(svgStr) {
+        const listEl = document.getElementById("layerDropdownList");
+        const hint = document.getElementById("layerHint");
+        const trigger = document.getElementById("layerDropdownTrigger");
+        const panel = document.getElementById("layerDropdownPanel");
+        const allOpt = document.querySelector("#layerDropdownPanel .layer-dropdown-option[data-value=\"all\"]");
+        const container = document.getElementById("layerDropdown");
+        if (!listEl || !hint || !container) return;
+        const layers = parseLayersFromSvg(svgStr || "");
+        listEl.innerHTML = "";
+        if (layers.length === 0) {
+          hint.textContent = "Paste or generate SVG to see all layers";
+          container.dataset.all = "true";
+          container.dataset.selected = "";
+          if (allOpt) { allOpt.classList.add("selected"); allOpt.setAttribute("aria-selected", "true"); }
+          setLayerDropdownLabel();
+          trigger.disabled = false;
+          return;
+        }
+        hint.textContent = "";
+        layers.forEach(function (num) {
+          const opt = document.createElement("div");
+          opt.className = "layer-dropdown-option";
+          opt.setAttribute("role", "option");
+          opt.dataset.value = String(num);
+          var wasSelected = (container.dataset.selected || "").split(",").indexOf(String(num)) !== -1;
+          if (wasSelected) { opt.classList.add("selected"); opt.setAttribute("aria-selected", "true"); }
+          else opt.setAttribute("aria-selected", "false");
+          opt.textContent = "Layer " + num;
+          opt.addEventListener("click", function () { toggleLayerOption(num); });
+          listEl.appendChild(opt);
+        });
+        setLayerDropdownLabel();
+      }
+
+      function selectAllLayers() {
+        const container = document.getElementById("layerDropdown");
+        const allOpt = document.querySelector("#layerDropdownPanel .layer-dropdown-option[data-value=\"all\"]");
+        const opts = document.querySelectorAll("#layerDropdownPanel .layer-dropdown-option[data-value]:not([data-value=\"all\"])");
+        if (!container || !allOpt) return;
+        container.dataset.all = "true";
+        container.dataset.selected = "";
+        allOpt.classList.add("selected");
+        allOpt.setAttribute("aria-selected", "true");
+        opts.forEach(function (o) { o.classList.remove("selected"); o.setAttribute("aria-selected", "false"); });
+        setLayerDropdownLabel();
+      }
+
+      function toggleLayerOption(num) {
+        const container = document.getElementById("layerDropdown");
+        const allOpt = document.querySelector("#layerDropdownPanel .layer-dropdown-option[data-value=\"all\"]");
+        const opt = document.querySelector("#layerDropdownPanel .layer-dropdown-option[data-value=\"" + num + "\"]");
+        if (!container || !opt) return;
+        container.dataset.all = "false";
+        if (allOpt) { allOpt.classList.remove("selected"); allOpt.setAttribute("aria-selected", "false"); }
+        var selected = (container.dataset.selected || "").split(",").filter(Boolean).map(Number);
+        var idx = selected.indexOf(num);
+        if (idx === -1) selected.push(num); else selected.splice(idx, 1);
+        selected.sort(function (a, b) { return a - b; });
+        container.dataset.selected = selected.join(",");
+        opt.classList.toggle("selected", selected.indexOf(num) !== -1);
+        opt.setAttribute("aria-selected", selected.indexOf(num) !== -1);
+        setLayerDropdownLabel();
+      }
+
+      function setLayerDropdownLabel() {
+        const trigger = document.getElementById("layerDropdownTrigger");
+        const labelEl = trigger ? trigger.querySelector(".layer-dropdown-label") : null;
+        const container = document.getElementById("layerDropdown");
+        if (!labelEl || !container) return;
+        if (container.dataset.all === "true") {
+          labelEl.textContent = "All layers";
+        } else {
+          var s = (container.dataset.selected || "").split(",").filter(Boolean).map(Number).sort(function (a, b) { return a - b; });
+          labelEl.textContent = s.length === 0 ? "All layers" : (s.length === 1 ? "Layer " + s[0] : "Layers " + s.join(", "));
+        }
+      }
+
+      function getSelectedLayers() {
+        const container = document.getElementById("layerDropdown");
+        if (!container) return null;
+        if (container.dataset.all !== "false") return null;
+        var s = (container.dataset.selected || "").split(",").filter(Boolean).map(Number);
+        if (s.length === 0) return null;
+        s.sort(function (a, b) { return a - b; });
+        return s;
+      }
+
+      (function setupLayerDropdown() {
+        const trigger = document.getElementById("layerDropdownTrigger");
+        const panel = document.getElementById("layerDropdownPanel");
+        const container = document.getElementById("layerDropdown");
+        if (!trigger || !panel || !container) return;
+        var allOpt = panel.querySelector(".layer-dropdown-option[data-value=\"all\"]");
+        if (allOpt) allOpt.addEventListener("click", function () { selectAllLayers(); });
+        trigger.addEventListener("click", function (e) {
+          e.stopPropagation();
+          var open = panel.getAttribute("hidden") === null;
+          if (open) { panel.setAttribute("hidden", ""); trigger.setAttribute("aria-expanded", "false"); }
+          else { panel.removeAttribute("hidden"); trigger.setAttribute("aria-expanded", "true"); }
+        });
+        document.addEventListener("click", function () {
+          panel.setAttribute("hidden", "");
+          trigger.setAttribute("aria-expanded", "false");
+        });
+        panel.addEventListener("click", function (e) { e.stopPropagation(); });
+      })();
+
       async function plot() {
         const svgInput = document.getElementById("svgInput");
         const svg = svgInput.value.trim();
@@ -671,7 +851,7 @@
           return;
         }
 
-        const layerInput = document.getElementById("layerInput");
+        updateLayerOptions(svg);
         const penUp = parseInt(document.getElementById("penUp").value) || 70;
         const penDown =
           parseInt(document.getElementById("penDown").value) || 40;
@@ -690,9 +870,9 @@
           },
         };
 
-        const layer = layerInput.value.trim();
-        if (layer) {
-          payload.layer = parseInt(layer);
+        const layers = getSelectedLayers();
+        if (layers && layers.length) {
+          payload.layer = layers.length === 1 ? layers[0] : layers;
         }
 
         try {
@@ -984,6 +1164,8 @@ function draw() {
           }
         }
         tryInit();
+        var si = document.getElementById("svgInput");
+        if (si) si.addEventListener("input", function () { updateLayerOptions(si.value); });
       });
 
       async function runPreview() {
@@ -1095,8 +1277,9 @@ function draw() {
             alpineData.currentSvg = svgString;
           }
 
+          updateLayerOptions(svgString);
+
           // Send to backend for plotting
-          const layerInput = document.getElementById("layerInput");
           const penUp = parseInt(document.getElementById("penUp").value) || 70;
           const penDown =
             parseInt(document.getElementById("penDown").value) || 40;
@@ -1115,9 +1298,9 @@ function draw() {
             },
           };
 
-          const layer = layerInput.value.trim();
-          if (layer) {
-            payload.layer = parseInt(layer);
+          const layers = getSelectedLayers();
+          if (layers && layers.length) {
+            payload.layer = layers.length === 1 ? layers[0] : layers;
           }
 
           log("Sending SVG to plotter...", "info");

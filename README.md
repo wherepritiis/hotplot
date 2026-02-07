@@ -1,6 +1,6 @@
 # HotPlot - AxiDraw Plotter Web Control Tool
 
-A small tool for controlling an AxiDraw plotter from a web UI. This tool allows anyone to write p5.js sketches, preview them, export SVG, and plot directly to an AxiDraw-compatible pen plotter.
+A small tool for controlling an AxiDraw plotter from a web UI. This tool allows anyone to write p5.js sketches, preview them, copy/export as SVG, and plot directly using a pen plotter.
 
 ## Overview
 
@@ -9,8 +9,9 @@ HotPlot provides a simple web-based interface for:
 - Previewing sketches visually on a canvas
 - Exporting plotter-ready SVG via p5.plotSvg
 - Sending SVG directly to the plotter
-- Interactively jogging and controlling the plotter
 - Plotting SVG layers individually for multi-pen workflows
+- Interactively jogging and commanding the plotter
+
 
 ## Prerequisites
 
@@ -117,35 +118,23 @@ http://localhost:3000/
 
 ## Usage
 
-### Basic Control Panel (Iteration 1)
+### Connection and status
 
-The current implementation provides a basic control panel with:
+Click the **logo** to connect or disconnect the AxiDraw. The logo reflects connection status.
 
-1. **Connection Controls**
-   - Click "Connect" to establish a connection to your AxiDraw plotter
-   - Click "Disconnect" to close the connection
-   - The status indicator shows whether you're connected (green) or disconnected (red)
+### Interactive mode (commands)
 
-2. **Command Execution**
-   - Enter commands in the command input field
-   - Supported commands:
-     - `moveto x y` - Move to absolute position (x, y) with pen up
-     - `lineto x y` - Draw a line to absolute position (x, y) with pen down
-     - `penup` - Raise the pen
-     - `pendown` - Lower the pen
-     - `home` - Move to home position (0, 0)
-   - Click "Send" or press Enter to execute the command
-   - All responses and errors are logged in the log area
+When connected, switch to **Interactive** mode to jog and command the plotter:
 
-### Example Commands
+- Enter commands in the REPL environment (e.g. `moveto 1 1`, `lineto 2 2`, `penup`, `pendown`, `home`)
+- Examples of supported commands:
+  - `moveto x y` - Move to (x, y) with pen up
+  - `lineto x y` - Draw to (x, y) with pen down
+  - `penup` - Raise the pen
+  - `pendown` - Lower the pen
+  - `home` - Move to home (0, 0)
+- Press Send to run the command; responses and errors appear in the log area
 
-```
-moveto 1 1
-pendown
-lineto 2 2
-penup
-home
-```
 
 ## Troubleshooting
 
@@ -218,30 +207,18 @@ hotplot/
     └── vendor/         # JavaScript libraries (copied from node_modules)
 ```
 
-## Development
+## Features
 
-### Current Status
+- **Connection**: Click the logo to connect or disconnect; the logo shows connection status
+- **Interactive commands**: Command plotter via REPL environment
+- **Plot**: Paste and send SVG to plotter
+- **Layer selection**: Plot all layers or one or more selected layers (dropdown); layers discovered from SVG (e.g. p5 `beginSvgGroup("N name")`)
+- **Pause / Resume / Home**: Pause a plot, resume, or return carriage to home
+- **Code editor**: CodeMirror-based p5.js editor
+- **Preview**: Run sketch in iframe and see canvas output
+- **Plot from editor**: Generate SVG from sketch and send to plotter
+- **Export**: Download SVG or copy SVG to clipboard
 
-**Iteration 1** ✅ Complete:
-- ✅ Flask server with basic endpoints
-- ✅ Connect/disconnect functionality
-- ✅ Command execution interface
-- ✅ Web UI for testing
-
-**Iteration 2** ✅ Complete:
-- ✅ Plot endpoint with SVG support
-- ✅ Stop and Home endpoints
-- ✅ Plot UI with SVG input, layer selection, offset, and settings
-- ✅ SVG offset wrapping implementation
-- ✅ Layer plotting support
-
-### Future Iterations
-
-See `PLAN.md` for details on upcoming features:
-- Iteration 3: Editor + Preview + SVG Export UI
-- Iteration 4: Layer Workflow UI
-- Iteration 5: Interactive Mode Polishing
-- Iteration 6: Export + Cleanup + Documentation
 
 ## Important Notes
 
@@ -258,4 +235,6 @@ See `PLAN.md` for details on upcoming features:
 
 ## License
 
-See project documentation for license information.
+This project is licensed under **CC BY-NC-SA 4.0** (Creative Commons Attribution-NonCommercial-ShareAlike 4.0): you may share and adapt the work for **non-commercial** use with attribution and under the same license. See [LICENSE](LICENSE) for details.
+
+Third-party components (p5.js, p5.plotSvg, Flask, pyaxidraw, etc.) have their own licenses; see their respective documentation.

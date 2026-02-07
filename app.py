@@ -158,6 +158,51 @@ def cmd():
             axidraw_instance.goto(0, 0)
             return jsonify({"success": True, "message": "moved to home (0, 0)"})
         
+        elif cmd_name == 'goto':
+            x = float(parts[1])
+            y = float(parts[2])
+            axidraw_instance.goto(x, y)
+            return jsonify({"success": True, "message": f"moved to ({x}, {y})"})
+        
+        elif cmd_name == 'move':
+            dx = float(parts[1])
+            dy = float(parts[2])
+            axidraw_instance.move(dx, dy)
+            return jsonify({"success": True, "message": f"moved by ({dx}, {dy})"})
+        
+        elif cmd_name == 'line':
+            dx = float(parts[1])
+            dy = float(parts[2])
+            axidraw_instance.line(dx, dy)
+            return jsonify({"success": True, "message": f"drew line by ({dx}, {dy})"})
+        
+        elif cmd_name == 'go':
+            dx = float(parts[1])
+            dy = float(parts[2])
+            axidraw_instance.go(dx, dy)
+            return jsonify({"success": True, "message": f"moved by ({dx}, {dy})"})
+        
+        elif cmd_name == 'delay':
+            time_ms = int(parts[1])
+            axidraw_instance.delay(time_ms)
+            return jsonify({"success": True, "message": f"delayed {time_ms} ms"})
+        
+        elif cmd_name == 'draw_path':
+            if len(parts) < 5 or (len(parts) - 1) % 2 != 0:
+                return jsonify({"success": False, "error": "draw_path requires at least 4 numbers (x1 y1 x2 y2 ...)"}), 400
+            coords = [float(p) for p in parts[1:]]
+            vertex_list = [(coords[i], coords[i + 1]) for i in range(0, len(coords), 2)]
+            axidraw_instance.draw_path(vertex_list)
+            return jsonify({"success": True, "message": f"drew path with {len(vertex_list)} points"})
+        
+        elif cmd_name == 'turtle_pos':
+            pos = axidraw_instance.turtle_pos()
+            return jsonify({"success": True, "message": f"turtle_pos: ({pos[0]:.4f}, {pos[1]:.4f})"})
+        
+        elif cmd_name == 'current_pos':
+            pos = axidraw_instance.current_pos()
+            return jsonify({"success": True, "message": f"current_pos: ({pos[0]:.4f}, {pos[1]:.4f})"})
+        
         else:
             return jsonify({"success": False, "error": f"Unknown command: {cmd_name}"}), 400
             
@@ -167,7 +212,7 @@ def cmd():
 
 
 def run_plot(svg, layer, pen_pos_up, pen_pos_down, speed_penup, speed_pendown):
-    """Run plot in a background thread."""
+    """Run plot in a background thread. layer can be None (all), int (one), or list of ints (multiple)."""
     global axidraw_instance, plot_instance, paused_svg, paused_plot_settings, plot_thread, plot_active
     
     try:
@@ -189,13 +234,6 @@ def run_plot(svg, layer, pen_pos_up, pen_pos_down, speed_penup, speed_pendown):
         # Setup plot with SVG
         plot_instance.plot_setup(svg)
         
-        # Set plot options
-        if layer is not None:
-            plot_instance.options.mode = "layers"
-            plot_instance.options.layer = int(layer)
-        else:
-            plot_instance.options.mode = "plot"
-        
         plot_instance.options.pen_pos_up = pen_pos_up
         plot_instance.options.pen_pos_down = pen_pos_down
         plot_instance.options.speed_penup = speed_penup
@@ -204,17 +242,40 @@ def run_plot(svg, layer, pen_pos_up, pen_pos_down, speed_penup, speed_pendown):
         # Mark plot as active before starting
         plot_active = True
         
-        # Execute plot with output=True to capture paused SVG if interrupted
-        output_svg = plot_instance.plot_run(True)
+        # Normalize layer: list of ints to plot in sequence, or single int, or None for all
+        layers_to_plot = None
+        if layer is not None:
+            if isinstance(layer, list):
+                layers_to_plot = [int(x) for x in layer]
+            else:
+                layers_to_plot = [int(layer)]
+        
+        if not layers_to_plot:
+            # Plot all layers
+            plot_instance.options.mode = "plot"
+            output_svg = plot_instance.plot_run(True)
+        else:
+            # Plot selected layer(s) in sequence (same pen/settings for all)
+            output_svg = None
+            for layer_num in layers_to_plot:
+                plot_instance.options.mode = "layers"
+                plot_instance.options.layer = layer_num
+                output_svg = plot_instance.plot_run(True)
+                error_code = plot_instance.errors.code
+                if error_code == 102:  # Paused by button
+                    break
+                if error_code == 103:  # Paused by keyboard interrupt
+                    break
         
         # Check error code to see if plot was paused
         error_code = plot_instance.errors.code
         if error_code == 102:  # Paused by button
             print("Plot paused by button press")
             paused_svg = output_svg
-            # Store plot settings for resume
+            # Store plot settings for resume (single layer when paused during multi-layer)
+            current_layer = plot_instance.options.layer if layers_to_plot else None
             paused_plot_settings = {
-                "layer": layer,
+                "layer": current_layer,
                 "pen_pos_up": pen_pos_up,
                 "pen_pos_down": pen_pos_down,
                 "speed_penup": speed_penup,
@@ -223,9 +284,9 @@ def run_plot(svg, layer, pen_pos_up, pen_pos_down, speed_penup, speed_pendown):
         elif error_code == 103:  # Paused by keyboard interrupt
             print("Plot paused by keyboard interrupt")
             paused_svg = output_svg
-            # Store plot settings for resume
+            current_layer = plot_instance.options.layer if layers_to_plot else None
             paused_plot_settings = {
-                "layer": layer,
+                "layer": current_layer,
                 "pen_pos_up": pen_pos_up,
                 "pen_pos_down": pen_pos_down,
                 "speed_penup": speed_penup,
