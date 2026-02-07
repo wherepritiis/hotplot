@@ -557,8 +557,9 @@
         window.log(message, type);
       }
 
-      // Get AlpineJS component instance
+      // Get AlpineJS component instance (null if Alpine not loaded yet)
       function getAlpineData() {
+        if (typeof Alpine === "undefined") return null;
         return Alpine.$data(document.querySelector("[x-data]"));
       }
 
