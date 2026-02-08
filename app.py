@@ -191,7 +191,8 @@ def cmd():
             if len(parts) < 5 or (len(parts) - 1) % 2 != 0:
                 return jsonify({"success": False, "error": "draw_path requires at least 4 numbers (x1 y1 x2 y2 ...)"}), 400
             coords = [float(p) for p in parts[1:]]
-            vertex_list = [(coords[i], coords[i + 1]) for i in range(0, len(coords), 2)]
+            # pyaxidraw expects a list of 2-element lists (mutable), not tuples
+            vertex_list = [[coords[i], coords[i + 1]] for i in range(0, len(coords), 2)]
             axidraw_instance.draw_path(vertex_list)
             return jsonify({"success": True, "message": f"drew path with {len(vertex_list)} points"})
         
