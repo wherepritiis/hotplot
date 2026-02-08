@@ -1,4 +1,2 @@
 /docs
 .DS_Store
-node_modules/
-static/vendor/

@@ -36,33 +36,11 @@ This tool requires an AxiDraw-compatible pen plotter connected via USB.
 
 **Important**: PyAXIDraw is **not available via pip or npm**. It must be installed manually from a zip file.
 
-#### Option A: Install from URL (Recommended)
+#### Install from URL (Recommended)
 
 ```bash
 python3.14 -m pip install https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip
 ```
-
-#### Option B: Manual Installation
-
-1. Download the AxiDraw API zip file:
-   - Direct link: https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip
-   - Or visit the [AxiDraw Python API documentation](https://axidraw.com/doc/py_api) for the latest download link
-
-2. Unzip the archive:
-   ```bash
-   unzip AxiDraw_API.zip
-   cd AxiDraw_API
-   ```
-
-3. Install using Python 3.14:
-   ```bash
-   python3.14 -m pip install .
-   ```
-
-4. Verify installation:
-   ```bash
-   python3.14 -c "from pyaxidraw import axidraw; print('PyAXIDraw installed successfully')"
-   ```
 
 ### Step 2: Install Python Dependencies
 
@@ -75,25 +53,7 @@ python3.14 -m pip install -r requirements.txt
 This will install:
 - Flask (>=3.0.0)
 
-### Step 3: Install JavaScript Dependencies
-
-Install frontend JavaScript packages via npm:
-
-```bash
-npm install
-npm run copy-deps
-```
-
-This will install:
-- p5.js (v1.11.11)
-- p5.plotSvg (v0.1.8)
-- CodeMirror (v5.65.20)
-
-The `copy-deps` script copies the necessary files to `static/vendor/` so Flask can serve them.
-
-**Note**: If you don't have npm installed, download Node.js from [nodejs.org](https://nodejs.org/).
-
-### Step 4: Verify Installation
+### Step 3: Verify Installation
 
 Verify that all dependencies are installed correctly:
 
@@ -178,33 +138,17 @@ If port 3000 is already in use:
    app.run(host='127.0.0.1', port=3001, debug=True)
    ```
 
-### JavaScript Dependencies Not Found
-
-If you see errors about missing JavaScript libraries:
-
-1. Ensure npm is installed: `npm --version`
-2. Run `npm install` to install dependencies
-3. Run `npm run copy-deps` to copy files to `static/vendor/`
-4. Verify files exist in `static/vendor/`:
-   - `static/vendor/p5.js`
-   - `static/vendor/p5.plotSvg.js`
-   - `static/vendor/codemirror/codemirror.js`
-   - `static/vendor/codemirror/codemirror.css`
-   - `static/vendor/codemirror/mode/javascript/javascript.js`
-
 ## Project Structure
 
 ```
 hotplot/
 ├── app.py              # Flask backend server
 ├── requirements.txt    # Python dependencies (pip-installable)
-├── package.json        # JavaScript dependencies (npm-installable)
 ├── SPEC.md             # Project specification
-├── PLAN.md             # Implementation plan
 ├── README.md           # This file
 └── static/
     ├── index.html      # Web UI
-    └── vendor/         # JavaScript libraries (copied from node_modules)
+    └── vendor/         # JavaScript libraries (p5.js, p5.plotSvg, CodeMirror; included in repo)
 ```
 
 ## Features
