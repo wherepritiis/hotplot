@@ -1535,4 +1535,74 @@ function draw() {
 }
 ```
 
+---
+
+# Data art
+
+## 27. Data art: Name arcs
+
+Connect letters in a name with alternating arcs (above/below baseline). Type a name at the top; arcs connect consecutive letters in the alphabet sequence. Two layers: `alphabet` (letter labels) and `arcs` (stroked arcs). **Note:** The alphabet layer uses regular `text()` (screen-only, not plotter-friendly). Only the `arcs` layer plots.
+
+```javascript
+const nameData = "Your name"; // Change name here
+const letters = "abcdefghijklmnopqrstuvwxyz";
+
+function setup() {
+  createCanvas(780, 560);
+  angleMode(DEGREES);
+  textAlign(CENTER, CENTER);
+  noLoop();
+}
+
+function draw() {
+  background(255);
+  noFill();
+  strokeWeight(1);
+
+  const name = nameData.toLowerCase().replace(/[^a-z]/g, "");
+  const xWidth = width - 190;
+  const baseY = height / 2;
+
+  translate(50, 0);
+
+  // Layer 1: Alphabet letters (regular text, screen-only — won't plot)
+  beginSvgGroup("alphabet");
+  fill(0);
+  stroke(0);
+  strokeWeight(0.5);
+  textSize(12);
+  for (let i = 0; i < letters.length; i++) {
+    const x = (xWidth / 26) * i;
+    text(letters[i], x, baseY);
+  }
+  endSvgGroup();
+
+  // Layer 2: Arcs connecting letters in name (plotter-friendly)
+  beginSvgGroup("arcs");
+  noFill();
+  stroke(0);
+  strokeWeight(2);
+  let direction = -1;
+  for (let i = 0; i < name.length - 1; i++) {
+    const currLetter = name[i];
+    const currIndex = letters.indexOf(currLetter);
+    const currX = (xWidth / 26) * currIndex;
+
+    const nextLetter = name[i + 1];
+    const nextIndex = letters.indexOf(nextLetter);
+    const nextX = (xWidth / 26) * nextIndex;
+    
+    const centerX = currX + (nextX - currX) / 2;
+    
+    if (direction === -1) {
+      arc(centerX, baseY + 10, abs(nextX - currX), abs(nextX - currX), 0, 180);
+    } else {
+      arc(centerX, baseY - 10, abs(nextX - currX), abs(nextX - currX), 180, 360);
+    }
+    direction *= -1;
+  }
+  endSvgGroup();
+}
+```
+
 *More examples will be added here.*
