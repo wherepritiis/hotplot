@@ -1,0 +1,42 @@
+---
+description: Use p5.plotSvg layer/group API for examples that plot in layers or groups
+globs: static/p5-examples.md
+alwaysApply: false
+---
+
+# p5.plotSvg layers and groups
+
+When creating or editing p5.js examples that **plot in layers or groups** (e.g. multi-pen, multi-color, or by-layer export), always use the **p5.plotSvg** technique—do not rely only on stroke color or comments.
+
+## Required pattern
+
+- Wrap each logical layer or group with **`beginSvgGroup(name)`** and **`endSvgGroup()`**.
+- Use a clear, valid SVG id as the group name (e.g. `"black"`, `"red"`, `"outline"`, `"fill"`).
+- Call `endSvgGroup()` for every `beginSvgGroup()` so the SVG is valid.
+
+This produces named `<g id="...">` elements in the SVG and (when Inkscape compatibility is on) `inkscape:groupmode="layer"` and `inkscape:label`, so layers can be toggled in Inkscape and plotted per layer/pen.
+
+## Example
+
+```javascript
+// ✅ Correct: named layers via plotSvg
+beginSvgGroup("red");
+stroke(255, 0, 0);
+ellipse(100, 100, 50, 50);
+endSvgGroup();
+
+beginSvgGroup("blue");
+stroke(0, 0, 255);
+rect(150, 80, 40, 40);
+endSvgGroup();
+```
+
+```javascript
+// ❌ Wrong: only stroke color, no named groups/layers
+stroke(255, 0, 0);
+ellipse(100, 100, 50, 50);
+stroke(0, 0, 255);
+rect(150, 80, 40, 40);
+```
+
+Reference: `docs/plotsvg/documentation.md` (beginSvgGroup, endSvgGroup), `docs/plotsvg/examples/plotSvg_post_grouping/sketch.js`.
