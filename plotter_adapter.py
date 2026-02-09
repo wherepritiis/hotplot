@@ -13,23 +13,20 @@ _current_plotter_type = PLOTTER_AXIDRAW
 
 # Cache for NextDraw availability (checked dynamically)
 _nextdraw_available_cache = None
-_nextdraw_module = None
 
 
 def _check_nextdraw_availability():
     """Check if NextDraw is available by attempting to import it."""
-    global _nextdraw_available_cache, _nextdraw_module
+    global _nextdraw_available_cache
     
     # Always re-check (don't cache) to detect newly installed libraries
     # This allows detection without server restart
     try:
         from nextdraw import NextDraw
-        _nextdraw_module = NextDraw
         _nextdraw_available_cache = True
         return True
     except ImportError:
         _nextdraw_available_cache = False
-        _nextdraw_module = None
         return False
 
 
@@ -84,11 +81,10 @@ def create_plotter_instance(plotter_type=None):
                 "Please install it to use NextDraw support. "
                 "See README.md for installation instructions."
             )
-        # Use cached module if available
-        if _nextdraw_module is None:
-            from nextdraw import NextDraw
-            _nextdraw_module = NextDraw
-        return _nextdraw_module()
+        # Import NextDraw fresh (availability check already verified it's available)
+        # This avoids any potential issues with module caching
+        from nextdraw import NextDraw
+        return NextDraw()
     
     else:
         raise ValueError(f"Invalid plotter type: {plotter_type}. Must be 'axidraw' or 'nextdraw'")
