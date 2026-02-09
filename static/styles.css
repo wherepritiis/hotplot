@@ -1151,7 +1151,7 @@ input[type="number"]::-webkit-outer-spin-button {
 .alert-success {
   background: rgba(51, 255, 0, 0.2);
   border-color: #33ff00;
-  color: #66ff66;
+  color: #2a2a2a;
 }
 
 .alert-info {
@@ -1605,9 +1605,60 @@ input[type="number"]::-webkit-outer-spin-button {
   box-shadow: 8px 8px 0 #2a2a2a;
 }
 
+.plotter-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 16px;
+}
+
+.plotter-selector-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #2a2a2a;
+  font-weight: 600;
+}
+
+.plotter-selector-select {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  padding: 6px 12px;
+  border: 2px solid #2a2a2a;
+  background: white;
+  color: #2a2a2a;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+
+.plotter-selector-select:hover:not(:disabled) {
+  background: rgba(42, 42, 42, 0.05);
+}
+
+.plotter-selector-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.plotter-selector-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(42, 42, 42, 0.3);
+}
+
 .log-button-wrapper {
   display: flex;
   align-items: center;
+}
+
+.repl-plotter-indicator {
+  font-size: 11px;
+  font-weight: normal;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
 }
 
 /* Code Editor - O2.11 Triple Stacked Layers */

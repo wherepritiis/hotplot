@@ -26,6 +26,10 @@
         commandHistory: [],
         currentSvg: null,
         alerts: [],
+        currentPlotterType: "axidraw",
+        plotterDisplayName: "AxiDraw",
+        apiDisplayName: "PyAxidraw",
+        nextdrawAvailable: false,
 
         switchMode(mode) {
           this.currentMode = mode;
@@ -147,7 +151,7 @@
             timestamp: new Date(),
           });
         },
-        async copySvg() {
+        async         copySvg() {
           try {
             let svgToCopy =
               this.currentSvg ||
@@ -175,6 +179,115 @@
             window.log("SVG copied to clipboard", "success");
           } catch (error) {
             window.log(`Error copying SVG: ${error.message}`, "error");
+          }
+        },
+        async updatePlotterType(newType) {
+          // Store current type in case we need to revert
+          const previousType = this.currentPlotterType;
+          
+          // Prevent switching during active plot
+          if (this.plotting) {
+            this.showAlert("Cannot switch plotter type while plotting is in progress", "error");
+            // Reset dropdown to previous value
+            this.$nextTick(() => {
+              const select = document.querySelector('.plotter-selector-select');
+              if (select) select.value = previousType;
+            });
+            return;
+          }
+          
+          // If connected, ask user to disconnect first
+          if (this.connected) {
+            const confirmed = confirm(
+              `You are currently connected to ${this.plotterDisplayName}. ` +
+              `Switching to ${newType === "axidraw" ? "AxiDraw" : "NextDraw"} will disconnect the current connection. ` +
+              `Do you want to continue?`
+            );
+            if (!confirmed) {
+              // Reset dropdown to previous value
+              this.$nextTick(() => {
+                const select = document.querySelector('.plotter-selector-select');
+                if (select) select.value = previousType;
+              });
+              return;
+            }
+            // Disconnect first
+            await this.disconnect();
+          }
+          
+          try {
+            window.log(`Switching to ${newType === "axidraw" ? "AxiDraw" : "NextDraw"}...`, "info");
+            const response = await fetch("/config", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ plotter_type: newType }),
+            });
+            const result = await response.json();
+            
+            if (result.success) {
+              this.currentPlotterType = newType;
+              this.plotterDisplayName = result.plotter_display_name;
+              this.apiDisplayName = result.api_display_name;
+              // Save to localStorage
+              localStorage.setItem("plotterType", newType);
+              window.log(result.message, "success");
+              this.showAlert(result.message, "success");
+              // Refresh state to get updated info
+              await window.checkState();
+              
+              // Warn if NextDraw is selected but not available
+              if (newType === "nextdraw" && !this.nextdrawAvailable) {
+                this.showAlert("NextDraw library is not installed. You will not be able to connect until it is installed.", "warning");
+              }
+            } else {
+              const errorMsg = result.error || "Failed to switch plotter type";
+              window.log(`Failed to switch plotter type: ${errorMsg}`, "error");
+              this.showAlert(`Failed to switch plotter type: ${errorMsg}`, "error");
+              // Reset dropdown to previous value on error
+              this.currentPlotterType = previousType;
+              // Refresh config to get updated availability status
+              await this.loadPlotterConfig();
+              // Use Alpine's reactive update to reset dropdown
+              await this.$nextTick();
+              const select = document.querySelector('.plotter-selector-select');
+              if (select) select.value = previousType;
+            }
+          } catch (error) {
+            const errorMsg = error.message || "Error switching plotter type";
+            window.log(`Error switching plotter type: ${errorMsg}`, "error");
+            this.showAlert(`Error switching plotter type: ${errorMsg}`, "error");
+            // Reset dropdown to previous value on error
+            this.currentPlotterType = previousType;
+            this.$nextTick(() => {
+              const select = document.querySelector('.plotter-selector-select');
+              if (select) select.value = previousType;
+            });
+          }
+        },
+        async loadPlotterConfig() {
+          try {
+            const response = await fetch("/config", {
+              method: "GET",
+              headers: { "Content-Type": "application/json" },
+            });
+            const result = await response.json();
+            
+            this.currentPlotterType = result.plotter_type || "axidraw";
+            this.plotterDisplayName = result.plotter_display_name || "AxiDraw";
+            this.apiDisplayName = result.api_display_name || "PyAxidraw";
+            this.nextdrawAvailable = result.nextdraw_available || false;
+            
+            // Sync localStorage with backend
+            localStorage.setItem("plotterType", this.currentPlotterType);
+          } catch (error) {
+            console.error("Error loading plotter config:", error);
+            // Fallback to localStorage if backend fails
+            const savedType = localStorage.getItem("plotterType");
+            if (savedType) {
+              this.currentPlotterType = savedType;
+              this.plotterDisplayName = savedType === "axidraw" ? "AxiDraw" : "NextDraw";
+              this.apiDisplayName = savedType === "axidraw" ? "PyAxidraw" : "NextDraw";
+            }
           }
         }
         };
@@ -221,6 +334,21 @@
         <span class="brand-letter brand-rest" aria-hidden="true">t</span>
       </div>
 
+      <!-- Plotter Selector and Log Button (Right) -->
+      <!-- Plotter Type Selector -->
+      <div class="plotter-selector">
+        <label class="plotter-selector-label">Plotter:</label>
+        <select
+          class="plotter-selector-select"
+          :value="currentPlotterType"
+          @change="updatePlotterType($event.target.value)"
+          :disabled="plotting"
+        >
+          <option value="axidraw">AxiDraw</option>
+          <option value="nextdraw">NextDraw</option>
+        </select>
+      </div>
+      
       <!-- Log Button (Right) -->
       <div class="log-button-wrapper">
         <button
@@ -432,7 +560,7 @@
         <div class="w-50 pr2">
           <div class="panel">
             <h2 class="panel-title">Command Reference</h2>
-            <p class="command-reference-intro">PyAxidraw interactive API (units: inches). All commands require an active connection.</p>
+            <p class="command-reference-intro" x-text="apiDisplayName + ' interactive API (units: inches). All commands require an active connection.'"></p>
             <div class="command-reference">
               <div class="command-reference-group">
                 <div class="command-group-label">Pen</div>
@@ -508,7 +636,10 @@
         <!-- REPL (Right) -->
         <div class="w-50 pl2">
           <div class="panel">
-            <h2 class="panel-title">REPL</h2>
+            <h2 class="panel-title">
+              REPL
+              <span class="repl-plotter-indicator" x-text="'(' + plotterDisplayName + ')'"></span>
+            </h2>
             <div class="panel-section">
               <div class="repl-input-container">
                 <input
@@ -628,6 +759,19 @@
           alpineData.connected = state.connected || false;
           alpineData.plotting = state.plotting || false;
           alpineData.paused = state.paused || false;
+          // Update plotter type info if available
+          if (state.plotter_type) {
+            alpineData.currentPlotterType = state.plotter_type;
+          }
+          if (state.plotter_display_name) {
+            alpineData.plotterDisplayName = state.plotter_display_name;
+          }
+          if (state.api_display_name) {
+            alpineData.apiDisplayName = state.api_display_name;
+          }
+          if (state.nextdraw_available !== undefined) {
+            alpineData.nextdrawAvailable = state.nextdraw_available;
+          }
         }
 
         // Update global connected state for backward compatibility
@@ -1156,7 +1300,20 @@ function draw() {
       }
       
       // Wait for DOM and Alpine.js to be ready
-      window.addEventListener("DOMContentLoaded", function () {
+      window.addEventListener("DOMContentLoaded", async function () {
+        // Load plotter configuration once Alpine is ready (with retry)
+        function tryLoadPlotterConfig() {
+          const alpineData = getAlpineData();
+          if (alpineData && alpineData.loadPlotterConfig) {
+            alpineData.loadPlotterConfig();
+            // Also check state to get plotter info
+            window.checkState();
+          } else {
+            // Retry if Alpine hasn't rendered yet
+            setTimeout(tryLoadPlotterConfig, 50);
+          }
+        }
+        tryLoadPlotterConfig();
         // Try to initialize, retry if Alpine hasn't rendered yet
         function tryInit() {
           if (!initCodeMirror()) {

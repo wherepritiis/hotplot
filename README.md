@@ -1,6 +1,6 @@
-# HotPlot - AxiDraw Plotter Web Control Tool
+# HotPlot - AxiDraw & NextDraw Plotter Web Control Tool
 
-A small tool for controlling an AxiDraw plotter from a web UI. This tool allows anyone to write p5.js sketches, preview them, copy/export as SVG, and plot directly using a pen plotter.
+A small tool for controlling AxiDraw and NextDraw plotters from a web UI. This tool allows anyone to write p5.js sketches, preview them, copy/export as SVG, and plot directly using a pen plotter. Supports both AxiDraw (via PyAXIDraw) and Bantam Tools NextDraw (via NextDraw Python API).
 
 ## Overview
 
@@ -26,21 +26,37 @@ python3.14 --version
 
 If Python 3.14 is not installed, download it from [python.org](https://www.python.org/downloads/).
 
-### AxiDraw Hardware
+### Plotter Hardware
 
-This tool requires an AxiDraw-compatible pen plotter connected via USB.
+This tool supports:
+- **AxiDraw** plotters (via PyAXIDraw API)
+- **Bantam Tools NextDraw** plotters (via NextDraw Python API)
+
+Either plotter type can be connected via USB. You can switch between plotter types using the selector in the web UI header.
 
 ## Installation
 
-### Step 1: Install PyAXIDraw
+### Step 1: Install Plotter APIs
+
+#### Install PyAXIDraw (For AxiDraw support)
 
 **Important**: PyAXIDraw is **not available via pip or npm**. It must be installed manually from a zip file.
-
-#### Install from URL (Recommended)
 
 ```bash
 python3.14 -m pip install https://cdn.evilmadscientist.com/dl/ad/public/AxiDraw_API.zip
 ```
+
+#### Install NextDraw (For NextDraw support)
+
+**Important**: NextDraw Python API is **not available via pip or npm**. It must be installed manually from a zip file.
+
+```bash
+python3.14 -m pip install https://software-download.bantamtools.com/nd/api/nextdraw_api.zip
+```
+
+**Note**: After installation, restart your Flask server (`python3.14 app.py`) for HotPlot to detect NextDraw. The adapter will automatically detect it on the next check.
+
+**Note**: You can use HotPlot with just AxiDraw support installed. NextDraw support is optional and will be automatically detected if the library is installed.
 
 ### Step 2: Install Python Dependencies
 
@@ -58,7 +74,11 @@ This will install:
 Verify that all dependencies are installed correctly:
 
 ```bash
-python3.14 -c "import flask; from pyaxidraw import axidraw; print('All dependencies installed successfully')"
+# Verify Flask and PyAXIDraw (required)
+python3.14 -c "import flask; from pyaxidraw import axidraw; print('AxiDraw support: OK')"
+
+# Verify NextDraw (optional - only if you installed it)
+python3.14 -c "from nextdraw import NextDraw; print('NextDraw support: OK')" || echo "NextDraw not installed (optional)"
 ```
 
 ## Running the Server
@@ -78,15 +98,23 @@ http://localhost:3000/
 
 ## Usage
 
+### Plotter Selection
+
+Use the **Plotter** dropdown in the header to select between AxiDraw and NextDraw. Your selection is saved in your browser's localStorage and persists across sessions.
+
+**Note**: If NextDraw library is not installed, the NextDraw option will be disabled in the dropdown.
+
 ### Connection and status
 
-Click the **logo** to connect or disconnect the AxiDraw. The logo reflects connection status.
+Click the **logo** to connect or disconnect the plotter. The logo reflects connection status. The connection will use the currently selected plotter type.
 
 ### Interactive mode (commands)
 
 When connected, switch to **Interactive** mode to jog and command the plotter:
 
 - Enter commands in the REPL environment (e.g. `moveto 1 1`, `lineto 2 2`, `penup`, `pendown`, `home`)
+- The **Command Reference** panel shows the available commands for the currently selected plotter type
+- The REPL header displays which plotter API is active (e.g., "REPL (AxiDraw)" or "REPL (NextDraw)")
 - Examples of supported commands:
   - `moveto x y` - Move to (x, y) with pen up
   - `lineto x y` - Draw to (x, y) with pen down
@@ -94,6 +122,8 @@ When connected, switch to **Interactive** mode to jog and command the plotter:
   - `pendown` - Lower the pen
   - `home` - Move to home (0, 0)
 - Press Send to run the command; responses and errors appear in the log area
+
+**Note**: The command reference and REPL environment dynamically update based on your selected plotter type, showing the appropriate API name (PyAxidraw or NextDraw).
 
 
 ## Troubleshooting
@@ -121,12 +151,14 @@ If you see a warning about Python version:
 
 ### Connection Issues
 
-If you cannot connect to the AxiDraw:
+If you cannot connect to the plotter:
 
-1. Ensure the AxiDraw is powered on and connected via USB
-2. Check that no other application is using the plotter
-3. Try disconnecting and reconnecting the USB cable
-4. Restart the Flask server
+1. Ensure the plotter is powered on and connected via USB
+2. Verify you have selected the correct plotter type (AxiDraw or NextDraw) in the header dropdown
+3. Check that no other application is using the plotter
+4. Try disconnecting and reconnecting the USB cable
+5. Restart the Flask server
+6. For NextDraw: Ensure the NextDraw Python library is installed if you're trying to use NextDraw support
 
 ### Port Already in Use
 
@@ -143,6 +175,7 @@ If port 3000 is already in use:
 ```
 hotplot/
 ├── app.py              # Flask backend server
+├── plotter_adapter.py  # Plotter abstraction layer (AxiDraw/NextDraw)
 ├── requirements.txt    # Python dependencies (pip-installable)
 ├── SPEC.md             # Project specification
 ├── README.md           # This file
@@ -153,6 +186,8 @@ hotplot/
 
 ## Features
 
+- **Dual plotter support**: Switch between AxiDraw and NextDraw via UI selector
+- **Dynamic REPL**: Command reference and REPL environment update based on selected plotter type
 - **Connection**: Click the logo to connect or disconnect; the logo shows connection status
 - **Interactive commands**: Command plotter via REPL environment
 - **Plot**: Paste and send SVG to plotter
@@ -175,10 +210,13 @@ hotplot/
 
 - [AxiDraw Python API Documentation](https://axidraw.com/doc/py_api)
 - [AxiDraw Official Website](https://axidraw.com/)
+- [Bantam Tools NextDraw Python API](https://bantam.tools/nd_py)
+- [Bantam Tools NextDraw Migration Guide](https://bantam.tools/nd_migrate/)
+- [Bantam Tools NextDraw Official Website](https://bantam.tools/)
 - [Flask Documentation](https://flask.palletsprojects.com/)
 
 ## License
 
 This project is licensed under **CC BY-NC-SA 4.0** (Creative Commons Attribution-NonCommercial-ShareAlike 4.0): you may share and adapt the work for **non-commercial** use with attribution and under the same license. See [LICENSE](LICENSE) for details.
 
-Third-party components (p5.js, p5.plotSvg, Flask, pyaxidraw, etc.) have their own licenses; see their respective documentation.
+Third-party components (p5.js, p5.plotSvg, Flask, pyaxidraw, nextdraw, etc.) have their own licenses; see their respective documentation.

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project is a local, single-user web application for creating SVG drawings and plotting them on an AxiDraw-compatible pen plotter.
+This project is a local, single-user web application for creating SVG drawings and plotting them on AxiDraw or NextDraw pen plotters.
 
 The system consists of:
 
@@ -10,7 +10,7 @@ The system consists of:
 - A browser-based JavaScript UI
 - p5.js for creative coding
 - p5.plotSvg for generating plotter-compatible SVG
-- pyaxidraw for communicating with the physical plotter
+- Plotter adapter layer supporting both PyAXIDraw (AxiDraw) and NextDraw Python APIs
 
 The environment is assumed to be:
 
@@ -79,12 +79,13 @@ No backend scaling or unit conversion.
 - Units: Inches internally (96 pixels = 1 inch)
 - Document size: Defaults to canvas dimensions from `createCanvas()`, or can be set explicitly with `setSvgDocumentSize(w, h)`
 
-**pyaxidraw Units**:
+**Plotter API Units**:
 - Default: Inches (`options.units = 0`)
 - Alternative: Centimeters (`options.units = 1`) or Millimeters (`options.units = 2`)
 - Interactive commands automatically convert units based on `options.units`
+- Both AxiDraw (PyAXIDraw) and NextDraw APIs use the same unit conventions
 
-Students are responsible for canvas sizing. The backend accepts SVG coordinates as-is and plots them using pyaxidraw's default inch units.
+Students are responsible for canvas sizing. The backend accepts SVG coordinates as-is and plots them using the plotter API's default inch units.
 
 ---
 
@@ -169,7 +170,8 @@ Errors are printed to Python console.
 
 - **Python**: Version 3.14 is required. All Python commands must use `python3.14` to ensure the correct version.
 - **Flask**: Installed via pip using Python 3.14.
-- **pyaxidraw**: **Not available via pip or npm**. Must be installed manually from a zip file downloaded from the AxiDraw website. See installation instructions in PLAN.md and the [AxiDraw Python API documentation](https://axidraw.com/doc/py_api).
+- **pyaxidraw**: **Not available via pip or npm**. Must be installed manually from a zip file downloaded from the AxiDraw website. Required for AxiDraw support. See installation instructions in README.md and the [AxiDraw Python API documentation](https://axidraw.com/doc/py_api).
+- **nextdraw**: **Optional**. Must be installed manually from a package provided by Bantam Tools. Required only for NextDraw support. See [Bantam Tools NextDraw Python API documentation](https://bantam.tools/nd_py) for installation instructions.
 
 ---
 
@@ -177,17 +179,33 @@ Errors are printed to Python console.
 
 ### Endpoints
 
-- `GET /state` - Get current connection state
-- `POST /connect` - Connect to AxiDraw plotter (interactive mode)
-- `POST /disconnect` - Disconnect from AxiDraw plotter
+- `GET /state` - Get current connection state and plotter type information
+- `GET /config` - Get current plotter configuration (type, display names, availability)
+- `POST /config` - Set plotter type (`axidraw` or `nextdraw`)
+- `POST /connect` - Connect to plotter (interactive mode) using currently selected plotter type
+- `POST /disconnect` - Disconnect from plotter
 - `POST /cmd` - Execute interactive command (moveto, lineto, penup, pendown, home)
 - `POST /plot` - Plot SVG with optional layer selection, offset, and settings
 - `POST /stop` - Stop current plot operation and raise pen
 - `POST /home` - Return plotter to home position (0, 0)
 
-### pyaxidraw API Reference
+### Plotter Adapter Layer
 
-The backend uses pyaxidraw (version 3.9.6) which provides two distinct operation contexts:
+The backend uses a plotter adapter module (`plotter_adapter.py`) that provides a unified interface for both AxiDraw and NextDraw APIs. This abstraction layer:
+
+- Handles API differences transparently (e.g., USB command formatting, home mode differences)
+- Provides factory functions to create plotter instances based on selected type
+- Manages global plotter type state (defaults to `axidraw` for backward compatibility)
+- Detects NextDraw library availability at runtime
+
+**Key API Differences Handled**:
+- **USB Commands**: AxiDraw requires `\r` at end of commands, NextDraw does not (handled automatically)
+- **Home Mode**: AxiDraw uses `res_home` mode, NextDraw uses `find_home` mode (handled in `/home` endpoint)
+- **Import/Instantiation**: Different import paths and class names (handled by factory function)
+
+### Plotter API Reference
+
+The backend supports both PyAXIDraw (AxiDraw) and NextDraw Python APIs, which provide similar but not identical interfaces. Both APIs provide two distinct operation contexts:
 
 #### Interactive Context
 
@@ -236,13 +254,15 @@ Used for plotting SVG files:
 
 ### Implementation Notes
 
-- **Connection Management**: The `/connect` endpoint creates an interactive AxiDraw session using `ad.interactive()` then `ad.connect()`. The `/plot` endpoint automatically disconnects any existing interactive session before plotting, as plotting requires a Plot context instance.
+- **Plotter Type Selection**: Users can switch between AxiDraw and NextDraw via the `/config` endpoint. The selection is stored globally and persists until changed. Switching plotter types while connected will disconnect the current connection.
 
-- **Plotting**: The `/plot` endpoint creates a new AxiDraw instance for each plot operation. It uses `plot_setup()` with the SVG string, sets options (mode, layer, speeds, pen heights), then calls `plot_run()`. SVG offset is applied by wrapping the SVG content in a transform group before passing to `plot_setup()`.
+- **Connection Management**: The `/connect` endpoint creates an interactive plotter session using the currently selected plotter type. It calls `create_plotter_instance()` from the adapter, then `interactive()` and `connect()`. The `/plot` endpoint automatically disconnects any existing interactive session before plotting, as plotting requires a Plot context instance.
 
-- **Layer Plotting**: When a layer number is specified, the backend sets `ad.options.mode = "layers"` and `ad.options.layer = N`. pyaxidraw matches layers whose names begin with the specified number (e.g., layer 5 matches "5-red", "5 Outlines" but not "55" or "guide lines").
+- **Plotting**: The `/plot` endpoint creates a new plotter instance (via adapter) for each plot operation. It uses `plot_setup()` with the SVG string, sets options (mode, layer, speeds, pen heights), then calls `plot_run()`. SVG offset is applied by wrapping the SVG content in a transform group before passing to `plot_setup()`. Works identically for both AxiDraw and NextDraw.
 
-- **Stop/Home**: Both `/stop` and `/home` endpoints disconnect the current AxiDraw instance. The `/home` endpoint creates a new interactive instance, uses `moveto(0, 0)` to return to origin, then disconnects.
+- **Layer Plotting**: When a layer number is specified, the backend sets `options.mode = "layers"` and `options.layer = N`. Both APIs match layers whose names begin with the specified number (e.g., layer 5 matches "5-red", "5 Outlines" but not "55" or "guide lines").
+
+- **Stop/Home**: Both `/stop` and `/home` endpoints disconnect the current plotter instance. The `/home` endpoint creates a new interactive instance using the adapter, then uses plotter-specific home mode (`res_home` for AxiDraw, `find_home` for NextDraw) to return to origin, then disconnects.
 
 ---
 
@@ -258,6 +278,8 @@ Physical plotter pause button is used.
 
 ### Current Implementation (Iterations 1-2)
 
+- **Plotter Type Selector**: Dropdown in header to switch between AxiDraw and NextDraw
+- **Dynamic REPL**: Command reference and REPL header update based on selected plotter type
 - Connection controls (Connect/Disconnect buttons)
 - Status indicator (connected/disconnected)
 - Interactive command console with log area

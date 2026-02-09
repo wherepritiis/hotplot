@@ -1,17 +1,27 @@
 #!/usr/bin/env python3
 """
-Flask backend for AxiDraw plotter control.
+Flask backend for AxiDraw and NextDraw plotter control.
 Iteration 2: Plotting + Plot UI with SVG plotting, layer support, and settings.
 """
 
 import threading
 import signal
 from flask import Flask, request, jsonify, send_from_directory
-from pyaxidraw import axidraw
+from plotter_adapter import (
+    create_plotter_instance,
+    get_plotter_type,
+    set_plotter_type,
+    usb_command as adapter_usb_command,
+    get_plotter_display_name,
+    get_api_display_name,
+    PLOTTER_AXIDRAW,
+    PLOTTER_NEXTDRAW,
+    is_nextdraw_available
+)
 
 app = Flask(__name__, static_folder='static')
 
-# Global AxiDraw instance (for interactive mode)
+# Global plotter instance (for interactive mode)
 axidraw_instance = None
 # Global plot instance (for plotting operations)
 plot_instance = None
@@ -31,7 +41,11 @@ def get_state():
         "connected": axidraw_instance is not None,
         "plotting": plot_thread is not None and plot_thread.is_alive(),
         "paused": paused_svg is not None,
-        "plot_active": plot_active
+        "plot_active": plot_active,
+        "plotter_type": get_plotter_type(),
+        "plotter_display_name": get_plotter_display_name(),
+        "api_display_name": get_api_display_name(),
+        "nextdraw_available": is_nextdraw_available()
     }
     return state
 
@@ -42,10 +56,11 @@ def reconnect_interactive():
     if axidraw_instance is not None:
         return
     try:
-        axidraw_instance = axidraw.AxiDraw()
+        axidraw_instance = create_plotter_instance()
         axidraw_instance.interactive()
         if axidraw_instance.connect():
-            print("Reconnected interactive session after plot")
+            plotter_name = get_plotter_display_name()
+            print(f"Reconnected interactive session after plot ({plotter_name})")
         else:
             axidraw_instance = None
     except Exception as e:
@@ -67,53 +82,111 @@ def state():
     return jsonify(get_state())
 
 
+@app.route('/config', methods=['GET'])
+def get_config():
+    """Get current plotter configuration."""
+    return jsonify({
+        "plotter_type": get_plotter_type(),
+        "plotter_display_name": get_plotter_display_name(),
+        "api_display_name": get_api_display_name(),
+        "nextdraw_available": is_nextdraw_available()
+    })
+
+
+@app.route('/config', methods=['POST'])
+def set_config():
+    """Set plotter configuration."""
+    global axidraw_instance
+    
+    data = request.get_json()
+    plotter_type = data.get('plotter_type')
+    
+    if plotter_type not in (PLOTTER_AXIDRAW, PLOTTER_NEXTDRAW):
+        return jsonify({"success": False, "error": f"Invalid plotter_type. Must be '{PLOTTER_AXIDRAW}' or '{PLOTTER_NEXTDRAW}'"}), 400
+    
+    if plotter_type == PLOTTER_NEXTDRAW and not is_nextdraw_available():
+        return jsonify({
+            "success": False,
+            "error": "NextDraw library is not installed. Please install it to use NextDraw support."
+        }), 400
+    
+    # If currently connected, disconnect first
+    if axidraw_instance is not None:
+        try:
+            adapter_usb_command(axidraw_instance, "EM,0,0")
+            axidraw_instance.disconnect()
+        except Exception as e:
+            print(f"Warning: Error disconnecting during plotter type switch: {e}")
+        axidraw_instance = None
+    
+    # Set the new plotter type
+    set_plotter_type(plotter_type)
+    
+    return jsonify({
+        "success": True,
+        "message": f"Plotter type set to {get_plotter_display_name()}",
+        "plotter_type": get_plotter_type(),
+        "plotter_display_name": get_plotter_display_name(),
+        "api_display_name": get_api_display_name()
+    })
+
+
 @app.route('/connect', methods=['POST'])
 def connect():
-    """Connect to the AxiDraw plotter."""
+    """Connect to the plotter."""
     global axidraw_instance
     
     if axidraw_instance is not None:
         return jsonify({"success": False, "error": "Already connected"}), 400
     
     try:
-        axidraw_instance = axidraw.AxiDraw()
+        plotter_name = get_plotter_display_name()
+        axidraw_instance = create_plotter_instance()
         axidraw_instance.interactive()
         connect_result = axidraw_instance.connect()
         
         # Check if connect() returned False (device not found)
         if connect_result is False:
             axidraw_instance = None
-            return jsonify({"success": False, "error": "Failed to connect: No AxiDraw device found"}), 500
+            return jsonify({"success": False, "error": f"Failed to connect: No {plotter_name} device found"}), 500
         
-        return jsonify({"success": True, "message": "Connected to AxiDraw"})
+        return jsonify({"success": True, "message": f"Connected to {plotter_name}"})
+    except ImportError as e:
+        # NextDraw library not available
+        print(f"Error connecting: {e}")
+        axidraw_instance = None
+        return jsonify({"success": False, "error": str(e)}), 500
     except Exception as e:
-        print(f"Error connecting to AxiDraw: {e}")
+        plotter_name = get_plotter_display_name()
+        print(f"Error connecting to {plotter_name}: {e}")
         axidraw_instance = None
         return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route('/disconnect', methods=['POST'])
 def disconnect():
-    """Disconnect from the AxiDraw plotter."""
+    """Disconnect from the plotter."""
     global axidraw_instance
     
     if axidraw_instance is None:
         return jsonify({"success": False, "error": "Not connected"}), 400
     
     try:
+        plotter_name = get_plotter_display_name()
         # Disable motors before disconnecting to free them up
         try:
             # Send command to disable XY motors (EM,0,0 = Enable Motors, 0 = disable)
-            axidraw_instance.usb_command("EM,0,0\r")
+            adapter_usb_command(axidraw_instance, "EM,0,0")
         except Exception as motor_error:
             # If motor disable fails, log but continue with disconnect
             print(f"Warning: Could not disable motors: {motor_error}")
         
         axidraw_instance.disconnect()
         axidraw_instance = None
-        return jsonify({"success": True, "message": "Disconnected from AxiDraw"})
+        return jsonify({"success": True, "message": f"Disconnected from {plotter_name}"})
     except Exception as e:
-        print(f"Error disconnecting from AxiDraw: {e}")
+        plotter_name = get_plotter_display_name()
+        print(f"Error disconnecting from {plotter_name}: {e}")
         # Ensure instance is cleared even on error
         axidraw_instance = None
         return jsonify({"success": False, "error": str(e)}), 500
@@ -229,8 +302,8 @@ def run_plot(svg, layer, pen_pos_up, pen_pos_down, speed_penup, speed_pendown):
         paused_svg = None
         paused_plot_settings = None
         
-        # Create new AxiDraw instance for plotting
-        plot_instance = axidraw.AxiDraw()
+        # Create new plotter instance for plotting
+        plot_instance = create_plotter_instance()
         
         # Setup plot with SVG
         plot_instance.plot_setup(svg)
@@ -408,8 +481,8 @@ def resume():
         paused_svg = None
         paused_plot_settings = None
         
-        # Create new AxiDraw instance for resuming
-        plot_instance = axidraw.AxiDraw()
+        # Create new plotter instance for resuming
+        plot_instance = create_plotter_instance()
         
         # Setup plot with paused SVG
         plot_instance.plot_setup(temp_paused_svg)
@@ -527,10 +600,17 @@ def home():
         return jsonify({"success": False, "error": "Return Home is only available when a plot is paused"}), 400
     
     try:
-        # Use res_home mode: move carriage to home corner
-        home_instance = axidraw.AxiDraw()
+        plotter_type = get_plotter_type()
+        home_instance = create_plotter_instance()
         home_instance.plot_setup(paused_svg)
-        home_instance.options.mode = "res_home"
+        
+        # Handle API differences: AxiDraw uses res_home mode, NextDraw uses find_home mode
+        if plotter_type == PLOTTER_AXIDRAW:
+            home_instance.options.mode = "res_home"
+        else:
+            # NextDraw: use find_home mode (res_home was removed)
+            home_instance.options.mode = "find_home"
+        
         home_instance.plot_run()
         home_instance.disconnect()
         
