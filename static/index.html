@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -18,1105 +18,1383 @@
       // Define Alpine component data
       function appData() {
         return {
-        currentMode: "plot",
-        logPanelOpen: false,
-        connected: false,
-        plotting: false,
-        paused: false,
-        commandHistory: [],
-        currentSvg: null,
-        alerts: [],
-        currentPlotterType: "axidraw",
-        plotterDisplayName: "AxiDraw",
-        apiDisplayName: "PyAxidraw",
-        nextdrawAvailable: false,
+          currentMode: "plot",
+          logPanelOpen: false,
+          connected: false,
+          plotting: false,
+          paused: false,
+          commandHistory: [],
+          currentSvg: null,
+          alerts: [],
+          currentPlotterType: "axidraw",
+          plotterDisplayName: "AxiDraw",
+          apiDisplayName: "PyAxidraw",
+          nextdrawAvailable: false,
 
-        switchMode(mode) {
-          this.currentMode = mode;
-        },
-        toggleLogPanel() {
-          this.logPanelOpen = !this.logPanelOpen;
-        },
-        showAlert(message, type = "error") {
-          const alert = {
-            id: Date.now() + Math.random(),
-            message: message,
-            type: type, // "error", "success", "info", "warning"
-          };
-          this.alerts.push(alert);
-          
-          // Auto-dismiss after 5 seconds for errors, 3 seconds for others
-          const dismissTime = type === "error" ? 5000 : 3000;
-          setTimeout(() => {
-            this.dismissAlert(alert.id);
-          }, dismissTime);
-        },
-        dismissAlert(id) {
-          this.alerts = this.alerts.filter(alert => alert.id !== id);
-        },
-        async connect() {
-          try {
-            window.log("Connecting...", "info");
-            const response = await fetch("/connect", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-            });
-            const result = await response.json();
-            if (result.success) {
-              window.log(result.message || "Connected successfully", "success");
-              this.connected = true;
-            } else {
-              const errorMsg = result.error || "Connection failed";
-              window.log(`Connection failed: ${errorMsg}`, "error");
-              this.showAlert(`Connection Failed: ${errorMsg}`, "error");
+          switchMode(mode) {
+            this.currentMode = mode;
+          },
+          toggleLogPanel() {
+            this.logPanelOpen = !this.logPanelOpen;
+          },
+          showAlert(message, type = "error") {
+            const alert = {
+              id: Date.now() + Math.random(),
+              message: message,
+              type: type, // "error", "success", "info", "warning"
+            };
+            this.alerts.push(alert);
+
+            // Auto-dismiss after 5 seconds for errors, 3 seconds for others
+            const dismissTime = type === "error" ? 5000 : 3000;
+            setTimeout(() => {
+              this.dismissAlert(alert.id);
+            }, dismissTime);
+          },
+          dismissAlert(id) {
+            this.alerts = this.alerts.filter((alert) => alert.id !== id);
+          },
+          async connect() {
+            try {
+              window.log("Connecting...", "info");
+              const response = await fetch("/connect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              });
+              const result = await response.json();
+              if (result.success) {
+                window.log(
+                  result.message || "Connected successfully",
+                  "success",
+                );
+                this.connected = true;
+              } else {
+                const errorMsg = result.error || "Connection failed";
+                window.log(`Connection failed: ${errorMsg}`, "error");
+                this.showAlert(`Connection Failed: ${errorMsg}`, "error");
+                this.connected = false;
+              }
+              await window.checkState();
+            } catch (error) {
+              const errorMsg = error.message || "Connection error";
+              window.log(`Error connecting: ${errorMsg}`, "error");
+              this.showAlert(`Connection Error: ${errorMsg}`, "error");
               this.connected = false;
             }
-            await window.checkState();
-          } catch (error) {
-            const errorMsg = error.message || "Connection error";
-            window.log(`Error connecting: ${errorMsg}`, "error");
-            this.showAlert(`Connection Error: ${errorMsg}`, "error");
-            this.connected = false;
-          }
-        },
-        async disconnect() {
-          try {
-            window.log("Disconnecting...", "info");
-            const response = await fetch("/disconnect", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-            });
-            const result = await response.json();
-            if (result.success) {
-              window.log(
-                result.message || "Disconnected successfully",
-                "success"
-              );
-              this.connected = false;
-            } else {
-              const errorMsg = result.error || "Disconnect failed";
-              window.log(`Disconnect failed: ${errorMsg}`, "error");
-              this.showAlert(`Disconnect Failed: ${errorMsg}`, "error");
+          },
+          async disconnect() {
+            try {
+              window.log("Disconnecting...", "info");
+              const response = await fetch("/disconnect", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              });
+              const result = await response.json();
+              if (result.success) {
+                window.log(
+                  result.message || "Disconnected successfully",
+                  "success",
+                );
+                this.connected = false;
+              } else {
+                const errorMsg = result.error || "Disconnect failed";
+                window.log(`Disconnect failed: ${errorMsg}`, "error");
+                this.showAlert(`Disconnect Failed: ${errorMsg}`, "error");
+              }
+              await window.checkState();
+            } catch (error) {
+              const errorMsg = error.message || "Disconnect error";
+              window.log(`Error disconnecting: ${errorMsg}`, "error");
+              this.showAlert(`Disconnect Error: ${errorMsg}`, "error");
             }
-            await window.checkState();
-          } catch (error) {
-            const errorMsg = error.message || "Disconnect error";
-            window.log(`Error disconnecting: ${errorMsg}`, "error");
-            this.showAlert(`Disconnect Error: ${errorMsg}`, "error");
-          }
-        },
-        async sendCommand() {
-          const commandInput = document.getElementById("commandInput");
-          const command = commandInput.value.trim();
-          if (!command) {
-            window.log("Please enter a command", "error");
-            return;
-          }
-          if (!this.connected) {
-            window.log("Not connected. Please connect first.", "error");
-            return;
-          }
-          try {
-            window.log(`Sending command: ${command}`, "info");
-            const response = await fetch("/cmd", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ command: command }),
-            });
-            const result = await response.json();
-            if (result.success) {
-              window.log(
-                result.message || "Command executed successfully",
-                "success"
-              );
-              this.addToHistory(command, result.message || "Success");
-            } else {
-              const errorMsg = result.error || "Command failed";
-              window.log(`Command failed: ${errorMsg}`, "error");
-              this.showAlert(`Command Failed: ${errorMsg}`, "error");
+          },
+          async sendCommand() {
+            const commandInput = document.getElementById("commandInput");
+            const command = commandInput.value.trim();
+            if (!command) {
+              window.log("Please enter a command", "error");
+              return;
+            }
+            if (!this.connected) {
+              window.log("Not connected. Please connect first.", "error");
+              return;
+            }
+            try {
+              window.log(`Sending command: ${command}`, "info");
+              const response = await fetch("/cmd", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ command: command }),
+              });
+              const result = await response.json();
+              if (result.success) {
+                window.log(
+                  result.message || "Command executed successfully",
+                  "success",
+                );
+                this.addToHistory(command, result.message || "Success");
+              } else {
+                const errorMsg = result.error || "Command failed";
+                window.log(`Command failed: ${errorMsg}`, "error");
+                this.showAlert(`Command Failed: ${errorMsg}`, "error");
+                this.addToHistory(command, `Error: ${errorMsg}`);
+              }
+              commandInput.value = "";
+            } catch (error) {
+              const errorMsg = error.message || "Command error";
+              window.log(`Error sending command: ${errorMsg}`, "error");
+              this.showAlert(`Command Error: ${errorMsg}`, "error");
               this.addToHistory(command, `Error: ${errorMsg}`);
             }
-            commandInput.value = "";
-          } catch (error) {
-            const errorMsg = error.message || "Command error";
-            window.log(`Error sending command: ${errorMsg}`, "error");
-            this.showAlert(`Command Error: ${errorMsg}`, "error");
-            this.addToHistory(command, `Error: ${errorMsg}`);
-          }
-        },
-        addToHistory(command, response) {
-          this.commandHistory.push({
-            command,
-            response,
-            timestamp: new Date(),
-          });
-        },
-        async         copySvg() {
-          try {
-            let svgToCopy =
-              this.currentSvg ||
-              (typeof currentSvg !== "undefined" ? currentSvg : null);
-            
-            // If no SVG is available, generate it from the code editor
-            if (!svgToCopy) {
-              window.log("Generating SVG from code...", "info");
-              
-              // Get code from editor
-              const code = codeEditor
-                ? codeEditor.getValue()
-                : document.getElementById("codeEditor").value;
-              
-              // Generate SVG
-              svgToCopy = await generateSvgFromCode(code);
-              
-              // Store the generated SVG
-              currentSvg = svgToCopy;
-              this.currentSvg = svgToCopy;
-            }
-            
-            // Copy to clipboard
-            await navigator.clipboard.writeText(svgToCopy);
-            window.log("SVG copied to clipboard", "success");
-          } catch (error) {
-            window.log(`Error copying SVG: ${error.message}`, "error");
-          }
-        },
-        async updatePlotterType(newType) {
-          // Store current type in case we need to revert
-          const previousType = this.currentPlotterType;
-          
-          // Prevent switching during active plot
-          if (this.plotting) {
-            this.showAlert("Cannot switch plotter type while plotting is in progress", "error");
-            // Reset dropdown to previous value
-            this.$nextTick(() => {
-              const select = document.querySelector('.plotter-selector-select');
-              if (select) select.value = previousType;
+          },
+          addToHistory(command, response) {
+            this.commandHistory.push({
+              command,
+              response,
+              timestamp: new Date(),
             });
-            return;
-          }
-          
-          // If connected, ask user to disconnect first
-          if (this.connected) {
-            const confirmed = confirm(
-              `You are currently connected to ${this.plotterDisplayName}. ` +
-              `Switching to ${newType === "axidraw" ? "AxiDraw" : "NextDraw"} will disconnect the current connection. ` +
-              `Do you want to continue?`
-            );
-            if (!confirmed) {
+          },
+          async copySvg() {
+            try {
+              let svgToCopy =
+                this.currentSvg ||
+                (typeof currentSvg !== "undefined" ? currentSvg : null);
+
+              // If no SVG is available, generate it from the code editor
+              if (!svgToCopy) {
+                window.log("Generating SVG from code...", "info");
+
+                // Get code from editor
+                const code = codeEditor
+                  ? codeEditor.getValue()
+                  : document.getElementById("codeEditor").value;
+
+                // Generate SVG
+                svgToCopy = await generateSvgFromCode(code);
+
+                // Store the generated SVG
+                currentSvg = svgToCopy;
+                this.currentSvg = svgToCopy;
+              }
+
+              // Copy to clipboard
+              await navigator.clipboard.writeText(svgToCopy);
+              window.log("SVG copied to clipboard", "success");
+            } catch (error) {
+              window.log(`Error copying SVG: ${error.message}`, "error");
+            }
+          },
+          async updatePlotterType(newType) {
+            // Store current type in case we need to revert
+            const previousType = this.currentPlotterType;
+
+            // Prevent switching during active plot
+            if (this.plotting) {
+              this.showAlert(
+                "Cannot switch plotter type while plotting is in progress",
+                "error",
+              );
               // Reset dropdown to previous value
               this.$nextTick(() => {
-                const select = document.querySelector('.plotter-selector-select');
+                const select = document.querySelector(
+                  ".plotter-selector-select",
+                );
                 if (select) select.value = previousType;
               });
               return;
             }
-            // Disconnect first
-            await this.disconnect();
-          }
-          
-          try {
-            window.log(`Switching to ${newType === "axidraw" ? "AxiDraw" : "NextDraw"}...`, "info");
-            const response = await fetch("/config", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ plotter_type: newType }),
-            });
-            const result = await response.json();
-            
-            if (result.success) {
-              this.currentPlotterType = newType;
-              this.plotterDisplayName = result.plotter_display_name;
-              this.apiDisplayName = result.api_display_name;
-              // Save to localStorage
-              localStorage.setItem("plotterType", newType);
-              window.log(result.message, "success");
-              this.showAlert(result.message, "success");
-              // Refresh state to get updated info
-              await window.checkState();
-              
-              // Warn if NextDraw is selected but not available
-              if (newType === "nextdraw" && !this.nextdrawAvailable) {
-                this.showAlert("NextDraw library is not installed. You will not be able to connect until it is installed.", "warning");
+
+            // If connected, ask user to disconnect first
+            if (this.connected) {
+              const confirmed = confirm(
+                `You are currently connected to ${this.plotterDisplayName}. ` +
+                  `Switching to ${newType === "axidraw" ? "AxiDraw" : "NextDraw"} will disconnect the current connection. ` +
+                  `Do you want to continue?`,
+              );
+              if (!confirmed) {
+                // Reset dropdown to previous value
+                this.$nextTick(() => {
+                  const select = document.querySelector(
+                    ".plotter-selector-select",
+                  );
+                  if (select) select.value = previousType;
+                });
+                return;
               }
-            } else {
-              const errorMsg = result.error || "Failed to switch plotter type";
-              window.log(`Failed to switch plotter type: ${errorMsg}`, "error");
-              this.showAlert(`Failed to switch plotter type: ${errorMsg}`, "error");
+              // Disconnect first
+              await this.disconnect();
+            }
+
+            try {
+              window.log(
+                `Switching to ${newType === "axidraw" ? "AxiDraw" : "NextDraw"}...`,
+                "info",
+              );
+              const response = await fetch("/config", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ plotter_type: newType }),
+              });
+              const result = await response.json();
+
+              if (result.success) {
+                this.currentPlotterType = newType;
+                this.plotterDisplayName = result.plotter_display_name;
+                this.apiDisplayName = result.api_display_name;
+                // Save to localStorage
+                localStorage.setItem("plotterType", newType);
+                window.log(result.message, "success");
+                this.showAlert(result.message, "success");
+                // Refresh state to get updated info
+                await window.checkState();
+
+                // Warn if NextDraw is selected but not available
+                if (newType === "nextdraw" && !this.nextdrawAvailable) {
+                  this.showAlert(
+                    "NextDraw library is not installed. You will not be able to connect until it is installed.",
+                    "warning",
+                  );
+                }
+              } else {
+                const errorMsg =
+                  result.error || "Failed to switch plotter type";
+                window.log(
+                  `Failed to switch plotter type: ${errorMsg}`,
+                  "error",
+                );
+                this.showAlert(
+                  `Failed to switch plotter type: ${errorMsg}`,
+                  "error",
+                );
+                // Reset dropdown to previous value on error
+                this.currentPlotterType = previousType;
+                // Refresh config to get updated availability status
+                await this.loadPlotterConfig();
+                // Use Alpine's reactive update to reset dropdown
+                await this.$nextTick();
+                const select = document.querySelector(
+                  ".plotter-selector-select",
+                );
+                if (select) select.value = previousType;
+              }
+            } catch (error) {
+              const errorMsg = error.message || "Error switching plotter type";
+              window.log(`Error switching plotter type: ${errorMsg}`, "error");
+              this.showAlert(
+                `Error switching plotter type: ${errorMsg}`,
+                "error",
+              );
               // Reset dropdown to previous value on error
               this.currentPlotterType = previousType;
-              // Refresh config to get updated availability status
-              await this.loadPlotterConfig();
-              // Use Alpine's reactive update to reset dropdown
-              await this.$nextTick();
-              const select = document.querySelector('.plotter-selector-select');
-              if (select) select.value = previousType;
+              this.$nextTick(() => {
+                const select = document.querySelector(
+                  ".plotter-selector-select",
+                );
+                if (select) select.value = previousType;
+              });
             }
-          } catch (error) {
-            const errorMsg = error.message || "Error switching plotter type";
-            window.log(`Error switching plotter type: ${errorMsg}`, "error");
-            this.showAlert(`Error switching plotter type: ${errorMsg}`, "error");
-            // Reset dropdown to previous value on error
-            this.currentPlotterType = previousType;
-            this.$nextTick(() => {
-              const select = document.querySelector('.plotter-selector-select');
-              if (select) select.value = previousType;
-            });
-          }
-        },
-        async loadPlotterConfig() {
-          try {
-            const response = await fetch("/config", {
-              method: "GET",
-              headers: { "Content-Type": "application/json" },
-            });
-            const result = await response.json();
-            
-            this.currentPlotterType = result.plotter_type || "axidraw";
-            this.plotterDisplayName = result.plotter_display_name || "AxiDraw";
-            this.apiDisplayName = result.api_display_name || "PyAxidraw";
-            this.nextdrawAvailable = result.nextdraw_available || false;
-            
-            // Sync localStorage with backend
-            localStorage.setItem("plotterType", this.currentPlotterType);
-          } catch (error) {
-            console.error("Error loading plotter config:", error);
-            // Fallback to localStorage if backend fails
-            const savedType = localStorage.getItem("plotterType");
-            if (savedType) {
-              this.currentPlotterType = savedType;
-              this.plotterDisplayName = savedType === "axidraw" ? "AxiDraw" : "NextDraw";
-              this.apiDisplayName = savedType === "axidraw" ? "PyAxidraw" : "NextDraw";
+          },
+          async loadPlotterConfig() {
+            try {
+              const response = await fetch("/config", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" },
+              });
+              const result = await response.json();
+
+              this.currentPlotterType = result.plotter_type || "axidraw";
+              this.plotterDisplayName =
+                result.plotter_display_name || "AxiDraw";
+              this.apiDisplayName = result.api_display_name || "PyAxidraw";
+              this.nextdrawAvailable = result.nextdraw_available || false;
+
+              // Sync localStorage with backend
+              localStorage.setItem("plotterType", this.currentPlotterType);
+            } catch (error) {
+              console.error("Error loading plotter config:", error);
+              // Fallback to localStorage if backend fails
+              const savedType = localStorage.getItem("plotterType");
+              if (savedType) {
+                this.currentPlotterType = savedType;
+                this.plotterDisplayName =
+                  savedType === "axidraw" ? "AxiDraw" : "NextDraw";
+                this.apiDisplayName =
+                  savedType === "axidraw" ? "PyAxidraw" : "NextDraw";
+              }
             }
-          }
-        }
+          },
         };
-      };
+      }
     </script>
     <!-- AlpineJS -->
     <script>
-      document.addEventListener('alpine:init', () => {
-        Alpine.data('appData', appData);
+      document.addEventListener("alpine:init", () => {
+        Alpine.data("appData", appData);
       });
     </script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
     <!-- p5.js and p5.plotSvg will be loaded dynamically in preview iframe -->
   </head>
-  <body
-    x-data="appData"
-    class="sans-serif w-100 center pa3"
-  >
+  <body x-data="appData" class="sans-serif w-100 center pa3">
     <div class="app-container">
-    <!-- Header -->
-    <header class="app-header">
-      <!-- Logo: Hotplot with O as connect toggle, second O as status -->
-      <div class="app-logo brand-wrap" aria-label="Hotplot">
-        <span class="brand-letter brand-letter--h" aria-hidden="true">H</span>
-        <span class="logo-toggle-wrap">
-          <label class="logo-toggle" title="Connect">
-            <input
-              type="checkbox"
-              id="logoConnectToggle"
-              aria-label="Connect"
-              :checked="connected"
-              @change="connected ? disconnect() : connect()"
-            />
-            <span class="logo-toggle-track"><span class="logo-toggle-knob"></span></span>
-          </label>
-        </span>
-        <span class="brand-letter brand-rest" aria-hidden="true">tpl</span>
-        <span
-          class="brand-status-o"
-          :class="connected ? 'brand-status--connected' : 'brand-status--disconnected'"
-          id="brandStatusO"
-          aria-label="Connection status"
-        ></span>
-        <span class="brand-letter brand-rest" aria-hidden="true">t</span>
+      <!-- Header -->
+      <header class="app-header">
+        <!-- Logo: Hotplot with O as connect toggle, second O as status -->
+        <div class="app-logo brand-wrap" aria-label="Hotplot">
+          <span class="brand-letter brand-letter--h" aria-hidden="true">H</span>
+          <span class="logo-toggle-wrap">
+            <label class="logo-toggle" title="Connect">
+              <input
+                type="checkbox"
+                id="logoConnectToggle"
+                aria-label="Connect"
+                :checked="connected"
+                @change="connected ? disconnect() : connect()"
+              />
+              <span class="logo-toggle-track"
+                ><span class="logo-toggle-knob"></span
+              ></span>
+            </label>
+          </span>
+          <span class="brand-letter brand-rest" aria-hidden="true">tpl</span>
+          <span
+            class="brand-status-o"
+            :class="connected ? 'brand-status--connected' : 'brand-status--disconnected'"
+            id="brandStatusO"
+            aria-label="Connection status"
+          ></span>
+          <span class="brand-letter brand-rest" aria-hidden="true">t</span>
+        </div>
+
+        <!-- Plotter Selector and Log Button (Right) -->
+        <!-- Plotter Type Selector -->
+        <div class="plotter-selector">
+          <label class="plotter-selector-label">Plotter:</label>
+          <select
+            class="plotter-selector-select"
+            :value="currentPlotterType"
+            @change="updatePlotterType($event.target.value)"
+            :disabled="plotting"
+          >
+            <option value="axidraw">AxiDraw</option>
+            <option value="nextdraw">NextDraw</option>
+          </select>
+        </div>
+
+        <!-- Log Button (Right) -->
+        <div class="log-button-wrapper">
+          <button @click="toggleLogPanel()" class="log-button">Log</button>
+        </div>
+      </header>
+
+      <!-- Tabs - Below Header, O2.14 File Folder Tab Style -->
+      <div class="tabs-wrapper">
+        <div class="tabs-container">
+          <button
+            class="tab"
+            :class="{ 'active': currentMode === 'plot' }"
+            @click="switchMode('plot')"
+          >
+            Plot Mode
+          </button>
+          <button
+            class="tab"
+            :class="{ 'active': currentMode === 'interactive' }"
+            @click="switchMode('interactive')"
+          >
+            Interactive Mode
+          </button>
+        </div>
       </div>
 
-      <!-- Plotter Selector and Log Button (Right) -->
-      <!-- Plotter Type Selector -->
-      <div class="plotter-selector">
-        <label class="plotter-selector-label">Plotter:</label>
-        <select
-          class="plotter-selector-select"
-          :value="currentPlotterType"
-          @change="updatePlotterType($event.target.value)"
-          :disabled="plotting"
-        >
-          <option value="axidraw">AxiDraw</option>
-          <option value="nextdraw">NextDraw</option>
-        </select>
-      </div>
-      
-      <!-- Log Button (Right) -->
-      <div class="log-button-wrapper">
-        <button
-          @click="toggleLogPanel()"
-          class="log-button"
-        >
-          Log
-        </button>
-      </div>
-    </header>
-
-    <!-- Tabs - Below Header, O2.14 File Folder Tab Style -->
-    <div class="tabs-wrapper">
-      <div class="tabs-container">
-        <button 
-          class="tab"
-          :class="{ 'active': currentMode === 'plot' }"
-          @click="switchMode('plot')"
-        >
-          Plot Mode
-        </button>
-        <button 
-          class="tab"
-          :class="{ 'active': currentMode === 'interactive' }"
-          @click="switchMode('interactive')"
-        >
-          Interactive Mode
-        </button>
-      </div>
-    </div>
-
-    <!-- Alert Notifications -->
-    <div class="alert-container" x-show="alerts.length > 0">
-      <div class="alert-container-inner">
-        <template x-for="alert in alerts" :key="alert.id">
-          <div
-            x-show="alerts.length > 0"
-            x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 transform translate-y-[-10px]"
-            x-transition:enter-end="opacity-100 transform translate-y-0"
-            x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100 transform translate-y-0"
-            x-transition:leave-end="opacity-0 transform translate-y-[-10px]"
-            :class="{
+      <!-- Alert Notifications -->
+      <div class="alert-container" x-show="alerts.length > 0">
+        <div class="alert-container-inner">
+          <template x-for="alert in alerts" :key="alert.id">
+            <div
+              x-show="alerts.length > 0"
+              x-transition:enter="transition ease-out duration-300"
+              x-transition:enter-start="opacity-0 transform translate-y-[-10px]"
+              x-transition:enter-end="opacity-100 transform translate-y-0"
+              x-transition:leave="transition ease-in duration-200"
+              x-transition:leave-start="opacity-100 transform translate-y-0"
+              x-transition:leave-end="opacity-0 transform translate-y-[-10px]"
+              :class="{
               'alert-error': alert.type === 'error',
               'alert-success': alert.type === 'success',
               'alert-info': alert.type === 'info',
               'alert-warning': alert.type === 'warning'
             }"
-            class="alert"
-          >
-            <span x-text="alert.message" class="flex-auto pr2"></span>
-            <button
-              @click="dismissAlert(alert.id)"
-              class="alert-dismiss"
-              title="Dismiss"
+              class="alert"
             >
-              ×
-            </button>
-          </div>
-        </template>
-      </div>
-    </div>
-
-    <!-- Main Content - connected to tabs -->
-    <div class="main-content" id="plotMode" x-show="currentMode === 'plot'">
-      <div class="layout-grid">
-        <!-- Code Editor - O2.11 Triple Stacked Layers -->
-        <div class="editor-container">
-          <div class="editor-header">Code Editor</div>
-          <div class="editor-content">
-            <textarea id="codeEditor"></textarea>
-          </div>
-          
-          <!-- Preview Button - Magnetic Effect -->
-          <div class="magnetic-button-container" id="previewBtnContainer">
-            <div class="magnetic-trail magnetic-trail--1" id="previewTrail1"></div>
-            <div class="magnetic-trail magnetic-trail--2" id="previewTrail2"></div>
-            <button class="magnetic-button" id="previewBtn" onclick="runPreview()">
-              Preview
-            </button>
-            <div class="preview-curved-text" id="previewCurvedText">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <path id="preview-path-p5js" d="M 100,25 A 75,75 0 0,1 175,100" fill="none"/>
-                  <path id="preview-path-sketch" d="M 175,100 A 75,75 0 0,1 25,100" fill="none"/>
-                </defs>
-                <text font-size="16" fill="#2a2a2a" letter-spacing="0.1em" font-family="system-ui, -apple-system, sans-serif">
-                  <textPath href="#preview-path-p5js" startOffset="15%">p5. js</textPath>
-                </text>
-                <text font-size="16" fill="#2a2a2a" letter-spacing="0.1em" font-family="system-ui, -apple-system, sans-serif">
-                  <textPath href="#preview-path-sketch" startOffset="0%">s k e t c h</textPath>
-                </text>
-              </svg>
+              <span x-text="alert.message" class="flex-auto pr2"></span>
+              <button
+                @click="dismissAlert(alert.id)"
+                class="alert-dismiss"
+                title="Dismiss"
+              >
+                ×
+              </button>
             </div>
-          </div>
-        </div>
-
-        <!-- Preview Container - Red Dot Stipple -->
-        <div class="preview-container">
-          <div id="previewContainer">
-          </div>
-          
-          <!-- Copy SVG Button - Magnetic Effect -->
-          <div class="copy-svg-button-container" id="copySvgBtnContainer">
-            <div class="magnetic-trail magnetic-trail--1" id="copySvgTrail1"></div>
-            <div class="magnetic-trail magnetic-trail--2" id="copySvgTrail2"></div>
-            <button class="magnetic-button" id="copySvgBtn" x-on:click="copySvg()">
-              Copy SVG
-            </button>
-            <div class="copy-svg-curved-text" id="copySvgCurvedText">
-              <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <path id="copy-path-copy-text" d="M 100,25 A 75,75 0 0,1 175,100" fill="none"/>
-                  <path id="copy-path-svg-text" d="M 175,100 A 75,75 0 0,1 25,100" fill="none"/>
-                </defs>
-                <text font-size="16" fill="#2a2a2a" letter-spacing="0.1em" font-family="system-ui, -apple-system, sans-serif">
-                  <textPath href="#copy-path-copy-text" startOffset="0%">c o p y</textPath>
-                </text>
-                <text font-size="16" fill="#2a2a2a" letter-spacing="0.1em" font-family="system-ui, -apple-system, sans-serif">
-                  <textPath href="#copy-path-svg-text" startOffset="0%">s v g</textPath>
-                </text>
-              </svg>
-            </div>
-          </div>
-        </div>
-
-        <!-- SVG Text Area + Plotter Settings - shared outer box -->
-        <div class="svg-textarea-container svg-and-settings-outer">
-          <div class="svg-textarea-header">SVG TEXT AREA</div>
-          <div class="svg-and-settings-row">
-            <div class="svg-textarea-section">
-              <div class="svg-textarea-slash-bg">
-                <div class="svg-textarea-inner">
-                  <textarea 
-                    class="svg-textarea" 
-                    id="svgInput" 
-                    placeholder="Paste SVG content here"></textarea>
-                </div>
-              </div>
-            </div>
-            <div class="plotter-settings-content">
-              <div class="settings-header">Plotter Settings</div>
-              <div class="control-group">
-                <label class="control-label">Layers to plot</label>
-                <div id="layerDropdown" class="layer-dropdown" data-all="true" data-selected="">
-                  <button type="button" id="layerDropdownTrigger" class="layer-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false" aria-label="Choose layers to plot">
-                    <span class="layer-dropdown-label">All layers</span>
-                    <span class="layer-dropdown-arrow" aria-hidden="true"></span>
-                  </button>
-                  <div id="layerDropdownPanel" class="layer-dropdown-panel" role="listbox" aria-multiselectable="true" hidden>
-                    <div class="layer-dropdown-option selected" role="option" data-value="all" aria-selected="true">All layers</div>
-                    <div id="layerDropdownList" class="layer-dropdown-list"></div>
-                  </div>
-                </div>
-                <p id="layerHint" class="layer-hint">Paste or generate SVG to see all layers</p>
-              </div>
-              <div class="control-group">
-                <div class="input-grid">
-                  <div>
-                    <label class="control-label" for="penUp">Pen Up</label>
-                    <input type="number" id="penUp" value="70" min="0" max="100" class="input-field" />
-                  </div>
-                  <div>
-                    <label class="control-label" for="penDown">Pen Down</label>
-                    <input type="number" id="penDown" value="40" min="0" max="100" class="input-field" />
-                  </div>
-                </div>
-              </div>
-              <div class="control-group">
-                <div class="input-grid">
-                  <div>
-                    <label class="control-label" for="speedUp">Speed Up (%)</label>
-                    <input type="number" id="speedUp" value="75" min="1" max="110" class="input-field" />
-                  </div>
-                  <div>
-                    <label class="control-label" for="speedDown">Speed Down (%)</label>
-                    <input type="number" id="speedDown" value="25" min="1" max="110" class="input-field" />
-                  </div>
-                </div>
-              </div>
-              <div class="control-group">
-                <button class="button button-primary" id="plotBtn" onclick="plotFromEditorOrSvg()">Plot</button>
-                <button class="button hidden" id="resumeBtn" onclick="resumePlot()">Resume</button>
-                <button class="button hidden" id="returnHomeBtn" onclick="returnHome()">Go to Home</button>
-              </div>
-            </div>
-          </div>
+          </template>
         </div>
       </div>
 
-      <!-- Exported SVG Container (hidden by default) -->
-      <div class="panel hidden" id="exportedSvgContainer">
-        <label for="exportedSvg" class="input-label"
-          >Exported SVG</label
-        >
-        <textarea
-          id="exportedSvg"
-          readonly
-          class="input-field input-field-textarea"
-        ></textarea>
-      </div>
-    </div>
+      <!-- Main Content - connected to tabs -->
+      <div class="main-content" id="plotMode" x-show="currentMode === 'plot'">
+        <div class="layout-grid">
+          <!-- Code Editor - O2.11 Triple Stacked Layers -->
+          <div class="editor-container">
+            <div class="editor-header">Code Editor</div>
+            <div class="editor-content">
+              <textarea id="codeEditor"></textarea>
+            </div>
 
-    <!-- Interactive Mode Content -->
-    <div class="main-content" id="interactiveMode" x-show="currentMode === 'interactive'">
-      <div class="flex">
-        <!-- Command Reference (Left) -->
-        <div class="w-50 pr2">
-          <div class="panel">
-            <h2 class="panel-title">Command Reference</h2>
-            <p class="command-reference-intro" x-text="apiDisplayName + ' interactive API (units: inches). All commands require an active connection.'"></p>
-            <div class="command-reference">
-              <div class="command-reference-group">
-                <div class="command-group-label">Pen</div>
-                <div class="command-item">
-                  <div class="command-name">penup</div>
-                  <div class="command-description">Raise pen</div>
-                </div>
-                <div class="command-item">
-                  <div class="command-name">pendown</div>
-                  <div class="command-description">Lower pen</div>
-                </div>
-              </div>
-              <div class="command-reference-group">
-                <div class="command-group-label">Motion (absolute)</div>
-                <div class="command-item">
-                  <div class="command-name">moveto x y</div>
-                  <div class="command-description">Pen-up move to (x, y)</div>
-                </div>
-                <div class="command-item">
-                  <div class="command-name">lineto x y</div>
-                  <div class="command-description">Pen-down move to (x, y)</div>
-                </div>
-                <div class="command-item">
-                  <div class="command-name">goto x y</div>
-                  <div class="command-description">Move to (x, y), keep current pen state</div>
-                </div>
-              </div>
-              <div class="command-reference-group">
-                <div class="command-group-label">Motion (relative)</div>
-                <div class="command-item">
-                  <div class="command-name">move dx dy</div>
-                  <div class="command-description">Pen-up move by (dx, dy)</div>
-                </div>
-                <div class="command-item">
-                  <div class="command-name">line dx dy</div>
-                  <div class="command-description">Pen-down move by (dx, dy)</div>
-                </div>
-                <div class="command-item">
-                  <div class="command-name">go dx dy</div>
-                  <div class="command-description">Move by (dx, dy), keep current pen state</div>
-                </div>
-              </div>
-              <div class="command-reference-group">
-                <div class="command-group-label">Utility</div>
-                <div class="command-item">
-                  <div class="command-name">home</div>
-                  <div class="command-description">Move to home (0, 0), keep pen state</div>
-                </div>
-                <div class="command-item">
-                  <div class="command-name">delay ms</div>
-                  <div class="command-description">Pause for ms milliseconds</div>
-                </div>
-                <div class="command-item">
-                  <div class="command-name">draw_path x1 y1 x2 y2 …</div>
-                  <div class="command-description">Draw path through points (alternating x, y)</div>
-                </div>
-              </div>
-              <div class="command-reference-group">
-                <div class="command-group-label">Query (read-only)</div>
-                <div class="command-item">
-                  <div class="command-name">turtle_pos</div>
-                  <div class="command-description">Return last known turtle position (x, y)</div>
-                </div>
-                <div class="command-item">
-                  <div class="command-name">current_pos</div>
-                  <div class="command-description">Return last known physical position (x, y)</div>
-                </div>
+            <!-- Preview Button - Magnetic Effect -->
+            <div class="magnetic-button-container" id="previewBtnContainer">
+              <div
+                class="magnetic-trail magnetic-trail--1"
+                id="previewTrail1"
+              ></div>
+              <div
+                class="magnetic-trail magnetic-trail--2"
+                id="previewTrail2"
+              ></div>
+              <button
+                class="magnetic-button"
+                id="previewBtn"
+                onclick="runPreview()"
+              >
+                Preview
+              </button>
+              <div class="preview-curved-text" id="previewCurvedText">
+                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <path
+                      id="preview-path-p5js"
+                      d="M 100,25 A 75,75 0 0,1 175,100"
+                      fill="none"
+                    />
+                    <path
+                      id="preview-path-sketch"
+                      d="M 175,100 A 75,75 0 0,1 25,100"
+                      fill="none"
+                    />
+                  </defs>
+                  <text
+                    font-size="16"
+                    fill="#2a2a2a"
+                    letter-spacing="0.1em"
+                    font-family="system-ui, -apple-system, sans-serif"
+                  >
+                    <textPath href="#preview-path-p5js" startOffset="15%">
+                      p5. js
+                    </textPath>
+                  </text>
+                  <text
+                    font-size="16"
+                    fill="#2a2a2a"
+                    letter-spacing="0.1em"
+                    font-family="system-ui, -apple-system, sans-serif"
+                  >
+                    <textPath href="#preview-path-sketch" startOffset="0%">
+                      s k e t c h
+                    </textPath>
+                  </text>
+                </svg>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- REPL (Right) -->
-        <div class="w-50 pl2">
-          <div class="panel">
-            <h2 class="panel-title">
-              REPL
-              <span class="repl-plotter-indicator" x-text="'(' + plotterDisplayName + ')'"></span>
-            </h2>
-            <div class="panel-section">
-              <div class="repl-input-container">
-                <input
-                  type="text"
-                  id="commandInput"
-                  placeholder="e.g., moveto 1 1"
-                  @keydown.enter="sendCommand()"
-                  class="input-field repl-input"
-                />
-                <button
-                  class="btn btn-primary"
-                  id="sendBtn"
-                  @click="sendCommand()"
-                  :disabled="!connected"
-                >
-                  Send
-                </button>
+          <!-- Preview Container - Red Dot Stipple -->
+          <div class="preview-container">
+            <div id="previewContainer"></div>
+
+            <!-- Copy SVG Button - Magnetic Effect -->
+            <div class="copy-svg-button-container" id="copySvgBtnContainer">
+              <div
+                class="magnetic-trail magnetic-trail--1"
+                id="copySvgTrail1"
+              ></div>
+              <div
+                class="magnetic-trail magnetic-trail--2"
+                id="copySvgTrail2"
+              ></div>
+              <button
+                class="magnetic-button"
+                id="copySvgBtn"
+                x-on:click="copySvg()"
+              >
+                Copy SVG
+              </button>
+              <div class="copy-svg-curved-text" id="copySvgCurvedText">
+                <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <path
+                      id="copy-path-copy-text"
+                      d="M 100,25 A 75,75 0 0,1 175,100"
+                      fill="none"
+                    />
+                    <path
+                      id="copy-path-svg-text"
+                      d="M 175,100 A 75,75 0 0,1 25,100"
+                      fill="none"
+                    />
+                  </defs>
+                  <text
+                    font-size="16"
+                    fill="#2a2a2a"
+                    letter-spacing="0.1em"
+                    font-family="system-ui, -apple-system, sans-serif"
+                  >
+                    <textPath href="#copy-path-copy-text" startOffset="0%">
+                      c o p y
+                    </textPath>
+                  </text>
+                  <text
+                    font-size="16"
+                    fill="#2a2a2a"
+                    letter-spacing="0.1em"
+                    font-family="system-ui, -apple-system, sans-serif"
+                  >
+                    <textPath href="#copy-path-svg-text" startOffset="0%">
+                      s v g
+                    </textPath>
+                  </text>
+                </svg>
               </div>
-              <div class="repl-container">
-                <template x-for="entry in commandHistory" :key="entry.timestamp">
-                  <div class="repl-entry">
-                    <div class="repl-command">
-                      <span class="repl-command-prompt">&gt;</span>
-                      <span x-text="entry.command"></span>
+            </div>
+          </div>
+
+          <!-- SVG Text Area + Plotter Settings - shared outer box -->
+          <div class="svg-textarea-container svg-and-settings-outer">
+            <div class="svg-textarea-header">SVG TEXT AREA</div>
+            <div class="svg-and-settings-row">
+              <div class="svg-textarea-section">
+                <div class="svg-textarea-slash-bg">
+                  <div class="svg-textarea-inner">
+                    <textarea
+                      class="svg-textarea"
+                      id="svgInput"
+                      placeholder="Paste SVG content here"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+              <div class="plotter-settings-content">
+                <div class="settings-header">Plotter Settings</div>
+                <div class="control-group">
+                  <label class="control-label">Layers to plot</label>
+                  <div
+                    id="layerDropdown"
+                    class="layer-dropdown"
+                    data-all="true"
+                    data-selected=""
+                  >
+                    <button
+                      type="button"
+                      id="layerDropdownTrigger"
+                      class="layer-dropdown-trigger"
+                      aria-haspopup="listbox"
+                      aria-expanded="false"
+                      aria-label="Choose layers to plot"
+                    >
+                      <span class="layer-dropdown-label">All layers</span>
+                      <span
+                        class="layer-dropdown-arrow"
+                        aria-hidden="true"
+                      ></span>
+                    </button>
+                    <div
+                      id="layerDropdownPanel"
+                      class="layer-dropdown-panel"
+                      role="listbox"
+                      aria-multiselectable="true"
+                      hidden
+                    >
+                      <div
+                        class="layer-dropdown-option selected"
+                        role="option"
+                        data-value="all"
+                        aria-selected="true"
+                      >
+                        All layers
+                      </div>
+                      <div
+                        id="layerDropdownList"
+                        class="layer-dropdown-list"
+                      ></div>
                     </div>
-                    <div class="repl-response" x-text="entry.response"></div>
                   </div>
-                </template>
-                <div x-show="commandHistory.length === 0" class="repl-history-empty">
-                  No commands yet. Enter a command above.
+                  <p id="layerHint" class="layer-hint">
+                    Paste or generate SVG to see all layers
+                  </p>
+                </div>
+                <div class="control-group">
+                  <div class="input-grid">
+                    <div>
+                      <label class="control-label" for="penUp">Pen Up</label>
+                      <input
+                        type="number"
+                        id="penUp"
+                        value="70"
+                        min="0"
+                        max="100"
+                        class="input-field"
+                      />
+                    </div>
+                    <div>
+                      <label class="control-label" for="penDown"
+                        >Pen Down</label
+                      >
+                      <input
+                        type="number"
+                        id="penDown"
+                        value="40"
+                        min="0"
+                        max="100"
+                        class="input-field"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="control-group">
+                  <div class="input-grid">
+                    <div>
+                      <label class="control-label" for="speedUp"
+                        >Speed Up (%)</label
+                      >
+                      <input
+                        type="number"
+                        id="speedUp"
+                        value="75"
+                        min="1"
+                        max="110"
+                        class="input-field"
+                      />
+                    </div>
+                    <div>
+                      <label class="control-label" for="speedDown"
+                        >Speed Down (%)</label
+                      >
+                      <input
+                        type="number"
+                        id="speedDown"
+                        value="25"
+                        min="1"
+                        max="110"
+                        class="input-field"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div class="control-group">
+                  <button
+                    class="button button-primary"
+                    id="plotBtn"
+                    onclick="plotFromEditorOrSvg()"
+                  >
+                    Plot
+                  </button>
+                  <button
+                    class="button hidden"
+                    id="resumeBtn"
+                    onclick="resumePlot()"
+                  >
+                    Resume
+                  </button>
+                  <button
+                    class="button hidden"
+                    id="returnHomeBtn"
+                    onclick="returnHome()"
+                  >
+                    Go to Home
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Exported SVG Container (hidden by default) -->
+        <div class="panel hidden" id="exportedSvgContainer">
+          <label for="exportedSvg" class="input-label">Exported SVG</label>
+          <textarea
+            id="exportedSvg"
+            readonly
+            class="input-field input-field-textarea"
+          ></textarea>
+        </div>
+      </div>
+
+      <!-- Interactive Mode Content -->
+      <div
+        class="main-content"
+        id="interactiveMode"
+        x-show="currentMode === 'interactive'"
+      >
+        <div class="flex">
+          <!-- Command Reference (Left) -->
+          <div class="w-50 pr2">
+            <div class="panel">
+              <h2 class="panel-title">Command Reference</h2>
+              <p
+                class="command-reference-intro"
+                x-text="apiDisplayName + ' interactive API (units: inches). All commands require an active connection.'"
+              ></p>
+              <div class="command-reference">
+                <div class="command-reference-group">
+                  <div class="command-group-label">Pen</div>
+                  <div class="command-item">
+                    <div class="command-name">penup</div>
+                    <div class="command-description">Raise pen</div>
+                  </div>
+                  <div class="command-item">
+                    <div class="command-name">pendown</div>
+                    <div class="command-description">Lower pen</div>
+                  </div>
+                </div>
+                <div class="command-reference-group">
+                  <div class="command-group-label">Motion (absolute)</div>
+                  <div class="command-item">
+                    <div class="command-name">moveto x y</div>
+                    <div class="command-description">Pen-up move to (x, y)</div>
+                  </div>
+                  <div class="command-item">
+                    <div class="command-name">lineto x y</div>
+                    <div class="command-description">
+                      Pen-down move to (x, y)
+                    </div>
+                  </div>
+                  <div class="command-item">
+                    <div class="command-name">goto x y</div>
+                    <div class="command-description">
+                      Move to (x, y), keep current pen state
+                    </div>
+                  </div>
+                </div>
+                <div class="command-reference-group">
+                  <div class="command-group-label">Motion (relative)</div>
+                  <div class="command-item">
+                    <div class="command-name">move dx dy</div>
+                    <div class="command-description">
+                      Pen-up move by (dx, dy)
+                    </div>
+                  </div>
+                  <div class="command-item">
+                    <div class="command-name">line dx dy</div>
+                    <div class="command-description">
+                      Pen-down move by (dx, dy)
+                    </div>
+                  </div>
+                  <div class="command-item">
+                    <div class="command-name">go dx dy</div>
+                    <div class="command-description">
+                      Move by (dx, dy), keep current pen state
+                    </div>
+                  </div>
+                </div>
+                <div class="command-reference-group">
+                  <div class="command-group-label">Utility</div>
+                  <div class="command-item">
+                    <div class="command-name">home</div>
+                    <div class="command-description">
+                      Move to home (0, 0), keep pen state
+                    </div>
+                  </div>
+                  <div class="command-item">
+                    <div class="command-name">delay ms</div>
+                    <div class="command-description">
+                      Pause for ms milliseconds
+                    </div>
+                  </div>
+                  <div class="command-item">
+                    <div class="command-name">draw_path x1 y1 x2 y2 …</div>
+                    <div class="command-description">
+                      Draw path through points (alternating x, y)
+                    </div>
+                  </div>
+                </div>
+                <div class="command-reference-group">
+                  <div class="command-group-label">Query (read-only)</div>
+                  <div class="command-item">
+                    <div class="command-name">turtle_pos</div>
+                    <div class="command-description">
+                      Return last known turtle position (x, y)
+                    </div>
+                  </div>
+                  <div class="command-item">
+                    <div class="command-name">current_pos</div>
+                    <div class="command-description">
+                      Return last known physical position (x, y)
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- REPL (Right) -->
+          <div class="w-50 pl2">
+            <div class="panel">
+              <h2 class="panel-title">
+                REPL
+                <span
+                  class="repl-plotter-indicator"
+                  x-text="'(' + plotterDisplayName + ')'"
+                ></span>
+              </h2>
+              <div class="panel-section">
+                <div class="repl-input-container">
+                  <input
+                    type="text"
+                    id="commandInput"
+                    placeholder="e.g., moveto 1 1"
+                    @keydown.enter="sendCommand()"
+                    class="input-field repl-input"
+                  />
+                  <button
+                    class="btn btn-primary"
+                    id="sendBtn"
+                    @click="sendCommand()"
+                    :disabled="!connected"
+                  >
+                    Send
+                  </button>
+                </div>
+                <div class="repl-container">
+                  <template
+                    x-for="entry in commandHistory"
+                    :key="entry.timestamp"
+                  >
+                    <div class="repl-entry">
+                      <div class="repl-command">
+                        <span class="repl-command-prompt">&gt;</span>
+                        <span x-text="entry.command"></span>
+                      </div>
+                      <div class="repl-response" x-text="entry.response"></div>
+                    </div>
+                  </template>
+                  <div
+                    x-show="commandHistory.length === 0"
+                    class="repl-history-empty"
+                  >
+                    No commands yet. Enter a command above.
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Log Side Panel -->
-    <div
-      x-cloak
-      x-show="logPanelOpen"
-      x-transition:enter="transition ease-out duration-300"
-      x-transition:enter-start="translate-x-full"
-      x-transition:enter-end="translate-x-0"
-      x-transition:leave="transition ease-in duration-300"
-      x-transition:leave-start="translate-x-0"
-      x-transition:leave-end="translate-x-full"
-      class="log-panel"
-    >
-      <!-- Panel Header -->
-      <div class="log-panel-header">
-        <h2 class="log-panel-title">Log</h2>
-        <button
-          @click="toggleLogPanel()"
-          class="log-panel-close"
-          title="Close"
-        >
-          ✕
-        </button>
-      </div>
-
-      <!-- Log Content Area -->
+      <!-- Log Side Panel -->
       <div
-        id="logArea"
-        class="log-panel-content"
+        x-cloak
+        x-show="logPanelOpen"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="translate-x-full"
+        x-transition:enter-end="translate-x-0"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="translate-x-0"
+        x-transition:leave-end="translate-x-full"
+        class="log-panel"
       >
-        <!-- Log entries will be inserted here -->
+        <!-- Panel Header -->
+        <div class="log-panel-header">
+          <h2 class="log-panel-title">Log</h2>
+          <button
+            @click="toggleLogPanel()"
+            class="log-panel-close"
+            title="Close"
+          >
+            ✕
+          </button>
+        </div>
+
+        <!-- Log Content Area -->
+        <div id="logArea" class="log-panel-content">
+          <!-- Log entries will be inserted here -->
+        </div>
       </div>
-    </div>
 
-    <!-- Backdrop/Overlay -->
-    <div
-      x-cloak
-      x-show="logPanelOpen"
-      @click="toggleLogPanel()"
-      x-transition:enter="transition ease-out duration-300"
-      x-transition:enter-start="opacity-0"
-      x-transition:enter-end="opacity-100"
-      x-transition:leave="transition ease-in duration-300"
-      x-transition:leave-start="opacity-100"
-      x-transition:leave-end="opacity-0"
-      class="log-backdrop"
-    ></div>
+      <!-- Backdrop/Overlay -->
+      <div
+        x-cloak
+        x-show="logPanelOpen"
+        @click="toggleLogPanel()"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-300"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="log-backdrop"
+      ></div>
 
-    <script>
-      // Make functions globally accessible for AlpineJS
-      window.connected = false;
+      <script>
+        // Make functions globally accessible for AlpineJS
+        window.connected = false;
 
-      // Make log function globally accessible
-      window.log = function (message, type = "info") {
-        const logArea = document.getElementById("logArea");
-        if (!logArea) return;
-        const timestamp = new Date().toLocaleTimeString();
-        const entry = document.createElement("div");
-        entry.className = `log-entry ${type}`;
-        entry.textContent = `[${timestamp}] ${message}`;
-        logArea.appendChild(entry);
-        logArea.scrollTop = logArea.scrollHeight;
-      };
-
-      // Alias for backward compatibility
-      function log(message, type = "info") {
-        window.log(message, type);
-      }
-
-      // Get AlpineJS component instance (null if Alpine not loaded yet)
-      function getAlpineData() {
-        if (typeof Alpine === "undefined") return null;
-        return Alpine.$data(document.querySelector("[x-data]"));
-      }
-
-      function updateState(state) {
-        const alpineData = getAlpineData();
-        if (alpineData) {
-          // Update AlpineJS reactive properties
-          alpineData.connected = state.connected || false;
-          alpineData.plotting = state.plotting || false;
-          alpineData.paused = state.paused || false;
-          // Update plotter type info if available
-          if (state.plotter_type) {
-            alpineData.currentPlotterType = state.plotter_type;
-          }
-          if (state.plotter_display_name) {
-            alpineData.plotterDisplayName = state.plotter_display_name;
-          }
-          if (state.api_display_name) {
-            alpineData.apiDisplayName = state.api_display_name;
-          }
-          if (state.nextdraw_available !== undefined) {
-            alpineData.nextdrawAvailable = state.nextdraw_available;
-          }
-        }
-
-        // Update global connected state for backward compatibility
-        window.connected = state.connected;
-
-        // Update plot button states (only if buttons exist - they're in Plot Mode)
-        const plotBtn = document.getElementById("plotBtn");
-        const resumeBtn = document.getElementById("resumeBtn");
-        const returnHomeBtn = document.getElementById("returnHomeBtn");
-
-        if (plotBtn && resumeBtn && returnHomeBtn) {
-          const plotting = state.plotting || false;
-          const paused = state.paused || false;
-
-          // Plot button: disabled while plotting OR paused (user must Resume or Go to Home when paused)
-          const plotShouldBeDisabled = plotting || paused;
-          plotBtn.disabled = plotShouldBeDisabled;
-          if (plotShouldBeDisabled) {
-            plotBtn.setAttribute("disabled", "");
-          } else {
-            plotBtn.removeAttribute("disabled");
-          }
-
-          // Resume button: visible only when paused
-          if (paused) {
-            resumeBtn.classList.remove("hidden");
-          } else {
-            resumeBtn.classList.add("hidden");
-          }
-
-          // Return Home button: visible only when paused (after physical pause button)
-          if (paused) {
-            returnHomeBtn.classList.remove("hidden");
-          } else {
-            returnHomeBtn.classList.add("hidden");
-          }
-        }
-
-        if (state.error) {
-          window.log(`State error: ${state.error}`, "error");
-        }
-      }
-
-      // Make checkState globally accessible
-      window.checkState = async function () {
-        try {
-          const response = await fetch("/state?t=" + Date.now(), { cache: "no-store" });
-          const state = await response.json();
-          updateState(state);
-        } catch (error) {
-          window.log(`Error checking state: ${error.message}`, "error");
-        }
-      };
-
-      // Alias for backward compatibility
-      async function checkState() {
-        await window.checkState();
-      }
-
-      // Legacy functions for backward compatibility (now call AlpineJS methods)
-      async function connect() {
-        const alpineData = getAlpineData();
-        if (alpineData && alpineData.connect) {
-          await alpineData.connect();
-        }
-      }
-
-      async function disconnect() {
-        const alpineData = getAlpineData();
-        if (alpineData && alpineData.disconnect) {
-          await alpineData.disconnect();
-        }
-      }
-
-      function handleKeyPress(event) {
-        // Handled by AlpineJS @keydown.enter now
-      }
-
-      // Smart plot function: plots from SVG text area if it has content, otherwise from editor
-      async function plotFromEditorOrSvg() {
-        const svgInput = document.getElementById("svgInput");
-        const svgText = svgInput ? svgInput.value.trim() : "";
-
-        if (svgText) {
-          // Plot from SVG text area
-          await plot();
-        } else {
-          // Plot from editor
-          await plotFromEditor();
-        }
-      }
-
-      // Discover layer numbers from SVG (groups named like "1 black", "2 red" → inkscape:label or similar)
-      function parseLayersFromSvg(svgStr) {
-        if (!svgStr || !svgStr.trim()) return [];
-        const numbers = new Set();
-        // Match inkscape:label="N" or inkscape:label="N ..." (layer names starting with a number)
-        const re = /inkscape:label\s*=\s*["'](\d+)[^"']*["']/gi;
-        let m;
-        while ((m = re.exec(svgStr)) !== null) numbers.add(parseInt(m[1], 10));
-        // Also match <g id="1 black"> style if used
-        const idRe = /<g[^>]+id\s*=\s*["'](\d+)[^"']*["']/gi;
-        while ((m = idRe.exec(svgStr)) !== null) numbers.add(parseInt(m[1], 10));
-        return Array.from(numbers).sort((a, b) => a - b);
-      }
-
-      function updateLayerOptions(svgStr) {
-        const listEl = document.getElementById("layerDropdownList");
-        const hint = document.getElementById("layerHint");
-        const trigger = document.getElementById("layerDropdownTrigger");
-        const panel = document.getElementById("layerDropdownPanel");
-        const allOpt = document.querySelector("#layerDropdownPanel .layer-dropdown-option[data-value=\"all\"]");
-        const container = document.getElementById("layerDropdown");
-        if (!listEl || !hint || !container) return;
-        const layers = parseLayersFromSvg(svgStr || "");
-        listEl.innerHTML = "";
-        if (layers.length === 0) {
-          hint.textContent = "Paste or generate SVG to see all layers";
-          container.dataset.all = "true";
-          container.dataset.selected = "";
-          if (allOpt) { allOpt.classList.add("selected"); allOpt.setAttribute("aria-selected", "true"); }
-          setLayerDropdownLabel();
-          trigger.disabled = false;
-          return;
-        }
-        hint.textContent = "";
-        layers.forEach(function (num) {
-          const opt = document.createElement("div");
-          opt.className = "layer-dropdown-option";
-          opt.setAttribute("role", "option");
-          opt.dataset.value = String(num);
-          var wasSelected = (container.dataset.selected || "").split(",").indexOf(String(num)) !== -1;
-          if (wasSelected) { opt.classList.add("selected"); opt.setAttribute("aria-selected", "true"); }
-          else opt.setAttribute("aria-selected", "false");
-          opt.textContent = "Layer " + num;
-          opt.addEventListener("click", function () { toggleLayerOption(num); });
-          listEl.appendChild(opt);
-        });
-        setLayerDropdownLabel();
-      }
-
-      function selectAllLayers() {
-        const container = document.getElementById("layerDropdown");
-        const allOpt = document.querySelector("#layerDropdownPanel .layer-dropdown-option[data-value=\"all\"]");
-        const opts = document.querySelectorAll("#layerDropdownPanel .layer-dropdown-option[data-value]:not([data-value=\"all\"])");
-        if (!container || !allOpt) return;
-        container.dataset.all = "true";
-        container.dataset.selected = "";
-        allOpt.classList.add("selected");
-        allOpt.setAttribute("aria-selected", "true");
-        opts.forEach(function (o) { o.classList.remove("selected"); o.setAttribute("aria-selected", "false"); });
-        setLayerDropdownLabel();
-      }
-
-      function toggleLayerOption(num) {
-        const container = document.getElementById("layerDropdown");
-        const allOpt = document.querySelector("#layerDropdownPanel .layer-dropdown-option[data-value=\"all\"]");
-        const opt = document.querySelector("#layerDropdownPanel .layer-dropdown-option[data-value=\"" + num + "\"]");
-        if (!container || !opt) return;
-        container.dataset.all = "false";
-        if (allOpt) { allOpt.classList.remove("selected"); allOpt.setAttribute("aria-selected", "false"); }
-        var selected = (container.dataset.selected || "").split(",").filter(Boolean).map(Number);
-        var idx = selected.indexOf(num);
-        if (idx === -1) selected.push(num); else selected.splice(idx, 1);
-        selected.sort(function (a, b) { return a - b; });
-        container.dataset.selected = selected.join(",");
-        opt.classList.toggle("selected", selected.indexOf(num) !== -1);
-        opt.setAttribute("aria-selected", selected.indexOf(num) !== -1);
-        setLayerDropdownLabel();
-      }
-
-      function setLayerDropdownLabel() {
-        const trigger = document.getElementById("layerDropdownTrigger");
-        const labelEl = trigger ? trigger.querySelector(".layer-dropdown-label") : null;
-        const container = document.getElementById("layerDropdown");
-        if (!labelEl || !container) return;
-        if (container.dataset.all === "true") {
-          labelEl.textContent = "All layers";
-        } else {
-          var s = (container.dataset.selected || "").split(",").filter(Boolean).map(Number).sort(function (a, b) { return a - b; });
-          labelEl.textContent = s.length === 0 ? "All layers" : (s.length === 1 ? "Layer " + s[0] : "Layers " + s.join(", "));
-        }
-      }
-
-      function getSelectedLayers() {
-        const container = document.getElementById("layerDropdown");
-        if (!container) return null;
-        if (container.dataset.all !== "false") return null;
-        var s = (container.dataset.selected || "").split(",").filter(Boolean).map(Number);
-        if (s.length === 0) return null;
-        s.sort(function (a, b) { return a - b; });
-        return s;
-      }
-
-      (function setupLayerDropdown() {
-        const trigger = document.getElementById("layerDropdownTrigger");
-        const panel = document.getElementById("layerDropdownPanel");
-        const container = document.getElementById("layerDropdown");
-        if (!trigger || !panel || !container) return;
-        var allOpt = panel.querySelector(".layer-dropdown-option[data-value=\"all\"]");
-        if (allOpt) allOpt.addEventListener("click", function () { selectAllLayers(); });
-        trigger.addEventListener("click", function (e) {
-          e.stopPropagation();
-          var open = panel.getAttribute("hidden") === null;
-          if (open) { panel.setAttribute("hidden", ""); trigger.setAttribute("aria-expanded", "false"); }
-          else { panel.removeAttribute("hidden"); trigger.setAttribute("aria-expanded", "true"); }
-        });
-        document.addEventListener("click", function () {
-          panel.setAttribute("hidden", "");
-          trigger.setAttribute("aria-expanded", "false");
-        });
-        panel.addEventListener("click", function (e) { e.stopPropagation(); });
-      })();
-
-      async function plot() {
-        const svgInput = document.getElementById("svgInput");
-        const svg = svgInput.value.trim();
-
-        if (!svg) {
-          log("Please paste SVG content", "error");
-          return;
-        }
-
-        updateLayerOptions(svg);
-        const penUp = parseInt(document.getElementById("penUp").value) || 70;
-        const penDown =
-          parseInt(document.getElementById("penDown").value) || 40;
-        const speedUp =
-          parseInt(document.getElementById("speedUp").value) || 75;
-        const speedDown =
-          parseInt(document.getElementById("speedDown").value) || 25;
-
-        const payload = {
-          svg: svg,
-          settings: {
-            pen_up: penUp,
-            pen_down: penDown,
-            speed_up: speedUp,
-            speed_down: speedDown,
-          },
+        // Make log function globally accessible
+        window.log = function (message, type = "info") {
+          const logArea = document.getElementById("logArea");
+          if (!logArea) return;
+          const timestamp = new Date().toLocaleTimeString();
+          const entry = document.createElement("div");
+          entry.className = `log-entry ${type}`;
+          entry.textContent = `[${timestamp}] ${message}`;
+          logArea.appendChild(entry);
+          logArea.scrollTop = logArea.scrollHeight;
         };
 
-        const layers = getSelectedLayers();
-        if (layers && layers.length) {
-          payload.layer = layers.length === 1 ? layers[0] : layers;
+        // Alias for backward compatibility
+        function log(message, type = "info") {
+          window.log(message, type);
         }
 
-        try {
-          log("Starting plot...", "info");
-          const response = await fetch("/plot", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          });
-          const result = await response.json();
+        // Get AlpineJS component instance (null if Alpine not loaded yet)
+        function getAlpineData() {
+          if (typeof Alpine === "undefined") return null;
+          return Alpine.$data(document.querySelector("[x-data]"));
+        }
 
-          if (result.success) {
-            log(result.message || "Plot completed successfully", "success");
-          } else {
-            const errorMsg = result.error || "Plot failed";
-            log(`Plot failed: ${errorMsg}`, "error");
-            const alpineData = getAlpineData();
-            if (alpineData) {
-              alpineData.showAlert(`Plot Failed: ${errorMsg}`, "error");
-            }
-          }
-        } catch (error) {
-          const errorMsg = error.message || "Plot error";
-          log(`Error plotting: ${errorMsg}`, "error");
+        function updateState(state) {
           const alpineData = getAlpineData();
           if (alpineData) {
-            alpineData.showAlert(`Plot Error: ${errorMsg}`, "error");
-          }
-        }
-      }
-
-      async function resumePlot() {
-        try {
-          log("Resuming plot...", "info");
-          const response = await fetch("/resume", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-          const result = await response.json();
-
-          if (result.success) {
-            log(result.message || "Plot resumed successfully", "success");
-          } else {
-            const errorMsg = result.error || "Resume failed";
-            log(`Resume failed: ${errorMsg}`, "error");
-            const alpineData = getAlpineData();
-            if (alpineData) {
-              alpineData.showAlert(`Resume Failed: ${errorMsg}`, "error");
+            // Update AlpineJS reactive properties
+            alpineData.connected = state.connected || false;
+            alpineData.plotting = state.plotting || false;
+            alpineData.paused = state.paused || false;
+            // Update plotter type info if available
+            if (state.plotter_type) {
+              alpineData.currentPlotterType = state.plotter_type;
+            }
+            if (state.plotter_display_name) {
+              alpineData.plotterDisplayName = state.plotter_display_name;
+            }
+            if (state.api_display_name) {
+              alpineData.apiDisplayName = state.api_display_name;
+            }
+            if (state.nextdraw_available !== undefined) {
+              alpineData.nextdrawAvailable = state.nextdraw_available;
             }
           }
 
-          await checkState();
-        } catch (error) {
-          const errorMsg = error.message || "Resume error";
-          log(`Error resuming plot: ${errorMsg}`, "error");
+          // Update global connected state for backward compatibility
+          window.connected = state.connected;
+
+          // Update plot button states (only if buttons exist - they're in Plot Mode)
+          const plotBtn = document.getElementById("plotBtn");
+          const resumeBtn = document.getElementById("resumeBtn");
+          const returnHomeBtn = document.getElementById("returnHomeBtn");
+
+          if (plotBtn && resumeBtn && returnHomeBtn) {
+            const plotting = state.plotting || false;
+            const paused = state.paused || false;
+
+            // Plot button: disabled while plotting OR paused (user must Resume or Go to Home when paused)
+            const plotShouldBeDisabled = plotting || paused;
+            plotBtn.disabled = plotShouldBeDisabled;
+            if (plotShouldBeDisabled) {
+              plotBtn.setAttribute("disabled", "");
+            } else {
+              plotBtn.removeAttribute("disabled");
+            }
+
+            // Resume button: visible only when paused
+            if (paused) {
+              resumeBtn.classList.remove("hidden");
+            } else {
+              resumeBtn.classList.add("hidden");
+            }
+
+            // Return Home button: visible only when paused (after physical pause button)
+            if (paused) {
+              returnHomeBtn.classList.remove("hidden");
+            } else {
+              returnHomeBtn.classList.add("hidden");
+            }
+          }
+
+          if (state.error) {
+            window.log(`State error: ${state.error}`, "error");
+          }
+        }
+
+        // Make checkState globally accessible
+        window.checkState = async function () {
+          try {
+            const response = await fetch("/state?t=" + Date.now(), {
+              cache: "no-store",
+            });
+            const state = await response.json();
+            updateState(state);
+          } catch (error) {
+            window.log(`Error checking state: ${error.message}`, "error");
+          }
+        };
+
+        // Alias for backward compatibility
+        async function checkState() {
+          await window.checkState();
+        }
+
+        // Legacy functions for backward compatibility (now call AlpineJS methods)
+        async function connect() {
           const alpineData = getAlpineData();
-          if (alpineData) {
-            alpineData.showAlert(`Resume Error: ${errorMsg}`, "error");
+          if (alpineData && alpineData.connect) {
+            await alpineData.connect();
           }
         }
-      }
 
-      async function returnHome() {
-        try {
-          log("Returning to home corner...", "info");
-          const response = await fetch("/home", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-          const result = await response.json();
+        async function disconnect() {
+          const alpineData = getAlpineData();
+          if (alpineData && alpineData.disconnect) {
+            await alpineData.disconnect();
+          }
+        }
 
-          if (result.success) {
-            log(result.message || "Returned to home successfully", "success");
+        function handleKeyPress(event) {
+          // Handled by AlpineJS @keydown.enter now
+        }
+
+        // Smart plot function: plots from SVG text area if it has content, otherwise from editor
+        async function plotFromEditorOrSvg() {
+          const svgInput = document.getElementById("svgInput");
+          const svgText = svgInput ? svgInput.value.trim() : "";
+
+          if (svgText) {
+            // Plot from SVG text area
+            await plot();
           } else {
-            log(`Return home failed: ${result.error}`, "error");
+            // Plot from editor
+            await plotFromEditor();
+          }
+        }
+
+        // Discover layer numbers from SVG (groups named like "1 black", "2 red" → inkscape:label or similar)
+        function parseLayersFromSvg(svgStr) {
+          if (!svgStr || !svgStr.trim()) return [];
+          const numbers = new Set();
+          // Match inkscape:label="N" or inkscape:label="N ..." (layer names starting with a number)
+          const re = /inkscape:label\s*=\s*["'](\d+)[^"']*["']/gi;
+          let m;
+          while ((m = re.exec(svgStr)) !== null)
+            numbers.add(parseInt(m[1], 10));
+          // Also match <g id="1 black"> style if used
+          const idRe = /<g[^>]+id\s*=\s*["'](\d+)[^"']*["']/gi;
+          while ((m = idRe.exec(svgStr)) !== null)
+            numbers.add(parseInt(m[1], 10));
+          return Array.from(numbers).sort((a, b) => a - b);
+        }
+
+        function updateLayerOptions(svgStr) {
+          const listEl = document.getElementById("layerDropdownList");
+          const hint = document.getElementById("layerHint");
+          const trigger = document.getElementById("layerDropdownTrigger");
+          const panel = document.getElementById("layerDropdownPanel");
+          const allOpt = document.querySelector(
+            '#layerDropdownPanel .layer-dropdown-option[data-value="all"]',
+          );
+          const container = document.getElementById("layerDropdown");
+          if (!listEl || !hint || !container) return;
+          const layers = parseLayersFromSvg(svgStr || "");
+          listEl.innerHTML = "";
+          if (layers.length === 0) {
+            hint.textContent = "Paste or generate SVG to see all layers";
+            container.dataset.all = "true";
+            container.dataset.selected = "";
+            if (allOpt) {
+              allOpt.classList.add("selected");
+              allOpt.setAttribute("aria-selected", "true");
+            }
+            setLayerDropdownLabel();
+            trigger.disabled = false;
+            return;
+          }
+          hint.textContent = "";
+          layers.forEach(function (num) {
+            const opt = document.createElement("div");
+            opt.className = "layer-dropdown-option";
+            opt.setAttribute("role", "option");
+            opt.dataset.value = String(num);
+            var wasSelected =
+              (container.dataset.selected || "")
+                .split(",")
+                .indexOf(String(num)) !== -1;
+            if (wasSelected) {
+              opt.classList.add("selected");
+              opt.setAttribute("aria-selected", "true");
+            } else opt.setAttribute("aria-selected", "false");
+            opt.textContent = "Layer " + num;
+            opt.addEventListener("click", function () {
+              toggleLayerOption(num);
+            });
+            listEl.appendChild(opt);
+          });
+          setLayerDropdownLabel();
+        }
+
+        function selectAllLayers() {
+          const container = document.getElementById("layerDropdown");
+          const allOpt = document.querySelector(
+            '#layerDropdownPanel .layer-dropdown-option[data-value="all"]',
+          );
+          const opts = document.querySelectorAll(
+            '#layerDropdownPanel .layer-dropdown-option[data-value]:not([data-value="all"])',
+          );
+          if (!container || !allOpt) return;
+          container.dataset.all = "true";
+          container.dataset.selected = "";
+          allOpt.classList.add("selected");
+          allOpt.setAttribute("aria-selected", "true");
+          opts.forEach(function (o) {
+            o.classList.remove("selected");
+            o.setAttribute("aria-selected", "false");
+          });
+          setLayerDropdownLabel();
+        }
+
+        function toggleLayerOption(num) {
+          const container = document.getElementById("layerDropdown");
+          const allOpt = document.querySelector(
+            '#layerDropdownPanel .layer-dropdown-option[data-value="all"]',
+          );
+          const opt = document.querySelector(
+            '#layerDropdownPanel .layer-dropdown-option[data-value="' +
+              num +
+              '"]',
+          );
+          if (!container || !opt) return;
+          container.dataset.all = "false";
+          if (allOpt) {
+            allOpt.classList.remove("selected");
+            allOpt.setAttribute("aria-selected", "false");
+          }
+          var selected = (container.dataset.selected || "")
+            .split(",")
+            .filter(Boolean)
+            .map(Number);
+          var idx = selected.indexOf(num);
+          if (idx === -1) selected.push(num);
+          else selected.splice(idx, 1);
+          selected.sort(function (a, b) {
+            return a - b;
+          });
+          container.dataset.selected = selected.join(",");
+          opt.classList.toggle("selected", selected.indexOf(num) !== -1);
+          opt.setAttribute("aria-selected", selected.indexOf(num) !== -1);
+          setLayerDropdownLabel();
+        }
+
+        function setLayerDropdownLabel() {
+          const trigger = document.getElementById("layerDropdownTrigger");
+          const labelEl = trigger
+            ? trigger.querySelector(".layer-dropdown-label")
+            : null;
+          const container = document.getElementById("layerDropdown");
+          if (!labelEl || !container) return;
+          if (container.dataset.all === "true") {
+            labelEl.textContent = "All layers";
+          } else {
+            var s = (container.dataset.selected || "")
+              .split(",")
+              .filter(Boolean)
+              .map(Number)
+              .sort(function (a, b) {
+                return a - b;
+              });
+            labelEl.textContent =
+              s.length === 0
+                ? "All layers"
+                : s.length === 1
+                  ? "Layer " + s[0]
+                  : "Layers " + s.join(", ");
+          }
+        }
+
+        function getSelectedLayers() {
+          const container = document.getElementById("layerDropdown");
+          if (!container) return null;
+          if (container.dataset.all !== "false") return null;
+          var s = (container.dataset.selected || "")
+            .split(",")
+            .filter(Boolean)
+            .map(Number);
+          if (s.length === 0) return null;
+          s.sort(function (a, b) {
+            return a - b;
+          });
+          return s;
+        }
+
+        (function setupLayerDropdown() {
+          const trigger = document.getElementById("layerDropdownTrigger");
+          const panel = document.getElementById("layerDropdownPanel");
+          const container = document.getElementById("layerDropdown");
+          if (!trigger || !panel || !container) return;
+          var allOpt = panel.querySelector(
+            '.layer-dropdown-option[data-value="all"]',
+          );
+          if (allOpt)
+            allOpt.addEventListener("click", function () {
+              selectAllLayers();
+            });
+          trigger.addEventListener("click", function (e) {
+            e.stopPropagation();
+            var open = panel.getAttribute("hidden") === null;
+            if (open) {
+              panel.setAttribute("hidden", "");
+              trigger.setAttribute("aria-expanded", "false");
+            } else {
+              panel.removeAttribute("hidden");
+              trigger.setAttribute("aria-expanded", "true");
+            }
+          });
+          document.addEventListener("click", function () {
+            panel.setAttribute("hidden", "");
+            trigger.setAttribute("aria-expanded", "false");
+          });
+          panel.addEventListener("click", function (e) {
+            e.stopPropagation();
+          });
+        })();
+
+        async function plot() {
+          const svgInput = document.getElementById("svgInput");
+          const svg = svgInput.value.trim();
+
+          if (!svg) {
+            log("Please paste SVG content", "error");
+            return;
           }
 
-          await checkState();
-        } catch (error) {
-          log(`Error returning home: ${error.message}`, "error");
+          updateLayerOptions(svg);
+          const penUp = parseInt(document.getElementById("penUp").value) || 70;
+          const penDown =
+            parseInt(document.getElementById("penDown").value) || 40;
+          const speedUp =
+            parseInt(document.getElementById("speedUp").value) || 75;
+          const speedDown =
+            parseInt(document.getElementById("speedDown").value) || 25;
+
+          const payload = {
+            svg: svg,
+            settings: {
+              pen_up: penUp,
+              pen_down: penDown,
+              speed_up: speedUp,
+              speed_down: speedDown,
+            },
+          };
+
+          const layers = getSelectedLayers();
+          if (layers && layers.length) {
+            payload.layer = layers.length === 1 ? layers[0] : layers;
+          }
+
+          try {
+            log("Starting plot...", "info");
+            const response = await fetch("/plot", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(payload),
+            });
+            const result = await response.json();
+
+            if (result.success) {
+              log(result.message || "Plot completed successfully", "success");
+            } else {
+              const errorMsg = result.error || "Plot failed";
+              log(`Plot failed: ${errorMsg}`, "error");
+              const alpineData = getAlpineData();
+              if (alpineData) {
+                alpineData.showAlert(`Plot Failed: ${errorMsg}`, "error");
+              }
+            }
+          } catch (error) {
+            const errorMsg = error.message || "Plot error";
+            log(`Error plotting: ${errorMsg}`, "error");
+            const alpineData = getAlpineData();
+            if (alpineData) {
+              alpineData.showAlert(`Plot Error: ${errorMsg}`, "error");
+            }
+          }
         }
-      }
 
-      // Check state on page load
-      checkState();
+        async function resumePlot() {
+          try {
+            log("Resuming plot...", "info");
+            const response = await fetch("/resume", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+            const result = await response.json();
 
-      // Poll state every 1 second (more frequent to catch pause state changes)
-      setInterval(checkState, 1000);
+            if (result.success) {
+              log(result.message || "Plot resumed successfully", "success");
+            } else {
+              const errorMsg = result.error || "Resume failed";
+              log(`Resume failed: ${errorMsg}`, "error");
+              const alpineData = getAlpineData();
+              if (alpineData) {
+                alpineData.showAlert(`Resume Failed: ${errorMsg}`, "error");
+              }
+            }
 
-      // Editor functionality
-      let codeEditor;
-      let previewIframe = null;
-      let currentSvg = null;
-      let defaultCode = `function setup() {
+            await checkState();
+          } catch (error) {
+            const errorMsg = error.message || "Resume error";
+            log(`Error resuming plot: ${errorMsg}`, "error");
+            const alpineData = getAlpineData();
+            if (alpineData) {
+              alpineData.showAlert(`Resume Error: ${errorMsg}`, "error");
+            }
+          }
+        }
+
+        async function returnHome() {
+          try {
+            log("Returning to home corner...", "info");
+            const response = await fetch("/home", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            });
+            const result = await response.json();
+
+            if (result.success) {
+              log(result.message || "Returned to home successfully", "success");
+            } else {
+              log(`Return home failed: ${result.error}`, "error");
+            }
+
+            await checkState();
+          } catch (error) {
+            log(`Error returning home: ${error.message}`, "error");
+          }
+        }
+
+        // Check state on page load
+        checkState();
+
+        // Poll state every 1 second (more frequent to catch pause state changes)
+        setInterval(checkState, 1000);
+
+        // Editor functionality
+        let codeEditor;
+        let previewIframe = null;
+        let currentSvg = null;
+        let defaultCode = `function setup() {
   createCanvas(780, 560); // 8.125" x 5.83" at 96 dpi
   noFill();
 }
@@ -1125,40 +1403,40 @@ function draw() {
   square(50, 100, 40);
 }`;
 
-      // Shared SVG generation function
-      async function generateSvgFromCode(code) {
-        if (!code.trim()) {
-          throw new Error("Please enter some code");
-        }
+        // Shared SVG generation function
+        async function generateSvgFromCode(code) {
+          if (!code.trim()) {
+            throw new Error("Please enter some code");
+          }
 
-        // Create a temporary iframe to generate SVG
-        const tempIframe = document.createElement("iframe");
-        tempIframe.style.display = "none";
-        document.body.appendChild(tempIframe);
+          // Create a temporary iframe to generate SVG
+          const tempIframe = document.createElement("iframe");
+          tempIframe.style.display = "none";
+          document.body.appendChild(tempIframe);
 
-        const iframeWindow = tempIframe.contentWindow;
-        const iframeDoc = tempIframe.contentDocument;
+          const iframeWindow = tempIframe.contentWindow;
+          const iframeDoc = tempIframe.contentDocument;
 
-        // Wait for iframe to load
-        await new Promise((resolve) => {
-          tempIframe.onload = resolve;
-          iframeDoc.open();
-          iframeDoc.write(
-            `
+          // Wait for iframe to load
+          await new Promise((resolve) => {
+            tempIframe.onload = resolve;
+            iframeDoc.open();
+            iframeDoc.write(
+              `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <` +
-              `script src="/static/vendor/p5.js"></` +
-              `script>
+                `script src="/static/vendor/p5.js"></` +
+                `script>
     <` +
-              `script src="/static/vendor/p5.plotSvg.js"></` +
-              `script>
+                `script src="/static/vendor/p5.plotSvg.js"></` +
+                `script>
 </head>
 <body>
     <` +
-              `script>
+                `script>
         p5.disableFriendlyErrors = true;
         let svgResult = null;
         
@@ -1210,165 +1488,169 @@ function draw() {
         // Wait a bit for p5.js library to load and initialize
         setTimeout(captureSvg, 300);
     </` +
-              `script>
+                `script>
 </body>
-</html>`
-          );
-          iframeDoc.close();
-        });
+</html>`,
+            );
+            iframeDoc.close();
+          });
 
-        // Wait for SVG result via postMessage
-        const svgString = await new Promise((resolve, reject) => {
-          const messageHandler = (event) => {
-            if (event.data.type === "svgResult") {
-              window.removeEventListener("message", messageHandler);
-              document.body.removeChild(tempIframe);
-              resolve(event.data.svg);
-            } else if (event.data.type === "svgError") {
-              window.removeEventListener("message", messageHandler);
-              document.body.removeChild(tempIframe);
-              reject(new Error(event.data.error));
-            }
-          };
-          window.addEventListener("message", messageHandler);
+          // Wait for SVG result via postMessage
+          const svgString = await new Promise((resolve, reject) => {
+            const messageHandler = (event) => {
+              if (event.data.type === "svgResult") {
+                window.removeEventListener("message", messageHandler);
+                document.body.removeChild(tempIframe);
+                resolve(event.data.svg);
+              } else if (event.data.type === "svgError") {
+                window.removeEventListener("message", messageHandler);
+                document.body.removeChild(tempIframe);
+                reject(new Error(event.data.error));
+              }
+            };
+            window.addEventListener("message", messageHandler);
 
-          // Timeout after 5 seconds
-          setTimeout(() => {
-            window.removeEventListener("message", messageHandler);
-            if (document.body.contains(tempIframe)) {
-              document.body.removeChild(tempIframe);
-            }
-            reject(new Error("SVG generation timeout"));
-          }, 5000);
-        });
-
-        if (!svgString) {
-          throw new Error("Failed to generate SVG");
-        }
-
-        return svgString;
-      }
-
-      // Initialize CodeMirror after DOM and Alpine.js are ready
-      function initCodeMirror() {
-        const textarea = document.getElementById("codeEditor");
-        const plotMode = document.getElementById("plotMode");
-        
-        // Ensure elements exist
-        if (!textarea || !plotMode) {
-          return false;
-        }
-        
-        // Check if plot mode is visible (Alpine.js x-show has rendered it)
-        const computedStyle = window.getComputedStyle(plotMode);
-        if (computedStyle.display === 'none') {
-          return false;
-        }
-        
-        // Load CodeMirror script dynamically
-        const codemirrorScript = document.createElement("script");
-        codemirrorScript.src = "/static/vendor/codemirror/codemirror.js";
-        codemirrorScript.onload = function () {
-          const jsModeScript = document.createElement("script");
-          jsModeScript.src =
-            "/static/vendor/codemirror/mode/javascript/javascript.js";
-          jsModeScript.onload = function () {
-            // Set default code in textarea before initialization
-            textarea.value = defaultCode;
-            
-            // Initialize CodeMirror
-            codeEditor = CodeMirror.fromTextArea(textarea, {
-              lineNumbers: true,
-              mode: "javascript",
-              theme: "default",
-              indentUnit: 2,
-              lineWrapping: true,
-              value: defaultCode,
-              readOnly: false,
-            });
-            
-            // Focus the editor after initialization
+            // Timeout after 5 seconds
             setTimeout(() => {
-              codeEditor.focus();
-            }, 100);
+              window.removeEventListener("message", messageHandler);
+              if (document.body.contains(tempIframe)) {
+                document.body.removeChild(tempIframe);
+              }
+              reject(new Error("SVG generation timeout"));
+            }, 5000);
+          });
+
+          if (!svgString) {
+            throw new Error("Failed to generate SVG");
+          }
+
+          return svgString;
+        }
+
+        // Initialize CodeMirror after DOM and Alpine.js are ready
+        function initCodeMirror() {
+          const textarea = document.getElementById("codeEditor");
+          const plotMode = document.getElementById("plotMode");
+
+          // Ensure elements exist
+          if (!textarea || !plotMode) {
+            return false;
+          }
+
+          // Check if plot mode is visible (Alpine.js x-show has rendered it)
+          const computedStyle = window.getComputedStyle(plotMode);
+          if (computedStyle.display === "none") {
+            return false;
+          }
+
+          // Load CodeMirror script dynamically
+          const codemirrorScript = document.createElement("script");
+          codemirrorScript.src = "/static/vendor/codemirror/codemirror.js";
+          codemirrorScript.onload = function () {
+            const jsModeScript = document.createElement("script");
+            jsModeScript.src =
+              "/static/vendor/codemirror/mode/javascript/javascript.js";
+            jsModeScript.onload = function () {
+              // Set default code in textarea before initialization
+              textarea.value = defaultCode;
+
+              // Initialize CodeMirror
+              codeEditor = CodeMirror.fromTextArea(textarea, {
+                lineNumbers: true,
+                mode: "javascript",
+                theme: "default",
+                indentUnit: 2,
+                lineWrapping: true,
+                value: defaultCode,
+                readOnly: false,
+              });
+
+              // Focus the editor after initialization
+              setTimeout(() => {
+                codeEditor.focus();
+              }, 100);
+            };
+            document.head.appendChild(jsModeScript);
           };
-          document.head.appendChild(jsModeScript);
-        };
-        document.head.appendChild(codemirrorScript);
-        
-        return true;
-      }
-      
-      // Wait for DOM and Alpine.js to be ready
-      window.addEventListener("DOMContentLoaded", async function () {
-        // Load plotter configuration once Alpine is ready (with retry)
-        function tryLoadPlotterConfig() {
-          const alpineData = getAlpineData();
-          if (alpineData && alpineData.loadPlotterConfig) {
-            alpineData.loadPlotterConfig();
-            // Also check state to get plotter info
-            window.checkState();
-          } else {
-            // Retry if Alpine hasn't rendered yet
-            setTimeout(tryLoadPlotterConfig, 50);
+          document.head.appendChild(codemirrorScript);
+
+          return true;
+        }
+
+        // Wait for DOM and Alpine.js to be ready
+        window.addEventListener("DOMContentLoaded", async function () {
+          // Load plotter configuration once Alpine is ready (with retry)
+          function tryLoadPlotterConfig() {
+            const alpineData = getAlpineData();
+            if (alpineData && alpineData.loadPlotterConfig) {
+              alpineData.loadPlotterConfig();
+              // Also check state to get plotter info
+              window.checkState();
+            } else {
+              // Retry if Alpine hasn't rendered yet
+              setTimeout(tryLoadPlotterConfig, 50);
+            }
           }
-        }
-        tryLoadPlotterConfig();
-        // Try to initialize, retry if Alpine hasn't rendered yet
-        function tryInit() {
-          if (!initCodeMirror()) {
-            setTimeout(tryInit, 50);
+          tryLoadPlotterConfig();
+          // Try to initialize, retry if Alpine hasn't rendered yet
+          function tryInit() {
+            if (!initCodeMirror()) {
+              setTimeout(tryInit, 50);
+            }
           }
-        }
-        tryInit();
-        var si = document.getElementById("svgInput");
-        if (si) si.addEventListener("input", function () { updateLayerOptions(si.value); });
-      });
+          tryInit();
+          var si = document.getElementById("svgInput");
+          if (si)
+            si.addEventListener("input", function () {
+              updateLayerOptions(si.value);
+            });
+        });
 
-      async function runPreview() {
-        const code = codeEditor
-          ? codeEditor.getValue()
-          : document.getElementById("codeEditor").value;
+        async function runPreview() {
+          const code = codeEditor
+            ? codeEditor.getValue()
+            : document.getElementById("codeEditor").value;
 
-        if (!code.trim()) {
-          log("Please enter some code", "error");
-          return;
-        }
+          if (!code.trim()) {
+            log("Please enter some code", "error");
+            return;
+          }
 
-        // Create or update preview iframe
-        const previewContainer = document.getElementById("previewContainer");
+          // Create or update preview iframe
+          const previewContainer = document.getElementById("previewContainer");
 
-        // Remove existing iframe only if it's still in the DOM (avoid removeChild error after re-run)
-        if (previewIframe && previewIframe.parentNode === previewContainer) {
-          previewContainer.removeChild(previewIframe);
-        }
+          // Remove existing iframe only if it's still in the DOM (avoid removeChild error after re-run)
+          if (previewIframe && previewIframe.parentNode === previewContainer) {
+            previewContainer.removeChild(previewIframe);
+          }
 
-        previewIframe = document.createElement("iframe");
-        previewIframe.id = "previewFrame";
-        previewIframe.style.width = "100%";
-        previewIframe.style.height = "100%";
-        previewIframe.style.border = "none";
-        previewIframe.style.display = "block";
-        previewContainer.appendChild(previewIframe);
-        
-        // Add class to indicate iframe is present
-        previewContainer.classList.add("has-iframe");
+          previewIframe = document.createElement("iframe");
+          previewIframe.id = "previewFrame";
+          previewIframe.style.width = "100%";
+          previewIframe.style.height = "100%";
+          previewIframe.style.border = "none";
+          previewIframe.style.display = "block";
+          previewContainer.appendChild(previewIframe);
 
-        // Create HTML content for iframe
-        const iframeDoc =
-          previewIframe.contentDocument || previewIframe.contentWindow.document;
-        const htmlContent =
-          `
+          // Add class to indicate iframe is present
+          previewContainer.classList.add("has-iframe");
+
+          // Create HTML content for iframe
+          const iframeDoc =
+            previewIframe.contentDocument ||
+            previewIframe.contentWindow.document;
+          const htmlContent =
+            `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
     <` +
-          `script src="/static/vendor/p5.js"></` +
-          `script>
+            `script src="/static/vendor/p5.js"></` +
+            `script>       
     <` +
-          `script src="/static/vendor/p5.plotSvg.js"></` +
-          `script>
+            `script src="/static/vendor/p5.plotSvg.js"></` +
+            `script>
     <style>
         html, body {
           margin: 0;
@@ -1389,178 +1671,205 @@ function draw() {
 </head>
 <body>
     <` +
-          `script>
+            `script>
         p5.disableFriendlyErrors = true;
         ${code}
     </` +
-          `script>
+            `script>
 </body>
 </html>`;
 
-        iframeDoc.open();
-        iframeDoc.write(htmlContent);
-        iframeDoc.close();
+          iframeDoc.open();
+          iframeDoc.write(htmlContent);
+          iframeDoc.close();
 
-        log("Preview updated", "success");
+          log("Preview updated", "success");
 
-        // Generate and store SVG so Copy SVG uses the same output as the preview
-        try {
-          const svgString = await generateSvgFromCode(code);
-          currentSvg = svgString;
-          const alpineData = getAlpineData();
-          if (alpineData) {
-            alpineData.currentSvg = svgString;
-          }
-        } catch (err) {
-          log(`SVG generation failed: ${err.message}`, "error");
-        }
-      }
-
-      async function plotFromEditor() {
-        const code = codeEditor
-          ? codeEditor.getValue()
-          : document.getElementById("codeEditor").value;
-
-        try {
-          log("Generating SVG...", "info");
-
-          // Generate SVG using shared function
-          const svgString = await generateSvgFromCode(code);
-
-          currentSvg = svgString;
-          // Update AlpineJS state
-          const alpineData = getAlpineData();
-          if (alpineData) {
-            alpineData.currentSvg = svgString;
-          }
-
-          updateLayerOptions(svgString);
-
-          // Send to backend for plotting
-          const penUp = parseInt(document.getElementById("penUp").value) || 70;
-          const penDown =
-            parseInt(document.getElementById("penDown").value) || 40;
-          const speedUp =
-            parseInt(document.getElementById("speedUp").value) || 75;
-          const speedDown =
-            parseInt(document.getElementById("speedDown").value) || 25;
-
-          const payload = {
-            svg: svgString,
-            settings: {
-              pen_up: penUp,
-              pen_down: penDown,
-              speed_up: speedUp,
-              speed_down: speedDown,
-            },
-          };
-
-          const layers = getSelectedLayers();
-          if (layers && layers.length) {
-            payload.layer = layers.length === 1 ? layers[0] : layers;
-          }
-
-          log("Sending SVG to plotter...", "info");
-          const response = await fetch("/plot", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          });
-          const result = await response.json();
-
-          if (result.success) {
-            log(result.message || "Plot started successfully", "success");
-          } else {
-            const errorMsg = result.error || "Plot failed";
-            log(`Plot failed: ${errorMsg}`, "error");
+          // Generate and store SVG so Copy SVG uses the same output as the preview
+          try {
+            const svgString = await generateSvgFromCode(code);
+            currentSvg = svgString;
             const alpineData = getAlpineData();
             if (alpineData) {
-              alpineData.showAlert(`Plot Failed: ${errorMsg}`, "error");
+              alpineData.currentSvg = svgString;
             }
-          }
-        } catch (error) {
-          const errorMsg = error.message || "Plot error";
-          log(`Error plotting: ${errorMsg}`, "error");
-          console.error(error);
-          const alpineData = getAlpineData();
-          if (alpineData) {
-            alpineData.showAlert(`Plot Error: ${errorMsg}`, "error");
+          } catch (err) {
+            log(`SVG generation failed: ${err.message}`, "error");
           }
         }
-      }
 
-      // Global copySvg function that can be called from onclick handlers
-      async function copySvg() {
-        try {
-          // Try to get SVG from Alpine data first
-          const alpineData = getAlpineData();
-          let svgToCopy = null;
-          
-          if (alpineData && alpineData.currentSvg) {
-            svgToCopy = alpineData.currentSvg;
-          } else if (typeof currentSvg !== "undefined" && currentSvg) {
-            svgToCopy = currentSvg;
-          }
-          
-          // If no SVG is available, generate it from the code editor
-          if (!svgToCopy) {
-            log("Generating SVG from code...", "info");
-            
-            // Get code from editor
-            const code = codeEditor
-              ? codeEditor.getValue()
-              : document.getElementById("codeEditor").value;
-            
-            // Generate SVG
-            svgToCopy = await generateSvgFromCode(code);
-            
-            // Store the generated SVG
-            currentSvg = svgToCopy;
+        async function plotFromEditor() {
+          const code = codeEditor
+            ? codeEditor.getValue()
+            : document.getElementById("codeEditor").value;
+
+          try {
+            log("Generating SVG...", "info");
+
+            // Generate SVG using shared function
+            const svgString = await generateSvgFromCode(code);
+
+            currentSvg = svgString;
+            // Update AlpineJS state
+            const alpineData = getAlpineData();
             if (alpineData) {
-              alpineData.currentSvg = svgToCopy;
+              alpineData.currentSvg = svgString;
+            }
+
+            updateLayerOptions(svgString);
+
+            // Send to backend for plotting
+            const penUp =
+              parseInt(document.getElementById("penUp").value) || 70;
+            const penDown =
+              parseInt(document.getElementById("penDown").value) || 40;
+            const speedUp =
+              parseInt(document.getElementById("speedUp").value) || 75;
+            const speedDown =
+              parseInt(document.getElementById("speedDown").value) || 25;
+
+            const payload = {
+              svg: svgString,
+              settings: {
+                pen_up: penUp,
+                pen_down: penDown,
+                speed_up: speedUp,
+                speed_down: speedDown,
+              },
+            };
+
+            const layers = getSelectedLayers();
+            if (layers && layers.length) {
+              payload.layer = layers.length === 1 ? layers[0] : layers;
+            }
+
+            log("Sending SVG to plotter...", "info");
+            const response = await fetch("/plot", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(payload),
+            });
+            const result = await response.json();
+
+            if (result.success) {
+              log(result.message || "Plot started successfully", "success");
+            } else {
+              const errorMsg = result.error || "Plot failed";
+              log(`Plot failed: ${errorMsg}`, "error");
+              const alpineData = getAlpineData();
+              if (alpineData) {
+                alpineData.showAlert(`Plot Failed: ${errorMsg}`, "error");
+              }
+            }
+          } catch (error) {
+            const errorMsg = error.message || "Plot error";
+            log(`Error plotting: ${errorMsg}`, "error");
+            console.error(error);
+            const alpineData = getAlpineData();
+            if (alpineData) {
+              alpineData.showAlert(`Plot Error: ${errorMsg}`, "error");
             }
           }
-          
-          // Copy to clipboard
-          await navigator.clipboard.writeText(svgToCopy);
-          log("SVG copied to clipboard", "success");
-          
-          // Show alert
-          const alertAlpineData = getAlpineData();
-          if (alertAlpineData) {
-            alertAlpineData.showAlert("SVG copied to clipboard", "success");
-          }
-        } catch (error) {
-          log(`Error copying SVG: ${error.message}`, "error");
-          const alertAlpineData = getAlpineData();
-          if (alertAlpineData) {
-            alertAlpineData.showAlert(`Error copying SVG: ${error.message}`, "error");
+        }
+
+        // Global copySvg function that can be called from onclick handlers
+        async function copySvg() {
+          try {
+            // Try to get SVG from Alpine data first
+            const alpineData = getAlpineData();
+            let svgToCopy = null;
+
+            if (alpineData && alpineData.currentSvg) {
+              svgToCopy = alpineData.currentSvg;
+            } else if (typeof currentSvg !== "undefined" && currentSvg) {
+              svgToCopy = currentSvg;
+            }
+
+            // If no SVG is available, generate it from the code editor
+            if (!svgToCopy) {
+              log("Generating SVG from code...", "info");
+
+              // Get code from editor
+              const code = codeEditor
+                ? codeEditor.getValue()
+                : document.getElementById("codeEditor").value;
+
+              // Generate SVG
+              svgToCopy = await generateSvgFromCode(code);
+
+              // Store the generated SVG
+              currentSvg = svgToCopy;
+              if (alpineData) {
+                alpineData.currentSvg = svgToCopy;
+              }
+            }
+
+            // Copy to clipboard
+            await navigator.clipboard.writeText(svgToCopy);
+            log("SVG copied to clipboard", "success");
+
+            // Show alert
+            const alertAlpineData = getAlpineData();
+            if (alertAlpineData) {
+              alertAlpineData.showAlert("SVG copied to clipboard", "success");
+            }
+          } catch (error) {
+            log(`Error copying SVG: ${error.message}`, "error");
+            const alertAlpineData = getAlpineData();
+            if (alertAlpineData) {
+              alertAlpineData.showAlert(
+                `Error copying SVG: ${error.message}`,
+                "error",
+              );
+            }
           }
         }
-      }
 
-      async function exportSvg() {
-        const code = codeEditor
-          ? codeEditor.getValue()
-          : document.getElementById("codeEditor").value;
+        async function exportSvg() {
+          const code = codeEditor
+            ? codeEditor.getValue()
+            : document.getElementById("codeEditor").value;
 
-        try {
-          log("Generating SVG...", "info");
+          try {
+            log("Generating SVG...", "info");
 
-          // Generate SVG using shared function
-          const svgString = await generateSvgFromCode(code);
+            // Generate SVG using shared function
+            const svgString = await generateSvgFromCode(code);
 
-          currentSvg = svgString;
-          // Update AlpineJS state
-          const alpineData = getAlpineData();
-          if (alpineData) {
-            alpineData.currentSvg = svgString;
+            currentSvg = svgString;
+            // Update AlpineJS state
+            const alpineData = getAlpineData();
+            if (alpineData) {
+              alpineData.currentSvg = svgString;
+            }
+
+            // Download SVG directly
+            const blob = new Blob([svgString], { type: "image/svg+xml" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "sketch.svg";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            log("SVG exported and downloaded successfully", "success");
+          } catch (error) {
+            log(`Error exporting SVG: ${error.message}`, "error");
+            console.error(error);
+          }
+        }
+
+        function downloadSvg() {
+          if (!currentSvg) {
+            log("No SVG to download. Please export SVG first.", "error");
+            return;
           }
 
-          // Download SVG directly
-          const blob = new Blob([svgString], { type: "image/svg+xml" });
+          const blob = new Blob([currentSvg], { type: "image/svg+xml" });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
@@ -1570,32 +1879,9 @@ function draw() {
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
 
-          log("SVG exported and downloaded successfully", "success");
-        } catch (error) {
-          log(`Error exporting SVG: ${error.message}`, "error");
-          console.error(error);
+          log("SVG downloaded", "success");
         }
-      }
-
-      function downloadSvg() {
-        if (!currentSvg) {
-          log("No SVG to download. Please export SVG first.", "error");
-          return;
-        }
-
-        const blob = new Blob([currentSvg], { type: "image/svg+xml" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "sketch.svg";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        log("SVG downloaded", "success");
-      }
-    </script>
+      </script>
     </div>
 
     <!-- Preview circle: magnetic + trail + curved text rotation -->
@@ -1605,7 +1891,9 @@ function draw() {
         const distance = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
         const lerp = (a, b, n) => (1 - n) * a + n * b;
         let mousepos = { x: 0, y: 0 };
-        window.addEventListener("mousemove", (ev) => { mousepos = getMousePos(ev); });
+        window.addEventListener("mousemove", (ev) => {
+          mousepos = getMousePos(ev);
+        });
         const container = document.getElementById("circleContainer");
         const el = document.getElementById("circleElement");
         const trail1 = document.getElementById("previewTrail1");
@@ -1615,16 +1903,26 @@ function draw() {
         let rect = el.getBoundingClientRect();
         let hoverCurved = false;
         let curveAngle = { previous: 0, current: 0, amt: 0.03 };
-        container.addEventListener("mouseenter", () => { hoverCurved = true; });
-        container.addEventListener("mouseleave", () => { hoverCurved = false; });
+        container.addEventListener("mouseenter", () => {
+          hoverCurved = true;
+        });
+        container.addEventListener("mouseleave", () => {
+          hoverCurved = false;
+        });
         const distanceToTrigger = () => rect.width * 1.5;
         const rendered = {
-          tx: { previous: 0, current: 0, amt: 0.12 }, ty: { previous: 0, current: 0, amt: 0.12 },
-          t2x: { previous: 0, current: 0, amt: 0.07 }, t2y: { previous: 0, current: 0, amt: 0.07 },
-          t1x: { previous: 0, current: 0, amt: 0.04 }, t1y: { previous: 0, current: 0, amt: 0.04 },
-          tx2: { previous: 0, current: 0, amt: 0.06 }, ty2: { previous: 0, current: 0, amt: 0.06 }
+          tx: { previous: 0, current: 0, amt: 0.12 },
+          ty: { previous: 0, current: 0, amt: 0.12 },
+          t2x: { previous: 0, current: 0, amt: 0.07 },
+          t2y: { previous: 0, current: 0, amt: 0.07 },
+          t1x: { previous: 0, current: 0, amt: 0.04 },
+          t1y: { previous: 0, current: 0, amt: 0.04 },
+          tx2: { previous: 0, current: 0, amt: 0.06 },
+          ty2: { previous: 0, current: 0, amt: 0.06 },
         };
-        function updateRect() { rect = el.getBoundingClientRect(); }
+        function updateRect() {
+          rect = el.getBoundingClientRect();
+        }
         window.addEventListener("resize", updateRect);
         function render() {
           updateRect();
@@ -1632,23 +1930,58 @@ function draw() {
           const centerY = rect.top + rect.height / 2;
           const d = distance(mousepos.x, mousepos.y, centerX, centerY);
           const trigger = distanceToTrigger();
-          let x = 0, y = 0;
+          let x = 0,
+            y = 0;
           if (d < trigger) {
             x = (mousepos.x - centerX) * 0.3;
             y = (mousepos.y - centerY) * 0.3;
           }
-          rendered.tx.current = rendered.t2x.current = rendered.t1x.current = rendered.tx2.current = x;
-          rendered.ty.current = rendered.t2y.current = rendered.t1y.current = rendered.ty2.current = y;
+          rendered.tx.current =
+            rendered.t2x.current =
+            rendered.t1x.current =
+            rendered.tx2.current =
+              x;
+          rendered.ty.current =
+            rendered.t2y.current =
+            rendered.t1y.current =
+            rendered.ty2.current =
+              y;
           curveAngle.current = hoverCurved ? 360 : 0;
-          curveAngle.previous = lerp(curveAngle.previous, curveAngle.current, curveAngle.amt);
+          curveAngle.previous = lerp(
+            curveAngle.previous,
+            curveAngle.current,
+            curveAngle.amt,
+          );
           for (const key of Object.keys(rendered)) {
             const r = rendered[key];
             r.previous = lerp(r.previous, r.current, r.amt);
           }
-          trail1.style.transform = "translate3d(" + rendered.t1x.previous + "px," + rendered.t1y.previous + "px,0)";
-          trail2.style.transform = "translate3d(" + rendered.t2x.previous + "px," + rendered.t2y.previous + "px,0)";
-          el.style.transform = "translate3d(" + rendered.tx.previous + "px," + rendered.ty.previous + "px,0)";
-          curvedEl.style.transform = "translate3d(" + (rendered.tx2.previous * 0.5) + "px," + (rendered.ty2.previous * 0.5) + "px,0) rotate(" + curveAngle.previous + "deg)";
+          trail1.style.transform =
+            "translate3d(" +
+            rendered.t1x.previous +
+            "px," +
+            rendered.t1y.previous +
+            "px,0)";
+          trail2.style.transform =
+            "translate3d(" +
+            rendered.t2x.previous +
+            "px," +
+            rendered.t2y.previous +
+            "px,0)";
+          el.style.transform =
+            "translate3d(" +
+            rendered.tx.previous +
+            "px," +
+            rendered.ty.previous +
+            "px,0)";
+          curvedEl.style.transform =
+            "translate3d(" +
+            rendered.tx2.previous * 0.5 +
+            "px," +
+            rendered.ty2.previous * 0.5 +
+            "px,0) rotate(" +
+            curveAngle.previous +
+            "deg)";
           requestAnimationFrame(render);
         }
         requestAnimationFrame(render);
@@ -1662,7 +1995,9 @@ function draw() {
         const distance = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
         const lerp = (a, b, n) => (1 - n) * a + n * b;
         let mousepos = { x: 0, y: 0 };
-        window.addEventListener("mousemove", (ev) => { mousepos = getMousePos(ev); });
+        window.addEventListener("mousemove", (ev) => {
+          mousepos = getMousePos(ev);
+        });
         const container = document.getElementById("previewCopyContainer");
         const el = document.getElementById("previewCopyElement");
         const trail1 = document.getElementById("previewCopyTrail1");
@@ -1672,16 +2007,26 @@ function draw() {
         let rect = el.getBoundingClientRect();
         let hoverCurved = false;
         let curveAngle = { previous: 0, current: 0, amt: 0.03 };
-        container.addEventListener("mouseenter", () => { hoverCurved = true; });
-        container.addEventListener("mouseleave", () => { hoverCurved = false; });
+        container.addEventListener("mouseenter", () => {
+          hoverCurved = true;
+        });
+        container.addEventListener("mouseleave", () => {
+          hoverCurved = false;
+        });
         const distanceToTrigger = () => rect.width * 1.5;
         const rendered = {
-          tx: { previous: 0, current: 0, amt: 0.12 }, ty: { previous: 0, current: 0, amt: 0.12 },
-          t2x: { previous: 0, current: 0, amt: 0.07 }, t2y: { previous: 0, current: 0, amt: 0.07 },
-          t1x: { previous: 0, current: 0, amt: 0.04 }, t1y: { previous: 0, current: 0, amt: 0.04 },
-          tx2: { previous: 0, current: 0, amt: 0.06 }, ty2: { previous: 0, current: 0, amt: 0.06 }
+          tx: { previous: 0, current: 0, amt: 0.12 },
+          ty: { previous: 0, current: 0, amt: 0.12 },
+          t2x: { previous: 0, current: 0, amt: 0.07 },
+          t2y: { previous: 0, current: 0, amt: 0.07 },
+          t1x: { previous: 0, current: 0, amt: 0.04 },
+          t1y: { previous: 0, current: 0, amt: 0.04 },
+          tx2: { previous: 0, current: 0, amt: 0.06 },
+          ty2: { previous: 0, current: 0, amt: 0.06 },
         };
-        function updateRect() { rect = el.getBoundingClientRect(); }
+        function updateRect() {
+          rect = el.getBoundingClientRect();
+        }
         window.addEventListener("resize", updateRect);
         function render() {
           updateRect();
@@ -1689,23 +2034,58 @@ function draw() {
           const centerY = rect.top + rect.height / 2;
           const d = distance(mousepos.x, mousepos.y, centerX, centerY);
           const trigger = distanceToTrigger();
-          let x = 0, y = 0;
+          let x = 0,
+            y = 0;
           if (d < trigger) {
             x = (mousepos.x - centerX) * 0.3;
             y = (mousepos.y - centerY) * 0.3;
           }
-          rendered.tx.current = rendered.t2x.current = rendered.t1x.current = rendered.tx2.current = x;
-          rendered.ty.current = rendered.t2y.current = rendered.t1y.current = rendered.ty2.current = y;
+          rendered.tx.current =
+            rendered.t2x.current =
+            rendered.t1x.current =
+            rendered.tx2.current =
+              x;
+          rendered.ty.current =
+            rendered.t2y.current =
+            rendered.t1y.current =
+            rendered.ty2.current =
+              y;
           curveAngle.current = hoverCurved ? 360 : 0;
-          curveAngle.previous = lerp(curveAngle.previous, curveAngle.current, curveAngle.amt);
+          curveAngle.previous = lerp(
+            curveAngle.previous,
+            curveAngle.current,
+            curveAngle.amt,
+          );
           for (const key of Object.keys(rendered)) {
             const r = rendered[key];
             r.previous = lerp(r.previous, r.current, r.amt);
           }
-          trail1.style.transform = "translate3d(" + rendered.t1x.previous + "px," + rendered.t1y.previous + "px,0)";
-          trail2.style.transform = "translate3d(" + rendered.t2x.previous + "px," + rendered.t2y.previous + "px,0)";
-          el.style.transform = "translate3d(" + rendered.tx.previous + "px," + rendered.ty.previous + "px,0)";
-          curvedEl.style.transform = "translate3d(" + (rendered.tx2.previous * 0.5) + "px," + (rendered.ty2.previous * 0.5) + "px,0) rotate(" + curveAngle.previous + "deg)";
+          trail1.style.transform =
+            "translate3d(" +
+            rendered.t1x.previous +
+            "px," +
+            rendered.t1y.previous +
+            "px,0)";
+          trail2.style.transform =
+            "translate3d(" +
+            rendered.t2x.previous +
+            "px," +
+            rendered.t2y.previous +
+            "px,0)";
+          el.style.transform =
+            "translate3d(" +
+            rendered.tx.previous +
+            "px," +
+            rendered.ty.previous +
+            "px,0)";
+          curvedEl.style.transform =
+            "translate3d(" +
+            rendered.tx2.previous * 0.5 +
+            "px," +
+            rendered.ty2.previous * 0.5 +
+            "px,0) rotate(" +
+            curveAngle.previous +
+            "deg)";
           requestAnimationFrame(render);
         }
         requestAnimationFrame(render);
@@ -1719,36 +2099,73 @@ function draw() {
         const distance = (x1, y1, x2, y2) => Math.hypot(x1 - x2, y1 - y2);
         const lerp = (a, b, n) => (1 - n) * a + n * b;
         let mousepos = { x: 0, y: 0 };
-        window.addEventListener("mousemove", (ev) => { mousepos = getMousePos(ev); });
+        window.addEventListener("mousemove", (ev) => {
+          mousepos = getMousePos(ev);
+        });
         const slider = document.getElementById("toggleSlider");
         const sliderTrail1 = document.getElementById("toggleSliderTrail1");
         const sliderTrail2 = document.getElementById("toggleSliderTrail2");
         const optionPlot = document.getElementById("toggleOptionPlot");
-        const optionInteractive = document.getElementById("toggleOptionInteractive");
+        const optionInteractive = document.getElementById(
+          "toggleOptionInteractive",
+        );
         const trailPlot1 = document.getElementById("toggleTrailPlot1");
         const trailPlot2 = document.getElementById("toggleTrailPlot2");
-        const trailInteractive1 = document.getElementById("toggleTrailInteractive1");
-        const trailInteractive2 = document.getElementById("toggleTrailInteractive2");
+        const trailInteractive1 = document.getElementById(
+          "toggleTrailInteractive1",
+        );
+        const trailInteractive2 = document.getElementById(
+          "toggleTrailInteractive2",
+        );
         if (!slider || !optionPlot) return;
         let hoveredOption = null;
-        optionPlot.addEventListener("mouseenter", () => { hoveredOption = "plot"; });
-        optionPlot.addEventListener("mouseleave", () => { hoveredOption = null; });
-        optionInteractive.addEventListener("mouseenter", () => { hoveredOption = "interactive"; });
-        optionInteractive.addEventListener("mouseleave", () => { hoveredOption = null; });
-        const strength = 0.3, triggerFactor = 1.5;
-        const plotRendered = { t1x: { previous: 0, current: 0, amt: 0.04 }, t1y: { previous: 0, current: 0, amt: 0.04 }, t2x: { previous: 0, current: 0, amt: 0.07 }, t2y: { previous: 0, current: 0, amt: 0.07 } };
-        const interactiveRendered = { t1x: { previous: 0, current: 0, amt: 0.04 }, t1y: { previous: 0, current: 0, amt: 0.04 }, t2x: { previous: 0, current: 0, amt: 0.07 }, t2y: { previous: 0, current: 0, amt: 0.07 } };
-        const sliderPos = { main: { previous: 0, current: 0, amt: 0.08 }, trail2: { previous: 0, current: 0, amt: 0.05 }, trail1: { previous: 0, current: 0, amt: 0.025 } };
+        optionPlot.addEventListener("mouseenter", () => {
+          hoveredOption = "plot";
+        });
+        optionPlot.addEventListener("mouseleave", () => {
+          hoveredOption = null;
+        });
+        optionInteractive.addEventListener("mouseenter", () => {
+          hoveredOption = "interactive";
+        });
+        optionInteractive.addEventListener("mouseleave", () => {
+          hoveredOption = null;
+        });
+        const strength = 0.3,
+          triggerFactor = 1.5;
+        const plotRendered = {
+          t1x: { previous: 0, current: 0, amt: 0.04 },
+          t1y: { previous: 0, current: 0, amt: 0.04 },
+          t2x: { previous: 0, current: 0, amt: 0.07 },
+          t2y: { previous: 0, current: 0, amt: 0.07 },
+        };
+        const interactiveRendered = {
+          t1x: { previous: 0, current: 0, amt: 0.04 },
+          t1y: { previous: 0, current: 0, amt: 0.04 },
+          t2x: { previous: 0, current: 0, amt: 0.07 },
+          t2y: { previous: 0, current: 0, amt: 0.07 },
+        };
+        const sliderPos = {
+          main: { previous: 0, current: 0, amt: 0.08 },
+          trail2: { previous: 0, current: 0, amt: 0.05 },
+          trail1: { previous: 0, current: 0, amt: 0.025 },
+        };
         function updateToggleTrails() {
-          var currentMode = (document.querySelector("#toggleOptionPlot.toggle-option--active") ? "plot" : "interactive");
+          var currentMode = document.querySelector(
+            "#toggleOptionPlot.toggle-option--active",
+          )
+            ? "plot"
+            : "interactive";
           var sliderTarget = currentMode === "plot" ? 0 : 1;
           function runOption(option, trail1El, trail2El, state, isHovered) {
             trail1El.classList.toggle("toggle-trail--visible", isHovered);
             trail2El.classList.toggle("toggle-trail--visible", isHovered);
-            var x = 0, y = 0;
+            var x = 0,
+              y = 0;
             if (isHovered) {
               var r = option.getBoundingClientRect();
-              var centerX = r.left + r.width / 2, centerY = r.top + r.height / 2;
+              var centerX = r.left + r.width / 2,
+                centerY = r.top + r.height / 2;
               var d = distance(mousepos.x, mousepos.y, centerX, centerY);
               if (d < r.width * triggerFactor) {
                 x = (mousepos.x - centerX) * strength;
@@ -1757,15 +2174,48 @@ function draw() {
             }
             state.t1x.current = state.t2x.current = x;
             state.t1y.current = state.t2y.current = y;
-            for (var k in state) { var s = state[k]; s.previous = lerp(s.previous, s.current, s.amt); }
-            trail1El.style.transform = "translate3d(" + state.t1x.previous + "px," + state.t1y.previous + "px,0)";
-            trail2El.style.transform = "translate3d(" + state.t2x.previous + "px," + state.t2y.previous + "px,0)";
+            for (var k in state) {
+              var s = state[k];
+              s.previous = lerp(s.previous, s.current, s.amt);
+            }
+            trail1El.style.transform =
+              "translate3d(" +
+              state.t1x.previous +
+              "px," +
+              state.t1y.previous +
+              "px,0)";
+            trail2El.style.transform =
+              "translate3d(" +
+              state.t2x.previous +
+              "px," +
+              state.t2y.previous +
+              "px,0)";
           }
-          runOption(optionPlot, trailPlot1, trailPlot2, plotRendered, hoveredOption === "plot" && currentMode === "plot");
-          runOption(optionInteractive, trailInteractive1, trailInteractive2, interactiveRendered, hoveredOption === "interactive" && currentMode === "interactive");
-          sliderPos.main.current = sliderPos.trail2.current = sliderPos.trail1.current = sliderTarget;
-          for (var k of ["main", "trail2", "trail1"]) { var s = sliderPos[k]; s.previous = lerp(s.previous, s.current, s.amt); }
-          var tx = function (v) { return "translateX(" + (v * 100) + "%)"; };
+          runOption(
+            optionPlot,
+            trailPlot1,
+            trailPlot2,
+            plotRendered,
+            hoveredOption === "plot" && currentMode === "plot",
+          );
+          runOption(
+            optionInteractive,
+            trailInteractive1,
+            trailInteractive2,
+            interactiveRendered,
+            hoveredOption === "interactive" && currentMode === "interactive",
+          );
+          sliderPos.main.current =
+            sliderPos.trail2.current =
+            sliderPos.trail1.current =
+              sliderTarget;
+          for (var k of ["main", "trail2", "trail1"]) {
+            var s = sliderPos[k];
+            s.previous = lerp(s.previous, s.current, s.amt);
+          }
+          var tx = function (v) {
+            return "translateX(" + v * 100 + "%)";
+          };
           sliderTrail1.style.transform = tx(sliderPos.trail1.previous);
           sliderTrail2.style.transform = tx(sliderPos.trail2.previous);
           slider.style.transform = tx(sliderPos.main.previous);
@@ -1778,21 +2228,27 @@ function draw() {
     <!-- Magnetic Button Effects -->
     <script>
       // Setup magnetic button effect
-      function setupMagneticButton(containerId, buttonId, trail1Id, trail2Id, curvedTextId) {
+      function setupMagneticButton(
+        containerId,
+        buttonId,
+        trail1Id,
+        trail2Id,
+        curvedTextId,
+      ) {
         const container = document.getElementById(containerId);
         const button = document.getElementById(buttonId);
         const trail1 = document.getElementById(trail1Id);
         const trail2 = document.getElementById(trail2Id);
         const curvedText = document.getElementById(curvedTextId);
-        
+
         if (!container || !button) return;
 
         let rect = button.getBoundingClientRect();
         let rotationAngle = { previous: 0, current: 0, amt: 0.08 }; // Smooth rotation tracking
-        
+
         // Check if this is the copy SVG button (positioned at top) - reduce upward trigger distance
-        const isCopySvgButton = containerId === 'copySvgBtnContainer';
-        
+        const isCopySvgButton = containerId === "copySvgBtnContainer";
+
         const rendered = {
           tx: { previous: 0, current: 0, amt: 0.12 },
           ty: { previous: 0, current: 0, amt: 0.12 },
@@ -1801,12 +2257,12 @@ function draw() {
           t2x: { previous: 0, current: 0, amt: 0.07 },
           t2y: { previous: 0, current: 0, amt: 0.07 },
           tcx: { previous: 0, current: 0, amt: 0.06 },
-          tcy: { previous: 0, current: 0, amt: 0.06 }
+          tcy: { previous: 0, current: 0, amt: 0.06 },
         };
 
         let mousepos = { x: 0, y: 0 };
-        
-        window.addEventListener('mousemove', (e) => {
+
+        window.addEventListener("mousemove", (e) => {
           mousepos = { x: e.clientX, y: e.clientY };
         });
 
@@ -1823,7 +2279,7 @@ function draw() {
           const centerX = rect.left + rect.width / 2;
           const centerY = rect.top + rect.height / 2;
           const d = distance(mousepos.x, mousepos.y, centerX, centerY);
-          
+
           // For copy SVG button, use smaller trigger distance to avoid interfering with log button
           // Also check if mouse is above the button center - if so, use even smaller trigger
           let trigger = rect.width * 2;
@@ -1831,58 +2287,90 @@ function draw() {
             const mouseAboveButton = mousepos.y < centerY;
             trigger = mouseAboveButton ? rect.width * 1.2 : rect.width * 2; // Smaller trigger when above button
           }
-          
-          let x = 0, y = 0;
+
+          let x = 0,
+            y = 0;
           if (d < trigger) {
             x = (mousepos.x - centerX) * 0.3;
             y = (mousepos.y - centerY) * 0.3;
           }
-          
-          rendered.tx.current = rendered.t1x.current = rendered.t2x.current = rendered.tcx.current = x;
-          rendered.ty.current = rendered.t1y.current = rendered.t2y.current = rendered.tcy.current = y;
-          
+
+          rendered.tx.current =
+            rendered.t1x.current =
+            rendered.t2x.current =
+            rendered.tcx.current =
+              x;
+          rendered.ty.current =
+            rendered.t1y.current =
+            rendered.t2y.current =
+            rendered.tcy.current =
+              y;
+
           // Rotation based on horizontal cursor movement - symmetric rotation
           const isHovering = d < trigger;
-          
+
           if (isHovering) {
             // Calculate rotation based on horizontal distance from center
             // Use absolute value for symmetric rotation amount, but rotate in direction that keeps text visible
             const horizontalOffset = mousepos.x - centerX;
             const maxOffset = rect.width * 2; // Same as trigger distance
             const rotationAmount = Math.abs(horizontalOffset / maxOffset) * 180; // Always positive rotation amount
-            
+
             // Rotate clockwise (positive) when on left, counterclockwise (negative) when on right
             // This keeps the text visible on both sides
-            rotationAngle.current = horizontalOffset < 0 ? rotationAmount : -rotationAmount;
+            rotationAngle.current =
+              horizontalOffset < 0 ? rotationAmount : -rotationAmount;
           } else {
             // Smoothly return to 0 when not hovering
             rotationAngle.current = 0;
           }
-          
+
           // Smooth interpolation
-          rotationAngle.previous = lerp(rotationAngle.previous, rotationAngle.current, rotationAngle.amt);
-          
+          rotationAngle.previous = lerp(
+            rotationAngle.previous,
+            rotationAngle.current,
+            rotationAngle.amt,
+          );
+
           for (const key in rendered) {
-            rendered[key].previous = lerp(rendered[key].previous, rendered[key].current, rendered[key].amt);
+            rendered[key].previous = lerp(
+              rendered[key].previous,
+              rendered[key].current,
+              rendered[key].amt,
+            );
           }
-          
-          if (trail1) trail1.style.transform = `translate(calc(-50% + ${rendered.t1x.previous}px), calc(-50% + ${rendered.t1y.previous}px))`;
-          if (trail2) trail2.style.transform = `translate(calc(-50% + ${rendered.t2x.previous}px), calc(-50% + ${rendered.t2y.previous}px))`;
+
+          if (trail1)
+            trail1.style.transform = `translate(calc(-50% + ${rendered.t1x.previous}px), calc(-50% + ${rendered.t1y.previous}px))`;
+          if (trail2)
+            trail2.style.transform = `translate(calc(-50% + ${rendered.t2x.previous}px), calc(-50% + ${rendered.t2y.previous}px))`;
           button.style.transform = `translate(calc(-50% + ${rendered.tx.previous}px), calc(-50% + ${rendered.ty.previous}px))`;
           if (curvedText) {
             curvedText.style.transform = `translate(${rendered.tcx.previous * 0.5}px, ${rendered.tcy.previous * 0.5}px) rotate(${rotationAngle.previous}deg)`;
           }
-          
+
           requestAnimationFrame(render);
         }
-        
+
         requestAnimationFrame(render);
       }
 
       // Initialize magnetic buttons after a short delay
       setTimeout(() => {
-        setupMagneticButton('previewBtnContainer', 'previewBtn', 'previewTrail1', 'previewTrail2', 'previewCurvedText');
-        setupMagneticButton('copySvgBtnContainer', 'copySvgBtn', 'copySvgTrail1', 'copySvgTrail2', 'copySvgCurvedText');
+        setupMagneticButton(
+          "previewBtnContainer",
+          "previewBtn",
+          "previewTrail1",
+          "previewTrail2",
+          "previewCurvedText",
+        );
+        setupMagneticButton(
+          "copySvgBtnContainer",
+          "copySvgBtn",
+          "copySvgTrail1",
+          "copySvgTrail2",
+          "copySvgCurvedText",
+        );
       }, 100);
     </script>
   </body>
