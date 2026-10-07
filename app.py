@@ -307,6 +307,9 @@ def run_plot(svg, layer, pen_pos_up, pen_pos_down, speed_penup, speed_pendown):
         
         # Setup plot with SVG
         plot_instance.plot_setup(svg)
+        # Plot the page as drawn. By default the plotter library turns a page that is taller than it is
+        # wide by 90 degrees to fit a landscape bed, which laid portrait A5 sketches on their side.
+        plot_instance.options.auto_rotate = False
         
         plot_instance.options.pen_pos_up = pen_pos_up
         plot_instance.options.pen_pos_down = pen_pos_down
@@ -486,6 +489,7 @@ def resume():
         
         # Setup plot with paused SVG
         plot_instance.plot_setup(temp_paused_svg)
+        plot_instance.options.auto_rotate = False  # keep the page orientation, as in run_plot
         
         # Set resume mode
         plot_instance.options.mode = "res_plot"
@@ -603,6 +607,7 @@ def home():
         plotter_type = get_plotter_type()
         home_instance = create_plotter_instance()
         home_instance.plot_setup(paused_svg)
+        home_instance.options.auto_rotate = False  # keep the page orientation, as in run_plot
         
         # Handle API differences: AxiDraw uses res_home mode, NextDraw uses find_home mode
         if plotter_type == PLOTTER_AXIDRAW:
