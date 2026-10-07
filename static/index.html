@@ -1446,11 +1446,13 @@ function draw() {
         // Wait for p5 to initialize, then capture SVG
         function captureSvg() {
             if (typeof setup === 'function' || typeof draw === 'function') {
-                // Run setup first to create canvas
-                if (typeof setup === 'function') {
+                // p5 has already run setup() once on its own, so the canvas exists.
+                // Running setup() again here would run the sketch's build step again and
+                // pile a second and third layout into the SVG. Only call it if p5 has not.
+                if (typeof setup === 'function' && !document.querySelector('canvas')) {
                     setup();
                 }
-                
+
                 // Get canvas dimensions after setup runs
                 let canvasWidth = 780; // default fallback
                 let canvasHeight = 560; // default fallback
@@ -1473,10 +1475,12 @@ function draw() {
                 // Set resolution to 96 DPI (matches p5.plotSvg default and pyaxidraw inches)
                 setSvgResolutionDPI(96);
                 
+                // p5's own first draw() leaves its transform (scale, translate) on the canvas.
+                // Start the recorded pass from a clean matrix so a sketch's scale() is not applied twice.
+                if (typeof resetMatrix === 'function') resetMatrix();
                 // Use window as the instance (works in global mode)
                 beginRecordSvg(window, null);
-                // Re-run setup and draw to capture SVG
-                if (typeof setup === 'function') setup();
+                // Record one draw() pass. setup() is not re-run: it already ran once.
                 if (typeof draw === 'function') draw();
                 svgResult = endRecordSvg();
                 window.parent.postMessage({type: 'svgResult', svg: svgResult}, '*');
@@ -1485,8 +1489,11 @@ function draw() {
             }
         }
         
-        // Wait a bit for p5.js library to load and initialize
-        setTimeout(captureSvg, 300);
+        // Wait for p5 to finish its own setup() (a heavy sketch can take longer than a fixed delay)
+        (function waitForSetup(tries) {
+            if (document.querySelector('canvas') || tries <= 0) return captureSvg();
+            setTimeout(function () { waitForSetup(tries - 1); }, 50);
+        })(60);
     </` +
                 `script>
 </body>
